@@ -7,6 +7,7 @@
 int hls_bridge_start(const char *url) { (void)url; return -1; }
 void hls_bridge_stop(void) {}
 const char *hls_bridge_get_url(void) { return ""; }
+int hls_bridge_has_data(void) { return 0; }
 
 int main(int argc, char **argv) {
     if (argc < 2) return 2;
