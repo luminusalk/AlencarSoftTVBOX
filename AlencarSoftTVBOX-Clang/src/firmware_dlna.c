@@ -55,7 +55,7 @@ static void serve_client(int client) {
     char header[256];
     int source = -1;
     ssize_t n;
-    size_t used = 0;
+    size_t used = 0, delivered = 0;
     int is_head = 0;
     struct pollfd pfd;
     while (used < sizeof(request) - 1 && s_running) {
@@ -81,10 +81,13 @@ static void serve_client(int client) {
              "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n"
              "Cache-Control: no-store\r\nConnection: close\r\n\r\n",
              s_file_path[0] && strstr(s_file_path, ".mp4") ?
-             "video/mp4" : "video/mpeg");
+             "video/mp4" : "video/mp2t");
     if (send_all(client, header, strlen(header)) < 0 || is_head) return;
     source = open(s_file_path[0] ? s_file_path : hls_bridge_get_url(), O_RDONLY | O_NONBLOCK);
-    if (source < 0) return;
+    if (source < 0) {
+        fprintf(stderr, "[DLNA HTTP] Falha ao abrir fonte MPEG-TS: errno=%d\n", errno);
+        return;
+    }
     while (s_running) {
         pfd.fd = source;
         pfd.events = POLLIN;
@@ -93,8 +96,17 @@ static void serve_client(int client) {
         n = read(source, bytes, sizeof(bytes));
         if (n < 0 && (errno == EINTR || errno == EAGAIN)) continue;
         if (n < 0 || (n == 0 && s_file_path[0])) break;
-        if (n > 0 && send_all(client, bytes, (size_t)n) < 0) break;
+        if (n > 0) {
+            if (send_all(client, bytes, (size_t)n) < 0) break;
+            if (delivered == 0 || delivered / (1024 * 1024) !=
+                                  (delivered + (size_t)n) / (1024 * 1024))
+                fprintf(stderr, "[DLNA HTTP] TS enviado: %lu bytes\n",
+                        (unsigned long)(delivered + (size_t)n));
+            delivered += (size_t)n;
+        }
     }
+    fprintf(stderr, "[DLNA HTTP] Conexao encerrada apos %lu bytes TS.\n",
+            (unsigned long)delivered);
     close(source);
 }
 
@@ -451,9 +463,13 @@ int firmware_dlna_start(const char *source, const char *title) {
 
     if (s_bridge_started) {
         /* Aguarda o primeiro segmento chegar no buffer para o player receber dados de imediato */
-        for (int w = 0; w < 30 && s_running; w++) {
+        for (int w = 0; w < 120 && s_running; w++) {
             if (hls_bridge_has_data()) break;
             usleep(100000);
+        }
+        if (!hls_bridge_has_data()) {
+            fprintf(stderr, "[DLNA] Nenhum segmento HLS pronto apos 12 segundos.\n");
+            goto failed;
         }
     }
 

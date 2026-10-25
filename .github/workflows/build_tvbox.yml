@@ -40,6 +40,11 @@ jobs:
             -D_GNU_SOURCE -Iinclude tests/firmware_dlna_harness.c \
             src/firmware_dlna.c -lpthread -o firmware_dlna_harness
           python3 tests/test_firmware_dlna.py ./firmware_dlna_harness
+          gcc -std=gnu99 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined \
+            -D_GNU_SOURCE -Iinclude tests/firmware_dlna_live_harness.c \
+            src/firmware_dlna.c src/hls_bridge.c src/hls_playlist.c \
+            -lpthread -o firmware_dlna_live_harness
+          python3 tests/test_firmware_dlna_live.py ./firmware_dlna_live_harness
 
   build-csky:
     name: Build para Azamerica S1009+ (NationalChip GX6622 / C-SKY)

@@ -354,6 +354,7 @@ static void *hls_producer_thread(void *arg) {
     uint8_t *segment_buf = (uint8_t *)malloc(MAX_SEGMENT_SIZE);
     uint64_t next_sequence = 0;
     int started = 0;
+    unsigned int playlist_failures = 0;
     if (!playlist_buf || !segment_buf) {
         fprintf(stderr, "[HLS Bridge] Memoria insuficiente para segmentos.\n");
         free(playlist_buf);
@@ -369,16 +370,26 @@ static void *hls_producer_thread(void *arg) {
             hls_segment_t segments[16];
             size_t count = 0, start_idx, i;
             uint64_t parsed_next = next_sequence;
+            playlist_failures = 0;
             playlist_buf[p_size] = '\0';
             if (hls_parse_media_playlist((const char *)playlist_buf, s_current_m3u8,
                                          &parsed_next, segments, 16, &count) < 0) {
                 fprintf(stderr, "[HLS Bridge] Playlist invalida ou formato HLS nao suportado.\n");
             } else {
+                if (!started)
+                    fprintf(stderr, "[HLS Bridge] Playlist recebida: %lu bytes, %lu segmentos novos.\n",
+                            (unsigned long)p_size, (unsigned long)count);
                 start_idx = !started && count > 2 ? count - 2 : 0;
                 for (i = start_idx; i < count && s_bridge_running; i++) {
                     size_t seg_size = 0, offset = 0;
-                    if (http_fetch(segments[i].url, segment_buf, MAX_SEGMENT_SIZE, &seg_size) < 0)
+                    if (http_fetch(segments[i].url, segment_buf, MAX_SEGMENT_SIZE, &seg_size) < 0) {
+                        fprintf(stderr, "[HLS Bridge] Falha no segmento de sequencia %llu.\n",
+                                (unsigned long long)segments[i].sequence);
                         break;
+                    }
+                    if (!started)
+                        fprintf(stderr, "[HLS Bridge] Primeiro segmento: %lu bytes.\n",
+                                (unsigned long)seg_size);
                     while (offset < seg_size && s_bridge_running) {
                         size_t chunk = seg_size - offset;
                         if (chunk > 64 * 1024) chunk = 64 * 1024;
@@ -391,6 +402,9 @@ static void *hls_producer_thread(void *arg) {
                     started = 1;
                 }
             }
+        } else if (++playlist_failures == 1 || playlist_failures % 10 == 0) {
+            fprintf(stderr, "[HLS Bridge] Falha ao baixar playlist (%u tentativas).\n",
+                    playlist_failures);
         }
 
         for (int w = 0; w < 10 && s_bridge_running; w++) {
