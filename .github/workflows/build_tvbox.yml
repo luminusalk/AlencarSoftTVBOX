@@ -37,7 +37,8 @@ jobs:
       - name: Baixar Toolchain NationalChip C-SKY (Linux 3.0.8 / CK610)
         run: |
           mkdir -p /opt/csky-toolchain
-          wget -q "https://launchpad.net/~nationalchip-repo/+archive/ubuntu/gxtools/+sourcefiles/csky-linux-tools-uclibc-2.8.01/1.0.0.0/csky-linux-tools-uclibc-2.8.01_1.0.0.0.tar.xz" -O /tmp/csky_pkg.tar.xz
+          wget --tries=3 --timeout=60 -q "https://launchpadlibrarian.net/433579941/csky-linux-tools-uclibc-2.8.01_1.0.0.0.tar.xz" -O /tmp/csky_pkg.tar.xz
+          echo "444cccfe0f0f1888a8975ba460413a01da87f06275d6546e1df90a29d620b4b2  /tmp/csky_pkg.tar.xz" | sha256sum -c -
           tar -xf /tmp/csky_pkg.tar.xz -C /tmp
           tar -xf /tmp/csky-linux-tools-uclibc-2.8.01/csky-linux-tools-uclibc-20170724.tar.xz -C /opt/csky-toolchain
           echo "Toolchain NationalChip C-SKY extraida com sucesso."
