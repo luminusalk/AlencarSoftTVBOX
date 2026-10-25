@@ -126,6 +126,9 @@ app_key_t input_poll(void) {
                 fprintf(stderr, "[IR] Azamerica command 0x%02x -> raw key %d\n",
                         (unsigned)((const uint8_t *)&ir_code)[0], raw_key);
             } else {
+                const uint8_t *b = (const uint8_t *)&ir_code;
+                fprintf(stderr, "[IR RAW] 0x%08x [b0=0x%02x b1=0x%02x b2=0x%02x b3=0x%02x]\n",
+                        ir_code, b[0], b[1], b[2], b[3]);
                 uint8_t cmd = (ir_code >> 8) & 0xFF;
                 switch (cmd) {
                     case 0x11: case 0x48: raw_key = KEY_NAV_UP; break;
