@@ -20,15 +20,27 @@ http://dns.explouddev.com:80/632270679/F823j7133R/469
 #EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/BANDNEWS.png" group-title="Notícias — Apuração",BandNews [720p HD]
 #EXTGRP:Notícias — Apuração
 http://dns.explouddev.com:80/632270679/F823j7133R/467
+#EXTINF:-1 tvg-logo="http://media.jovempan.com.br/uploads/2018/07/JPNews-imagem-pagina-e1530887165749.png" group-title="Notícias — Apuração",Jovem Pan News [1080p FULL HD]
+#EXTGRP:Notícias — Apuração
+http://dns.explouddev.com:80/632270679/F823j7133R/483
 #EXTINF:-1 tvg-logo="http://media.jovempan.com.br/uploads/2018/07/JPNews-imagem-pagina-e1530887165749.png" group-title="Notícias — Apuração",Jovem Pan News [720p HD]
 #EXTGRP:Notícias — Apuração
 http://dns.explouddev.com:80/632270679/F823j7133R/482
+#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/RECORDNEWS.png" group-title="Notícias — Apuração",Record News [1080p FULL HD]
+#EXTGRP:Notícias — Apuração
+http://dns.explouddev.com:80/632270679/F823j7133R/488
 #EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/RECORDNEWS.png" group-title="Notícias — Apuração",Record News [720p HD]
 #EXTGRP:Notícias — Apuração
 http://dns.explouddev.com:80/632270679/F823j7133R/486
+#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SBT.png" group-title="Notícias — Apuração",SBT News [1080p FULL HD]
+#EXTGRP:Notícias — Apuração
+http://dns.explouddev.com:80/632270679/F823j7133R/599766
 #EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SBT.png" group-title="Notícias — Apuração",SBT News [720p HD]
 #EXTGRP:Notícias — Apuração
 http://dns.explouddev.com:80/632270679/F823j7133R/599767
+#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/bloomberg.png" group-title="Notícias — Apuração",Bloomberg [720p HD]
+#EXTGRP:Notícias — Apuração
+http://dns.explouddev.com:80/632270679/F823j7133R/489
 #EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBO.png" group-title="Canais Abertos",Globo SP [1080p FULL HD]
 #EXTGRP:Canais Abertos
 http://dns.explouddev.com:80/632270679/F823j7133R/289881

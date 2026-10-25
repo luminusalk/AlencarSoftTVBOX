@@ -135,10 +135,7 @@ void app_render(app_context_t *app) {
             }
         }
 
-        /* Atualiza a cada ~300ms (10 frames) ou nos primeiros 5s para manter a camada limpa */
-        if (++play_frame % 10 == 0 || (now - play_start_time <= 5)) {
-            fb_flip(&app->fb);
-        }
+        fb_flip(&app->fb);
         return;
     }
 
@@ -272,7 +269,6 @@ void app_handle_input(app_context_t *app, app_key_t key) {
             app->view = VIEW_CATEGORIES;
             vfd_set_text("GRADE");
             fb_clear(&app->fb, COLOR_DARK_BG);
-            fb_flip(&app->fb);
             return;
         }
         return;
@@ -348,12 +344,25 @@ void app_handle_input(app_context_t *app, app_key_t key) {
             if (cat && cat->count > 0) {
                 int ch_idx = cat->channel_indices[app->current_channel_idx];
                 iptv_channel_t *ch = &app->catalog.channels[ch_idx];
-                printf("[%s] Selecionado canal: %s\n", APP_NAME, ch->name);
+                printf("[%s] Selecionado canal: %s (idx=%d, ativo=%d)\n",
+                       APP_NAME, ch->name, ch_idx, app->active_playing_idx);
+
+                /* Se o canal selecionado ja esta em reproducao no player de fundo,
+                 * nao reinicia o stream! Apenas oculta a grade de interface e vai para tela cheia */
+                if (ch_idx == app->active_playing_idx && player_get_state() == PLAYER_STATE_PLAYING) {
+                    printf("[%s] Canal '%s' ja esta tocando em background! Ocultando grade imediatamente...\n",
+                           APP_NAME, ch->name);
+                    app->view = VIEW_PLAYING;
+                    vfd_set_text(ch->name);
+                    fb_clear(&app->fb, 0x00000000);
+                    fb_flip(&app->fb);
+                    return;
+                }
 
                 /* Atualiza o visor frontal fisico imediatamente */
                 vfd_set_text(ch->name);
 
-                /* Inicia player */
+                /* Inicia player para o novo canal */
                 if (player_play(ch->url, ch->name) == 0) {
                     app->active_playing_idx = ch_idx;
                     app->view = VIEW_PLAYING;
@@ -503,6 +512,9 @@ int main(int argc, char **argv) {
             app_render(&s_app);
 
             time_t start_time = time(NULL);
+            time_t last_sec = 0;
+            time_t play_banner_timeout = 0;
+            int needs_render = 0;
             int loop_cnt = 0;
             while (s_app.running) {
                 app_key_t key = input_poll();
@@ -512,12 +524,34 @@ int main(int argc, char **argv) {
                            APP_NAME, key, cur_st, s_app.current_channel_idx);
                     fflush(stdout);
                     app_handle_input(&s_app, key);
+                    needs_render = 1;
+                    if (s_app.view == VIEW_PLAYING) {
+                        play_banner_timeout = time(NULL) + 5;
+                    }
                 }
 
-                app_render(&s_app);
-                usleep(30000);
+                time_t now = time(NULL);
+                if (now != last_sec) {
+                    last_sec = now;
+                    /* Na grade, atualiza o relogio a cada segundo */
+                    if (s_app.view == VIEW_CATEGORIES) {
+                        needs_render = 1;
+                    }
+                    /* Em reproducao, limpa o banner quando expirar os 5 segundos */
+                    if (s_app.view == VIEW_PLAYING && play_banner_timeout > 0 && now >= play_banner_timeout) {
+                        play_banner_timeout = 0;
+                        needs_render = 1;
+                    }
+                }
 
-                if (++loop_cnt % 100 == 0) {
+                if (needs_render) {
+                    app_render(&s_app);
+                    needs_render = 0;
+                }
+
+                usleep(15000); /* 15ms de intervalo = ~66Hz de polling instantaneo com quase 0% CPU */
+
+                if (++loop_cnt % 200 == 0) {
                     player_state_t cur_st = player_get_state();
                     printf("[%s] [OSD+IR] t=%ds/%ds, estado player=%d\n", APP_NAME,
                            (int)(time(NULL) - start_time), duration, cur_st);

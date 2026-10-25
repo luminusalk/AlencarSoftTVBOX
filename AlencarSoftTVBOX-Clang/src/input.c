@@ -28,8 +28,8 @@ static app_key_t filter_key_debounce(app_key_t raw_key) {
     uint64_t now = get_time_ms();
 
     if (raw_key == KEY_NONE) {
-        /* Se decorreram mais de 160ms sem sinal, a tecla foi liberada pelo usuario */
-        if (s_active_key != KEY_NONE && (now - s_last_seen_time > 160)) {
+        /* Se decorreram mais de 75ms sem sinal, a tecla foi liberada pelo usuario */
+        if (s_active_key != KEY_NONE && (now - s_last_seen_time > 75)) {
             s_active_key = KEY_NONE;
             s_first_press_time = 0;
             s_last_repeat_time = 0;
@@ -37,17 +37,19 @@ static app_key_t filter_key_debounce(app_key_t raw_key) {
         return KEY_NONE;
     }
 
+    uint64_t gap = (s_last_seen_time > 0) ? (now - s_last_seen_time) : 1000;
     s_last_seen_time = now;
 
-    /* Nova tecla diferente da tecla anterior: dispara imediatamente sem atraso */
-    if (raw_key != s_active_key) {
+    /* Nova tecla diferente da anterior OU novo toque apos pequena pausa:
+     * Dispara imediatamente sem nenhum atraso, garantindo resposta instantanea */
+    if (raw_key != s_active_key || gap > 75) {
         s_active_key = raw_key;
         s_first_press_time = now;
         s_last_repeat_time = now;
         return raw_key;
     }
 
-    /* Tecla repetida (sinal continuo de transmissao do controle remoto) */
+    /* Tecla repetida (sinal continuo / botao mantido pressionado no controle remoto) */
 
     /* 1. Teclas de acao NUNCA repetem sozinhas (evita duplo clique e fechamentos involuntarios) */
     if (raw_key == KEY_ACTION_OK || raw_key == KEY_ACTION_BACK ||
@@ -55,9 +57,9 @@ static app_key_t filter_key_debounce(app_key_t raw_key) {
         return KEY_NONE;
     }
 
-    /* 2. Teclas de navegacao repetem com retardo inicial de 350ms e cadencia de 180ms */
-    if (now - s_first_press_time >= 350) {
-        if (now - s_last_repeat_time >= 180) {
+    /* 2. Teclas de navegacao repetem com retardo inicial de 240ms e cadencia suave de 110ms */
+    if (now - s_first_press_time >= 240) {
+        if (now - s_last_repeat_time >= 110) {
             s_last_repeat_time = now;
             return raw_key;
         }
@@ -119,10 +121,10 @@ app_key_t input_poll(void) {
     /* 1. Le do controle remoto infravermelho se disponivel */
     if (s_ir_fd >= 0) {
         uint32_t ir_code = 0;
-        int n = read(s_ir_fd, &ir_code, sizeof(ir_code));
-        if (n == (int)sizeof(ir_code)) {
-            raw_key = input_decode_gxirr_packet((const uint8_t *)&ir_code);
-            if (raw_key != KEY_NONE) {
+        while (read(s_ir_fd, &ir_code, sizeof(ir_code)) == (int)sizeof(ir_code)) {
+            app_key_t decoded = input_decode_gxirr_packet((const uint8_t *)&ir_code);
+            if (decoded != KEY_NONE) {
+                raw_key = decoded;
                 fprintf(stderr, "[IR] Azamerica command 0x%02x -> raw key %d\n",
                         (unsigned)((const uint8_t *)&ir_code)[0], raw_key);
             } else {
