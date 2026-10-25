@@ -52,9 +52,7 @@ static int send_all(int fd, const char *data, size_t length) {
 
 static void serve_client(int client) {
     char request[2048], bytes[16384];
-    static const char header[] =
-        "HTTP/1.0 200 OK\r\nContent-Type: video/mpeg\r\n"
-        "Cache-Control: no-store\r\nConnection: close\r\n\r\n";
+    char header[256];
     int source = -1;
     ssize_t n;
     size_t used = 0;
@@ -78,7 +76,12 @@ static void serve_client(int client) {
         return;
     }
     is_head = request[0] == 'H';
-    if (send_all(client, header, sizeof(header) - 1) < 0 || is_head) return;
+    snprintf(header, sizeof(header),
+             "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n"
+             "Cache-Control: no-store\r\nConnection: close\r\n\r\n",
+             s_file_path[0] && strstr(s_file_path, ".mp4") ?
+             "video/mp4" : "video/mp2t");
+    if (send_all(client, header, strlen(header)) < 0 || is_head) return;
     source = open(s_file_path[0] ? s_file_path : hls_bridge_get_url(), O_RDONLY | O_NONBLOCK);
     if (source < 0) return;
     while (s_running) {
@@ -171,7 +174,7 @@ static int http_request(const char *host, int port, const char *path,
                         const char *body, char *reply, size_t reply_cap,
                         int timeout_seconds) {
     int fd = -1, request_length, result = -1;
-    char request[12288];
+    char request[22000];
     size_t size = 0;
     struct sockaddr_in peer;
     struct timeval timeout;
@@ -320,7 +323,7 @@ static int xml_escape(const char *src, char *dst, size_t cap) {
 }
 
 static int soap(const char *action, const char *args) {
-    char body[8192], reply[8192], header[160];
+    char body[18000], reply[8192], header[160];
     int n = snprintf(body, sizeof(body),
         "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" "
         "s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
@@ -335,15 +338,20 @@ static int soap(const char *action, const char *args) {
 int firmware_dlna_start(const char *source, const char *title) {
     struct sockaddr_in address;
     socklen_t address_size = sizeof(address);
-    char uri[128], uri_escaped[256], title_escaped[512], metadata[2048],
-         metadata_escaped[4096], args[5120];
-    int n;
+    char uri[1024], uri_escaped[4096], title_escaped[512], metadata[6144],
+         metadata_escaped[10000], args[14000];
+    int n, direct_http;
+    const char *mime;
     if (!source || !*source) return -1;
     firmware_dlna_stop();
     if (discover_renderer() < 0) {
         fprintf(stderr, "[DLNA] Renderizador local nao encontrado.\n");
         return -1;
     }
+    direct_http = strncmp(source, "http://", 7) == 0 &&
+                  !strstr(source, ".m3u8") && !strstr(source, ".m3u");
+    mime = (direct_http || source[0] == '/') && strstr(source, ".mp4") ?
+           "video/mp4" : "video/mpeg";
     s_file_path[0] = '\0';
     if (source[0] == '/') {
         if (strlen(source) >= sizeof(s_file_path)) return -1;
@@ -351,7 +359,7 @@ int firmware_dlna_start(const char *source, const char *title) {
     } else if (strstr(source, ".m3u8") || strstr(source, ".m3u")) {
         if (hls_bridge_start(source) < 0) return -1;
         s_bridge_started = 1;
-    } else return -1;
+    } else if (!direct_http) return -1;
     s_listener = socket(AF_INET, SOCK_STREAM, 0);
     if (s_listener < 0) goto failed;
     memset(&address, 0, sizeof(address));
@@ -364,7 +372,10 @@ int firmware_dlna_start(const char *source, const char *title) {
     s_running = 1;
     if (pthread_create(&s_server, NULL, server_thread, NULL) != 0) goto failed;
     s_server_started = 1;
-    snprintf(uri, sizeof(uri), "http://127.0.0.1:%u/live.ts", ntohs(address.sin_port));
+    if (direct_http) n = snprintf(uri, sizeof(uri), "%s", source);
+    else n = snprintf(uri, sizeof(uri), "http://127.0.0.1:%u/live.ts",
+                      ntohs(address.sin_port));
+    if (n < 0 || (size_t)n >= sizeof(uri)) goto failed;
     if (xml_escape(uri, uri_escaped, sizeof(uri_escaped)) < 0 ||
         xml_escape(title ? title : "Canal IPTV", title_escaped, sizeof(title_escaped)) < 0)
         goto failed;
@@ -374,8 +385,8 @@ int firmware_dlna_start(const char *source, const char *title) {
         "xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\">"
         "<item id=\"1\" parentID=\"0\" restricted=\"1\">"
         "<dc:title>%s</dc:title><upnp:class>object.item.videoItem</upnp:class>"
-        "<res protocolInfo=\"http-get:*:video/mpeg:*\">%s</res>"
-        "</item></DIDL-Lite>", title_escaped, uri_escaped);
+        "<res protocolInfo=\"http-get:*:%s:*\">%s</res>"
+        "</item></DIDL-Lite>", title_escaped, mime, uri_escaped);
     if (n < 0 || (size_t)n >= sizeof(metadata) ||
         xml_escape(metadata, metadata_escaped, sizeof(metadata_escaped)) < 0)
         goto failed;

@@ -1,5 +1,6 @@
 import http.server
 from pathlib import Path
+import socket
 import subprocess
 import sys
 import tempfile
@@ -26,6 +27,13 @@ class Renderer(http.server.BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
+        if self.path == "/sample.ts":
+            self.send_response(200)
+            self.send_header("Content-Type", "video/mp2t")
+            self.send_header("Content-Length", str(len(sample)))
+            self.end_headers()
+            self.wfile.write(sample)
+            return
         if self.path != "/description.xml":
             return self.respond(404)
         body = ("<root><device><serviceList><service>"
@@ -55,7 +63,7 @@ class Renderer(http.server.BaseHTTPRequestHandler):
             self.server.stream_uri = uri
         elif action == "Play":
             with urllib.request.urlopen(self.server.stream_uri, timeout=5) as response:
-                assert response.headers["Content-Type"] == "video/mpeg"
+                assert response.headers["Content-Type"] == "video/mp2t"
                 assert response.read() == sample
         elif action != "Stop":
             return self.respond(500)
@@ -75,6 +83,16 @@ with tempfile.TemporaryDirectory() as directory:
         print(result.stdout, result.stderr)
         assert result.returncode == 0, result.returncode
         assert events == ["SetAVTransportURI", "Play", "Stop"], events
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as route:
+            route.connect(("1.1.1.1", 53))
+            local_ip = route.getsockname()[0]
+        direct_url = f"http://{local_ip}:{renderer.server_port}/sample.ts"
+        result = subprocess.run([sys.argv[1], direct_url], timeout=35,
+                                capture_output=True, text=True)
+        print(result.stdout, result.stderr)
+        assert result.returncode == 0, result.returncode
+        assert renderer.stream_uri == direct_url
+        assert events == ["SetAVTransportURI", "Play", "Stop"] * 2, events
     finally:
         renderer.shutdown()
         renderer.server_close()
