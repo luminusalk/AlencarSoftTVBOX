@@ -38,18 +38,18 @@ jobs:
           # Mostra opcoes de arquitetura do compilador
           $CC_BIN --target-help 2>&1 | grep -E "(ck610|ck810|ck807|abiv1|abiv2)" | head -n 30 || true
           
-          # Tenta com -mcpu=ck610, senao -march=ck610, senao padrao estatico
-          if $CC_BIN -static -mcpu=ck610 -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
+          # Tenta compilar especificamente para C-SKY ABIV1 (CK610)
+          if $CC_BIN -static -mabi=abiv1 -march=ck610 -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
+            src/main.c src/framebuffer.c src/font.c src/platform.c src/display_vfd.c \
+            src/input.c src/iptv_catalog.c src/player.c -o alencarsoft_tvbox_csky 2>/tmp/abiv1.log; then
+            echo "SUCESSO: Compilado com -mabi=abiv1 -march=ck610!"
+          elif $CC_BIN -static -mcpu=ck610 -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
             src/main.c src/framebuffer.c src/font.c src/platform.c src/display_vfd.c \
             src/input.c src/iptv_catalog.c src/player.c -o alencarsoft_tvbox_csky 2>/tmp/ck610.log; then
-            echo "Compilado com sucesso usando -mcpu=ck610!"
-          elif $CC_BIN -static -march=ck610 -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
-            src/main.c src/framebuffer.c src/font.c src/platform.c src/display_vfd.c \
-            src/input.c src/iptv_catalog.c src/player.c -o alencarsoft_tvbox_csky 2>/tmp/ck610_arch.log; then
-            echo "Compilado com sucesso usando -march=ck610!"
+            echo "Compilado com -mcpu=ck610!"
           else
             echo "Compilando padrao estatico:"
-            cat /tmp/ck610.log || true
+            cat /tmp/abiv1.log || true
             $CC_BIN -static -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
               src/main.c src/framebuffer.c src/font.c src/platform.c src/display_vfd.c \
               src/input.c src/iptv_catalog.c src/player.c -o alencarsoft_tvbox_csky
@@ -60,6 +60,7 @@ jobs:
           fi
           
           # Compila mini_test de diagnostico
+          $CC_BIN -static -mabi=abiv1 -march=ck610 mini_test.c -o mini_test 2>/dev/null || \
           $CC_BIN -static mini_test.c -o mini_test
           if [ -n "$STRIP_BIN" ]; then
             $STRIP_BIN mini_test || true
@@ -173,6 +174,7 @@ jobs:
 
       - name: Copiar arquivos complementares
         run: |
+          find release_files/ -type f -exec mv -f {} release_files/ \; 2>/dev/null || true
           cp AlencarSoftTVBOX-Clang/iptv.m3u8 release_files/
           ls -la release_files/
 
@@ -180,8 +182,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: "v1.0.3-native"
-          name: "AlencarSoft TVBOX - Versao Nativa Estavel v1.0.3"
+          tag_name: "v1.0.4-native"
+          name: "AlencarSoft TVBOX - Versao Nativa Estavel v1.0.4"
           draft: false
           prerelease: false
           overwrite: true
