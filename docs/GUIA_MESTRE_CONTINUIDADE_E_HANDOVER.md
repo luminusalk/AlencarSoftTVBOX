@@ -65,7 +65,7 @@ mas **ainda não foi testada na TV**. Não declarar o aplicativo concluído.
   `http-get:*:video/mpeg:*`; metadados vazios causaram timeout no diagnóstico.
 - Para HLS `.m3u8`, `src/hls_bridge.c` baixa playlists e segmentos por
   HTTP(S) em C, alimenta `/tmp/live_stream.ts`, e o HTTP interno serve o TS
-  como `video/mp2t`.
+  como `video/mpeg`.
 - Para URL HTTP direta sem `.m3u`, o commit `a6a3114` passa a URL original ao
   renderizador. Foi testado com renderizador simulado, **não** na TV. A lista
   local de exemplo é majoritariamente composta desse tipo de URL.

@@ -80,7 +80,7 @@ static void serve_client(int client) {
              "HTTP/1.0 200 OK\r\nContent-Type: %s\r\n"
              "Cache-Control: no-store\r\nConnection: close\r\n\r\n",
              s_file_path[0] && strstr(s_file_path, ".mp4") ?
-             "video/mp4" : "video/mp2t");
+             "video/mp4" : "video/mpeg");
     if (send_all(client, header, strlen(header)) < 0 || is_head) return;
     source = open(s_file_path[0] ? s_file_path : hls_bridge_get_url(), O_RDONLY | O_NONBLOCK);
     if (source < 0) return;

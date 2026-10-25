@@ -1,6 +1,7 @@
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 import socket
+import sys
 import telnetlib
 
 
@@ -30,4 +31,5 @@ with telnetlib.Telnet(hosts[0], 23, timeout=8) as connection:
         raise RuntimeError(f"No shell prompt: {banner!r}")
     connection.write(args.command.encode("ascii") + b"\n")
     result = connection.read_until(prompt_end, timeout=20)
-    print(result.decode("utf-8", errors="replace"))
+    sys.stdout.buffer.write(result)
+    sys.stdout.buffer.flush()

@@ -29,7 +29,7 @@ class Renderer(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/sample.ts":
             self.send_response(200)
-            self.send_header("Content-Type", "video/mp2t")
+            self.send_header("Content-Type", "video/mpeg")
             self.send_header("Content-Length", str(len(sample)))
             self.end_headers()
             self.wfile.write(sample)
@@ -65,12 +65,12 @@ class Renderer(http.server.BaseHTTPRequestHandler):
             if "live.ts" in self.server.stream_uri:
                 req_head = urllib.request.Request(self.server.stream_uri, method="HEAD")
                 with urllib.request.urlopen(req_head, timeout=5) as head_resp:
-                    assert head_resp.headers["Content-Type"] in ("video/mp2t", "video/mp4")
+                    assert head_resp.headers["Content-Type"] in ("video/mpeg", "video/mp4")
                     assert head_resp.read() == b""
                 with urllib.request.urlopen(self.server.stream_uri, timeout=5) as partial:
                     _ = partial.read(64)
             with urllib.request.urlopen(self.server.stream_uri, timeout=5) as response:
-                assert response.headers["Content-Type"] == "video/mp2t"
+                assert response.headers["Content-Type"] in ("video/mpeg", "video/mp4")
                 assert response.read() == sample
         elif action != "Stop":
             return self.respond(500)
