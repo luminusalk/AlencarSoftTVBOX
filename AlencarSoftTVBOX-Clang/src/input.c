@@ -37,6 +37,8 @@ int input_init(const char *ir_device) {
         s_ir_fd = open(devs[i], O_RDONLY | O_NONBLOCK);
         if (s_ir_fd >= 0) {
             fprintf(stderr, "[IR] Device opened: %s\n", devs[i]);
+            uint8_t dummy[64];
+            while (read(s_ir_fd, dummy, sizeof(dummy)) > 0) {}
             break;
         }
     }

@@ -87,12 +87,7 @@ int app_init(app_context_t *app) {
         app->catalog.categories[0].channel_indices[1] = 1;
         app->catalog.categories[0].count = 2;
         app->catalog.total_categories = 1;
-        /* skip old single assignment */
-        if (0) strcpy(app->catalog.channels[0].name, "TV Cultura ao vivo [720p HD]");
-        strcpy(app->catalog.channels[0].url, "https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8");
-        strcpy(app->catalog.channels[0].category, "Canais Abertos");
-        app->catalog.channels[0].is_hd = 1;
-        app->catalog.total_channels = 1;
+        /* Clean fallback done */
 
         strcpy(app->catalog.categories[0].name, "Canais Abertos");
         app->catalog.categories[0].channel_indices[0] = 0;
@@ -272,10 +267,8 @@ void app_handle_input(app_context_t *app, app_key_t key) {
             if (player_get_state() == PLAYER_STATE_PLAYING) {
                 player_stop();
                 vfd_set_text("GRADE");
-            } else {
-                /* Se ja estiver na grade, encerra o app limpo */
-                app->running = 0;
             }
+            /* Na grade principal, ignora BACK para nao fechar o aplicativo por acidente */
             break;
 
         case KEY_EXIT_APP:
