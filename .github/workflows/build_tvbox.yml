@@ -37,12 +37,12 @@ jobs:
           cd AlencarSoftTVBOX-Clang
           
           # Compila o aplicativo AlencarSoft TVBOX estatico com o toolchain oficial NationalChip
-          $CC_BIN -static -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
+          $CC_BIN -static -std=gnu99 -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
             src/main.c src/framebuffer.c src/font.c src/platform.c src/display_vfd.c \
             src/input.c src/iptv_catalog.c src/player.c -o alencarsoft_tvbox_csky
           
           # Compila mini_test de diagnostico
-          $CC_BIN -static -O2 mini_test.c -o mini_test
+          $CC_BIN -static -std=gnu99 -O2 mini_test.c -o mini_test
           
           # Strip para reduzir tamanho
           $STRIP_BIN alencarsoft_tvbox_csky || true
