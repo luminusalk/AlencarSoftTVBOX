@@ -24,12 +24,14 @@ typedef struct {
 } iptv_category_t;
 
 typedef struct {
-    iptv_channel_t  channels[MAX_CHANNELS_COUNT];
-    iptv_category_t categories[MAX_CATEGORIES_COUNT];
+    iptv_channel_t  *channels;
+    iptv_category_t *categories;
     int             total_channels;
     int             total_categories;
 } iptv_catalog_t;
 
+int  catalog_init(iptv_catalog_t *cat);
+void catalog_free(iptv_catalog_t *cat);
 int  catalog_load_m3u(iptv_catalog_t *cat, const char *path);
 int  catalog_load_json(iptv_catalog_t *cat, const char *path);
 void catalog_filter_quality(iptv_catalog_t *cat, int prefer_fullhd);

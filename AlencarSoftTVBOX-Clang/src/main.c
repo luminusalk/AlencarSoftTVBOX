@@ -51,7 +51,8 @@ int app_init(app_context_t *app) {
     /* 6. Inicializacao do Player de video */
     player_init();
 
-    /* 7. Carrega catalogo inicial (M3U ou JSON) */
+    /* 7. Inicializa e carrega catalogo inicial (M3U ou JSON) */
+    catalog_init(&app->catalog);
     if (catalog_load_m3u(&app->catalog, DEFAULT_M3U_PATH) <= 0) {
         catalog_load_m3u(&app->catalog, "/mnt/plugin/lists/Canais ao Vivo.m3u");
     }
@@ -258,6 +259,7 @@ void app_update_catalog_from_web(app_context_t *app) {
 
 void app_cleanup(app_context_t *app) {
     player_close();
+    catalog_free(&app->catalog);
     vfd_set_text("PRONTO");
     vfd_close();
     input_close();

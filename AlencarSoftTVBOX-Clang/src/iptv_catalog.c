@@ -30,9 +30,36 @@ static void add_to_category(iptv_catalog_t *cat, const char *cat_name, int chann
     }
 }
 
+int catalog_init(iptv_catalog_t *cat) {
+    if (!cat) return -1;
+    if (!cat->channels) {
+        cat->channels = (iptv_channel_t *)calloc(MAX_CHANNELS_COUNT, sizeof(iptv_channel_t));
+    }
+    if (!cat->categories) {
+        cat->categories = (iptv_category_t *)calloc(MAX_CATEGORIES_COUNT, sizeof(iptv_category_t));
+    }
+    cat->total_channels = 0;
+    cat->total_categories = 0;
+    return (cat->channels && cat->categories) ? 0 : -1;
+}
+
+void catalog_free(iptv_catalog_t *cat) {
+    if (!cat) return;
+    if (cat->channels) {
+        free(cat->channels);
+        cat->channels = NULL;
+    }
+    if (cat->categories) {
+        free(cat->categories);
+        cat->categories = NULL;
+    }
+    cat->total_channels = 0;
+    cat->total_categories = 0;
+}
+
 int catalog_load_m3u(iptv_catalog_t *cat, const char *path) {
     if (!cat || !path) return -1;
-    memset(cat, 0, sizeof(*cat));
+    if (catalog_init(cat) < 0) return -1;
 
     FILE *f = fopen(path, "r");
     if (!f) return -1;
