@@ -33,7 +33,7 @@ int app_init(app_context_t *app) {
 
     /* 1. Assume controle exclusivo: pausa daemons satelite de fundo (ex: dvbapp) */
     system("echo PAUSING_DVBAPP >> /tmp/alencar_status.txt");
-    system("killall -STOP dvbapp 2>/dev/null");
+    system("killall -9 dvbapp 2>/dev/null; umount -l /app 2>/dev/null;");
 
     /* 2. Deteccao automatica de hardware */
     system("echo DETECTING_PLATFORM >> /tmp/alencar_status.txt");
@@ -71,7 +71,24 @@ int app_init(app_context_t *app) {
 
     /* Fallback com canais essenciais caso nao haja lista salva */
     if (app->catalog.total_channels == 0) {
-        strcpy(app->catalog.channels[0].name, "TV Cultura ao vivo [720p HD]");
+        strcpy(app->catalog.channels[0].name, "Canal Teste Local HD (Audio MP3)");
+        strcpy(app->catalog.channels[0].url, "/mnt/plugin/video_mp3.mp4");
+        strcpy(app->catalog.channels[0].category, "Canais Abertos");
+        app->catalog.channels[0].is_hd = 1;
+
+        strcpy(app->catalog.channels[1].name, "TV Cultura ao vivo [720p HD]");
+        strcpy(app->catalog.channels[1].url, "https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8");
+        strcpy(app->catalog.channels[1].category, "Canais Abertos");
+        app->catalog.channels[1].is_hd = 1;
+        app->catalog.total_channels = 2;
+
+        strcpy(app->catalog.categories[0].name, "Canais Abertos");
+        app->catalog.categories[0].channel_indices[0] = 0;
+        app->catalog.categories[0].channel_indices[1] = 1;
+        app->catalog.categories[0].count = 2;
+        app->catalog.total_categories = 1;
+        /* skip old single assignment */
+        if (0) strcpy(app->catalog.channels[0].name, "TV Cultura ao vivo [720p HD]");
         strcpy(app->catalog.channels[0].url, "https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8");
         strcpy(app->catalog.channels[0].category, "Canais Abertos");
         app->catalog.channels[0].is_hd = 1;
