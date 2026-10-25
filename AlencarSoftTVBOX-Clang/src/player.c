@@ -39,14 +39,18 @@ int player_play(const char *url, const char *channel_name) {
 #ifdef RECEIVER_DLNA_BACKEND
     if (!url || !*url) return -1;
     player_stop();
+    /* Retoma o dvbapp para que os decodificadores e UPnP processem o canal */
+    system("killall -CONT dvbapp 2>/dev/null");
+    usleep(200000); /* 200ms para estabilizacao das threads */
     if (firmware_dlna_start(url, channel_name) < 0) {
         fprintf(stderr, "[Player] Falha ao iniciar player DLNA do firmware.\n");
+        system("killall -STOP dvbapp 2>/dev/null");
         s_player_state = PLAYER_STATE_ERROR;
         return -1;
     }
     s_uses_bridge = strstr(url, ".m3u") != NULL;
     s_start_time = time(NULL);
-    s_player_state = s_uses_bridge ? PLAYER_STATE_BUFFERING : PLAYER_STATE_PLAYING;
+    s_player_state = PLAYER_STATE_PLAYING;
     return 0;
 #else
     const char *play_url = url;
@@ -105,6 +109,8 @@ int player_play(const char *url, const char *channel_name) {
 void player_stop(void) {
 #ifdef RECEIVER_DLNA_BACKEND
     firmware_dlna_stop();
+    /* Pausa o dvbapp ao retornar a grade para parar de disputar o controle remoto e a tela */
+    system("killall -STOP dvbapp 2>/dev/null");
 #else
     pid_t pid = s_player_pid;
     if (pid > 0) {

@@ -32,8 +32,11 @@ int app_init(app_context_t *app) {
     signal(SIGTTOU, SIG_IGN);
     signal(SIGTTIN, SIG_IGN);
 
-    /* O player DLNA do S1009+ pertence ao dvbapp: mantê-lo vivo é essencial. */
-#ifndef RECEIVER_DLNA_BACKEND
+    /* O player DLNA do S1009+ pertence ao dvbapp: mantê-lo vivo é essencial.
+     * Pausamos o dvbapp durante a navegação no menu para evitar disputa de IR e tela. */
+#ifdef RECEIVER_DLNA_BACKEND
+    system("killall -STOP dvbapp 2>/dev/null");
+#else
     system("echo PAUSING_DVBAPP >> /tmp/alencar_status.txt");
     system("killall -9 dvbapp 2>/dev/null; umount -l /app 2>/dev/null;");
 #endif
@@ -378,10 +381,8 @@ void app_cleanup(app_context_t *app) {
     fb_flip(&app->fb);
     fb_close(&app->fb);
     
-    /* Apenas o backend exclusivo pode ter pausado o processo original. */
-#ifndef RECEIVER_DLNA_BACKEND
+    /* Garante que o dvbapp seja retomado ao sair do aplicativo */
     system("killall -CONT dvbapp 2>/dev/null");
-#endif
     
     printf("[%s] Aplicativo finalizado com sucesso.\n", APP_NAME);
 }
