@@ -159,11 +159,18 @@ failed:
 }
 
 ssize_t hls_tls_read(hls_tls_t *tls, void *buffer, size_t length) {
-    int rc = mbedtls_ssl_read(&tls->ssl, (unsigned char *)buffer, length);
+    int rc;
+    do {
+        rc = mbedtls_ssl_read(&tls->ssl, (unsigned char *)buffer, length);
+    } while (rc == MBEDTLS_ERR_SSL_WANT_READ || rc == MBEDTLS_ERR_SSL_WANT_WRITE);
+    if (rc == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) return 0;
     return (ssize_t)rc;
 }
 
 ssize_t hls_tls_write(hls_tls_t *tls, const void *buffer, size_t length) {
-    int rc = mbedtls_ssl_write(&tls->ssl, (const unsigned char *)buffer, length);
+    int rc;
+    do {
+        rc = mbedtls_ssl_write(&tls->ssl, (const unsigned char *)buffer, length);
+    } while (rc == MBEDTLS_ERR_SSL_WANT_READ || rc == MBEDTLS_ERR_SSL_WANT_WRITE);
     return (ssize_t)rc;
 }

@@ -249,12 +249,21 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
     }
 #endif
 
-    req_len = snprintf(req, sizeof(req),
-             "GET %s HTTP/1.0\r\n"
-             "Host: %s:%d\r\n"
-             "User-Agent: Mozilla/5.0 (SmartTV; Azamerica/GX6622)\r\n"
-             "Accept-Encoding: identity\r\n"
-             "Connection: close\r\n\r\n", path, host, port);
+    if ((use_tls && port == 443) || (!use_tls && port == 80)) {
+        req_len = snprintf(req, sizeof(req),
+                 "GET %s HTTP/1.0\r\n"
+                 "Host: %s\r\n"
+                 "User-Agent: Mozilla/5.0 (SmartTV; Azamerica/GX6622)\r\n"
+                 "Accept-Encoding: identity\r\n"
+                 "Connection: close\r\n\r\n", path, host);
+    } else {
+        req_len = snprintf(req, sizeof(req),
+                 "GET %s HTTP/1.0\r\n"
+                 "Host: %s:%d\r\n"
+                 "User-Agent: Mozilla/5.0 (SmartTV; Azamerica/GX6622)\r\n"
+                 "Accept-Encoding: identity\r\n"
+                 "Connection: close\r\n\r\n", path, host, port);
+    }
     if (req_len < 0 || (size_t)req_len >= sizeof(req)) goto done;
 
     while (sent < (size_t)req_len) {
@@ -276,7 +285,10 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
         else
 #endif
             r = recv(fd, chunk, sizeof(chunk), 0);
-        if (r < 0 && errno == EINTR) continue;
+        if (r < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)) {
+            usleep(2000);
+            continue;
+        }
         if (r < 0) {
             if (has_length && total == content_length) complete = 1;
             break;
@@ -293,7 +305,10 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
             split = strstr(header_buf, "\r\n\r\n");
             if (!split) continue;
             header_len = (size_t)(split + 4 - header_buf);
-            if (sscanf(header_buf, "HTTP/%*d.%*d %d", &status) != 1 || status != 200) break;
+            if (sscanf(header_buf, "HTTP/%*d.%*d %d", &status) != 1 || status != 200) {
+                fprintf(stderr, "[HLS Bridge] HTTP status %d: %.60s\n", status, header_buf);
+                break;
+            }
             *split = '\0';
             line = strstr(header_buf, "\r\n");
             if (!line) break;
@@ -394,6 +409,8 @@ static void *hls_producer_thread(void *arg) {
                         fprintf(stderr, "[HLS Bridge] Falha ao baixar segmento: %.100s\n", segments[i].url);
                         break;
                     }
+                    fprintf(stderr, "[HLS Bridge] Segmento #%llu OK (%zu bytes)\n",
+                            (unsigned long long)segments[i].sequence, seg_size);
                     next_sequence = segments[i].sequence + 1;
                     started = 1;
                 }
