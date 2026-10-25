@@ -38,6 +38,7 @@ hls_tls_t *hls_tls_open(int fd, const char *hostname) {
         "/mnt/plugin/cacert.pem"
     };
     const char personalization[] = "AlencarSoftTVBOX HLS";
+    const char *override_ca = getenv("HLS_CA_BUNDLE");
     hls_tls_t *tls = (hls_tls_t *)calloc(1, sizeof(*tls));
     int rc = -1;
     size_t i;
@@ -53,11 +54,16 @@ hls_tls_t *hls_tls_open(int fd, const char *hostname) {
     mbedtls_net_init(&tls->net);
     tls->net.fd = fd;
 
-    for (i = 0; i < sizeof(ca_paths) / sizeof(ca_paths[0]); i++) {
-        rc = mbedtls_x509_crt_parse_file(&tls->ca, ca_paths[i]);
-        if (rc == 0) break;
-        mbedtls_x509_crt_free(&tls->ca);
-        mbedtls_x509_crt_init(&tls->ca);
+    if (override_ca && *override_ca) {
+        rc = mbedtls_x509_crt_parse_file(&tls->ca, override_ca);
+        i = rc == 0 ? 0 : sizeof(ca_paths) / sizeof(ca_paths[0]);
+    } else {
+        for (i = 0; i < sizeof(ca_paths) / sizeof(ca_paths[0]); i++) {
+            rc = mbedtls_x509_crt_parse_file(&tls->ca, ca_paths[i]);
+            if (rc == 0) break;
+            mbedtls_x509_crt_free(&tls->ca);
+            mbedtls_x509_crt_init(&tls->ca);
+        }
     }
     if (i == sizeof(ca_paths) / sizeof(ca_paths[0])) {
         fprintf(stderr, "[HLS TLS] CA bundle ausente ou invalido.\n");

@@ -21,6 +21,21 @@ jobs:
             -D_GNU_SOURCE -Iinclude tests/hls_bridge_harness.c src/hls_bridge.c \
             src/hls_playlist.c -lpthread -o hls_bridge_harness
           python3 tests/test_hls_bridge.py ./hls_bridge_harness
+          wget --tries=3 --timeout=60 -q \
+            "https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.7/mbedtls-3.6.7.tar.bz2" \
+            -O /tmp/mbedtls-3.6.7.tar.bz2
+          echo "a7e8bcbec0e6f761b4af24f25677626b35f762f68eef79c08677a363212d11f6  /tmp/mbedtls-3.6.7.tar.bz2" | sha256sum -c -
+          tar -xf /tmp/mbedtls-3.6.7.tar.bz2 -C /tmp
+          make -C /tmp/mbedtls-3.6.7 lib -j2
+          gcc -std=gnu99 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined \
+            -D_GNU_SOURCE -DHLS_WITH_MBEDTLS -Iinclude \
+            -I/tmp/mbedtls-3.6.7/include \
+            tests/hls_bridge_harness.c src/hls_bridge.c src/hls_playlist.c src/hls_tls.c \
+            /tmp/mbedtls-3.6.7/library/libmbedtls.a \
+            /tmp/mbedtls-3.6.7/library/libmbedx509.a \
+            /tmp/mbedtls-3.6.7/library/libmbedcrypto.a \
+            -lpthread -o hls_bridge_tls_harness
+          HLS_TEST_TLS=1 python3 tests/test_hls_bridge.py ./hls_bridge_tls_harness
 
   build-csky:
     name: Build para Azamerica S1009+ (NationalChip GX6622 / C-SKY)

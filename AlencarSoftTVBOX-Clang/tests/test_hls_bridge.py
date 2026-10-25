@@ -1,7 +1,10 @@
 import http.server
+import os
 import socketserver
+import ssl
 import subprocess
 import sys
+import tempfile
 import threading
 import unittest
 
@@ -48,17 +51,42 @@ class BridgeTests(unittest.TestCase):
         cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
         cls.thread.start()
         cls.base = f"http://127.0.0.1:{cls.server.server_address[1]}"
+        cls.tls_server = None
+        if os.environ.get("HLS_TEST_TLS") == "1":
+            cls.cert_dir = tempfile.TemporaryDirectory()
+            cls.cert = os.path.join(cls.cert_dir.name, "localhost.crt")
+            key = os.path.join(cls.cert_dir.name, "localhost.key")
+            subprocess.run([
+                "openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes",
+                "-days", "1", "-keyout", key, "-out", cls.cert,
+                "-subj", "/CN=localhost", "-addext", "subjectAltName=DNS:localhost",
+                "-addext", "basicConstraints=critical,CA:TRUE",
+            ], check=True, capture_output=True)
+            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            ssl_context.load_cert_chain(cls.cert, key)
+            cls.tls_server = socketserver.TCPServer(("127.0.0.1", 0), Handler)
+            cls.tls_server.socket = ssl_context.wrap_socket(cls.tls_server.socket,
+                                                             server_side=True)
+            cls.tls_thread = threading.Thread(target=cls.tls_server.serve_forever,
+                                              daemon=True)
+            cls.tls_thread.start()
+            cls.tls_base = f"https://localhost:{cls.tls_server.server_address[1]}"
 
     @classmethod
     def tearDownClass(cls):
         cls.server.shutdown()
         cls.server.server_close()
         cls.thread.join()
+        if cls.tls_server:
+            cls.tls_server.shutdown()
+            cls.tls_server.server_close()
+            cls.tls_thread.join()
+            cls.cert_dir.cleanup()
 
-    def run_bridge(self, mode, path, expected=0, timeout=8):
+    def run_bridge(self, mode, path, expected=0, timeout=8, base=None, env=None):
         return subprocess.run(
-            [sys.argv[1], mode, self.base + path, str(expected)],
-            capture_output=True, timeout=timeout,
+            [sys.argv[1], mode, (base or self.base) + path, str(expected)],
+            capture_output=True, timeout=timeout, env=env,
         )
 
     def test_segment_larger_than_old_limit_is_exact(self):
@@ -76,6 +104,19 @@ class BridgeTests(unittest.TestCase):
 
     def test_incomplete_response_does_not_enter_fifo(self):
         result = self.run_bridge("empty", "/partial.m3u8")
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_https_certificate_and_hostname_verified(self):
+        if not self.tls_server:
+            self.skipTest("TLS build not requested")
+        env = dict(os.environ, HLS_CA_BUNDLE=self.cert)
+        result = self.run_bridge("stream", "/live.m3u8", len(SEGMENT),
+                                 timeout=12, base=self.tls_base, env=env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, SEGMENT)
+
+        bad_host = self.tls_base.replace("localhost", "127.0.0.1")
+        result = self.run_bridge("empty", "/live.m3u8", base=bad_host, env=env)
         self.assertEqual(result.returncode, 0, result.stderr)
 
 
