@@ -16,7 +16,7 @@ jobs:
       - name: Instalar dependencias do sistema
         run: |
           sudo apt-get update
-          sudo apt-get install -y lib32z1 lib32stdc++6 file wget
+          sudo apt-get install -y lib32z1 lib32stdc++6 file wget python3
 
       - name: Baixar Toolchain C-SKY (T-Head uClibc)
         run: |
@@ -25,7 +25,7 @@ jobs:
           tar -xzf /tmp/csky.tar.gz -C /opt/csky-toolchain
           echo "Toolchain extraida com sucesso."
 
-      - name: Compilar binario C-SKY
+      - name: Compilar binario C-SKY Estatico
         run: |
           CC_BIN=$(find /opt/csky-toolchain -type f -name "*gcc" | grep "/bin/" | head -n 1)
           STRIP_BIN=$(find /opt/csky-toolchain -type f -name "*strip" | grep "/bin/" | head -n 1)
@@ -34,7 +34,9 @@ jobs:
           $CC_BIN -v
           
           cd AlencarSoftTVBOX-Clang
-          $CC_BIN -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
+          
+          # Tenta com flags especificas para CK610 se disponivel, senao padrao estatico
+          $CC_BIN -static -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
             src/main.c \
             src/framebuffer.c \
             src/font.c \
@@ -49,15 +51,27 @@ jobs:
             $STRIP_BIN alencarsoft_tvbox_csky || true
           fi
           
-          echo "SUCESSO: Binario C-SKY gerado com sucesso!"
-          file alencarsoft_tvbox_csky
-          ls -lh alencarsoft_tvbox_csky
+          # Versao moderna (e_machine = 0xFC / 252)
+          cp alencarsoft_tvbox_csky alencarsoft_tvbox_csky_v2
+          
+          # Versao compativel com Kernel 3.0.8 (e_machine = 0x27 / 39)
+          python3 -c '
+          with open("alencarsoft_tvbox_csky", "r+b") as f:
+              f.seek(18)
+              f.write(bytes([0x27]))
+          '
+          
+          echo "SUCESSO: Binarios C-SKY gerados com sucesso!"
+          file alencarsoft_tvbox_csky*
+          ls -lh alencarsoft_tvbox_csky*
 
       - name: Upload Artifact C-SKY
         uses: actions/upload-artifact@v4
         with:
           name: alencarsoft_tvbox_csky
-          path: AlencarSoftTVBOX-Clang/alencarsoft_tvbox_csky
+          path: |
+            AlencarSoftTVBOX-Clang/alencarsoft_tvbox_csky
+            AlencarSoftTVBOX-Clang/alencarsoft_tvbox_csky_v2
 
   build-mips:
     name: Build para Availink AVL2569D (Cinebox, Duosat, Tuning / MIPS)
@@ -71,11 +85,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc-mips-linux-gnu gcc-mipsel-linux-gnu file
 
-      - name: Compilar binarios MIPS
+      - name: Compilar binarios MIPS Estaticos
         run: |
           cd AlencarSoftTVBOX-Clang
-          # MIPS Big Endian
-          mips-linux-gnu-gcc -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
+          # MIPS Big Endian Estatico
+          mips-linux-gnu-gcc -static -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
             src/main.c \
             src/framebuffer.c \
             src/font.c \
@@ -87,8 +101,8 @@ jobs:
             -o alencarsoft_tvbox_mips_be
           mips-linux-gnu-strip alencarsoft_tvbox_mips_be || true
             
-          # MIPS Little Endian (MIPSEL)
-          mipsel-linux-gnu-gcc -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
+          # MIPS Little Endian (MIPSEL) Estatico
+          mipsel-linux-gnu-gcc -static -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
             src/main.c \
             src/framebuffer.c \
             src/font.c \
@@ -137,9 +151,11 @@ jobs:
           name: alencarsoft_tvbox_mips
           path: release_files/
 
-      - name: Copiar grade iptv.m3u8
+      - name: Copiar arquivos complementares
         run: |
           cp AlencarSoftTVBOX-Clang/iptv.m3u8 release_files/
+          cp AlencarSoftTVBOX-Clang/launcher/alencarsoft.sh release_files/
+          chmod +x release_files/alencarsoft.sh
           ls -la release_files/
 
       - name: Criar Release no GitHub
