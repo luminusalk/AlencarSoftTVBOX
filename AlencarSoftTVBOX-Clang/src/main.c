@@ -28,6 +28,7 @@ int app_init(app_context_t *app) {
     /* Configura tratamento de sinais para encerramento seguro */
     signal(SIGINT, sig_handler);
     signal(SIGTERM, sig_handler);
+    signal(SIGHUP, SIG_IGN);
     signal(SIGTTOU, SIG_IGN);
     signal(SIGTTIN, SIG_IGN);
 
