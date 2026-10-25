@@ -168,7 +168,8 @@ static int parse_location(const char *response, const char *own_ip,
 
 static int http_request(const char *host, int port, const char *path,
                         const char *method, const char *soap_action,
-                        const char *body, char *reply, size_t reply_cap) {
+                        const char *body, char *reply, size_t reply_cap,
+                        int timeout_seconds) {
     int fd = -1, request_length, result = -1;
     char request[12288];
     size_t size = 0;
@@ -176,7 +177,7 @@ static int http_request(const char *host, int port, const char *path,
     struct timeval timeout;
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) return -1;
-    timeout.tv_sec = 8;
+    timeout.tv_sec = timeout_seconds;
     timeout.tv_usec = 0;
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
     setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
@@ -213,17 +214,65 @@ done:
     return result;
 }
 
+static int try_renderer(const char *host, int port, const char *path) {
+    char description[16384];
+    const char *service, *service_end, *control, *end;
+    size_t length;
+    if (http_request(host, port, path, "GET", NULL, NULL,
+                     description, sizeof(description), 2) < 0) return -1;
+    service = strstr(description, "<serviceType>" AV_SERVICE "</serviceType>");
+    if (!service) return -1;
+    service_end = strstr(service, "</service>");
+    control = strstr(service, "<controlURL>");
+    end = control ? strstr(control, "</controlURL>") : NULL;
+    if (!service_end || !control || !end || end > service_end) return -1;
+    control += strlen("<controlURL>");
+    length = (size_t)(end - control);
+    if (!length || length + (*control == '/' ? 0 : 1) >= sizeof(s_control_path)) return -1;
+    if (*control == '/') {
+        memcpy(s_control_path, control, length);
+        s_control_path[length] = '\0';
+    } else {
+        s_control_path[0] = '/';
+        memcpy(s_control_path + 1, control, length);
+        s_control_path[length + 1] = '\0';
+    }
+    if (strlen(host) >= sizeof(s_renderer_ip)) return -1;
+    strcpy(s_renderer_ip, host);
+    s_renderer_port = port;
+    fprintf(stderr, "[DLNA] Renderizador local em %s:%d%s\n",
+            s_renderer_ip, s_renderer_port, s_control_path);
+    return 0;
+}
+
+static int scan_local_listeners(const char *own_ip) {
+    char line[256], address[9];
+    unsigned int port, state;
+    FILE *tcp = fopen("/proc/net/tcp", "r");
+    if (!tcp) return -1;
+    while (fgets(line, sizeof(line), tcp)) {
+        if (sscanf(line, " %*d: %8[0-9A-Fa-f]:%x %*s %x",
+                   address, &port, &state) != 3 || state != 0x0a ||
+            port < 1024 || port > 65535) continue;
+        if (try_renderer(own_ip, (int)port, "/description.xml") == 0) {
+            fclose(tcp);
+            return 0;
+        }
+    }
+    fclose(tcp);
+    return -1;
+}
+
 static int discover_renderer(void) {
     static const char search[] =
         "M-SEARCH * HTTP/1.1\r\nHOST:239.255.255.250:1900\r\n"
         "MAN:\"ssdp:discover\"\r\nMX:1\r\nST:ssdp:all\r\n\r\n";
-    char own_ip[64], response[8192], description[16384], path[256], host[64];
-    const char *service, *control, *end;
+    char own_ip[64], response[8192], path[256], host[64];
     struct sockaddr_in target;
     struct pollfd pfd;
     int fd, port, attempts;
-    size_t length;
     if (local_ip(own_ip, sizeof(own_ip)) < 0) return -1;
+    if (scan_local_listeners(own_ip) == 0) return 0;
     fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd < 0) return -1;
     memset(&target, 0, sizeof(target));
@@ -243,28 +292,10 @@ static int discover_renderer(void) {
         response[n] = '\0';
         if (parse_location(response, own_ip, host, sizeof(host), &port,
                            path, sizeof(path)) < 0) continue;
-        if (http_request(host, port, path, "GET", NULL, NULL,
-                         description, sizeof(description)) < 0) continue;
-        service = strstr(description, "<serviceType>" AV_SERVICE "</serviceType>");
-        if (!service) continue;
-        control = strstr(service, "<controlURL>");
-        end = control ? strstr(control, "</controlURL>") : NULL;
-        if (!end) continue;
-        control += strlen("<controlURL>");
-        length = (size_t)(end - control);
-        if (!length || length >= sizeof(s_control_path)) continue;
-        if (*control == '/') {
-            memcpy(s_control_path, control, length);
-            s_control_path[length] = '\0';
-        } else {
-            s_control_path[0] = '/';
-            memcpy(s_control_path + 1, control, length);
-            s_control_path[length + 1] = '\0';
+        if (try_renderer(host, port, path) == 0) {
+            close(fd);
+            return 0;
         }
-        strcpy(s_renderer_ip, host);
-        s_renderer_port = port;
-        close(fd);
-        return 0;
     }
 failed:
     close(fd);
@@ -298,7 +329,7 @@ static int soap(const char *action, const char *args) {
     if (n < 0 || (size_t)n >= sizeof(body)) return -1;
     snprintf(header, sizeof(header), AV_SERVICE "#%s", action);
     return http_request(s_renderer_ip, s_renderer_port, s_control_path,
-                        "POST", header, body, reply, sizeof(reply));
+                        "POST", header, body, reply, sizeof(reply), 8);
 }
 
 int firmware_dlna_start(const char *source, const char *title) {

@@ -7,7 +7,7 @@
 typedef struct hls_tls hls_tls_t;
 
 /* The caller retains ownership of fd. Hostname and certificate validation
- * are mandatory; this function fails if the CA bundle is unavailable. */
+ * are mandatory. The default CA bundle is embedded in the executable. */
 hls_tls_t *hls_tls_open(int fd, const char *hostname);
 ssize_t hls_tls_read(hls_tls_t *tls, void *buffer, size_t length);
 ssize_t hls_tls_write(hls_tls_t *tls, const void *buffer, size_t length);

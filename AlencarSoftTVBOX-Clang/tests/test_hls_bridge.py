@@ -119,6 +119,16 @@ class BridgeTests(unittest.TestCase):
         result = self.run_bridge("empty", "/live.m3u8", base=bad_host, env=env)
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_embedded_ca_bundle_loads_without_receiver_file(self):
+        if not self.tls_server:
+            self.skipTest("TLS build not requested")
+        env = dict(os.environ, HLS_TLS_TRACE="1")
+        env.pop("HLS_CA_BUNDLE", None)
+        result = self.run_bridge("empty", "/live.m3u8", base=self.tls_base,
+                                 env=env, timeout=12)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(b"[HLS TLS] ca-parsed rc=0", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main(argv=[sys.argv[0]])
