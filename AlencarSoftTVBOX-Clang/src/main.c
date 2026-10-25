@@ -403,21 +403,62 @@ int main(int argc, char **argv) {
     printf("=========================================\n");
     fflush(stdout);
 
-    /* Modo C isolado (headless): testa o transporte DLNA e player C sem tocar em framebuffer, IR, VFD ou watchdog */
-    if (argc >= 3 && strcmp(argv[1], "--headless") == 0) {
+    /* Modo C isolado (headless): testa o transporte DLNA e player C, com flags para isolar componentes */
+    if (argc >= 3 && (strcmp(argv[1], "--headless") == 0 ||
+                      strcmp(argv[1], "--headless-vfd") == 0 ||
+                      strcmp(argv[1], "--headless-watchdog") == 0 ||
+                      strcmp(argv[1], "--headless-fb") == 0 ||
+                      strcmp(argv[1], "--headless-input") == 0)) {
         const char *source = argv[2];
         int duration = argc >= 4 ? atoi(argv[3]) : 15;
+        int with_vfd = (strcmp(argv[1], "--headless-vfd") == 0);
+        int with_watchdog = (strcmp(argv[1], "--headless-watchdog") == 0);
+        int with_fb = (strcmp(argv[1], "--headless-fb") == 0);
+        int with_input = (strcmp(argv[1], "--headless-input") == 0);
+        fb_context_t test_fb;
+        memset(&test_fb, 0, sizeof(test_fb));
         if (duration <= 0) duration = 15;
-        printf("[%s] Modo HEADLESS isolado: fonte='%s', duracao=%ds\n", APP_NAME, source, duration);
+        printf("[%s] Modo HEADLESS isolado (%s): fonte='%s', duracao=%ds\n", APP_NAME, argv[1], source, duration);
         fflush(stdout);
+
+        if (with_vfd) {
+            platform_info_t plat = platform_detect();
+            printf("[%s] Habilitando componente VFD...\n", APP_NAME);
+            vfd_init(plat.panel);
+            vfd_set_text("ALENCARSOFT");
+        }
+        if (with_input) {
+            printf("[%s] Habilitando componente Input (IR)...\n", APP_NAME);
+            input_init(DEFAULT_IR_DEV);
+        }
+        if (with_fb) {
+            printf("[%s] Habilitando componente Framebuffer (/dev/fb0)...\n", APP_NAME);
+            if (fb_init(&test_fb, DEFAULT_FB_DEV) == 0) {
+                fb_clear(&test_fb, 0x00000000);
+                fb_flip(&test_fb);
+            }
+        }
 
         player_init();
         if (player_play(source, "Headless Test") < 0) {
             fprintf(stderr, "[%s] Falha no player_play headless\n", APP_NAME);
+            if (with_fb) fb_close(&test_fb);
+            if (with_input) input_close();
+            if (with_vfd) vfd_close();
             return 1;
         }
 
         for (int i = 0; i < duration; i++) {
+            if (with_watchdog) {
+                system("echo 1 > /dev/watchdog 2>/dev/null || true");
+            }
+            if (with_input) {
+                input_poll();
+            }
+            if (with_fb) {
+                fb_clear(&test_fb, 0x00000000);
+                fb_flip(&test_fb);
+            }
             sleep(1);
             printf("[%s] Headless t=%ds/%ds, estado player=%d\n", APP_NAME, i + 1, duration, player_get_state());
             fflush(stdout);
@@ -426,6 +467,14 @@ int main(int argc, char **argv) {
         printf("[%s] Encerrando reproducao headless...\n", APP_NAME);
         player_stop();
         player_close();
+
+        if (with_fb) fb_close(&test_fb);
+        if (with_input) input_close();
+        if (with_vfd) {
+            vfd_set_text("PRONTO");
+            vfd_close();
+        }
+
         printf("[%s] Modo headless concluido com sucesso.\n", APP_NAME);
         return 0;
     }
