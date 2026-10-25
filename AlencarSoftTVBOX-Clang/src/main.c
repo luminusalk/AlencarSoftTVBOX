@@ -251,6 +251,8 @@ void app_cleanup(app_context_t *app) {
 }
 
 int main(int argc, char **argv) {
+    (void)argc;
+    (void)argv;
     app_context_t app;
 
     if (app_init(&app) < 0) {

@@ -27,3 +27,6 @@ $RECYCLE.BIN/
 dvbapp_*
 *.dump
 *.bin
+*.o
+alencarsoft_tvbox_*
+

@@ -27,7 +27,9 @@ int vfd_init(panel_type_t type) {
             tty.c_cflag |= (CLOCAL | CREAD);
             tty.c_cflag &= ~(PARENB | PARODD);
             tty.c_cflag &= ~CSTOPB;
+#ifdef CRTSCTS
             tty.c_cflag &= ~CRTSCTS;
+#endif
             tcsetattr(s_vfd_fd, TCSANOW, &tty);
         }
     }
@@ -35,6 +37,7 @@ int vfd_init(panel_type_t type) {
 }
 
 int vfd_set_text(const char *text) {
+    (void)s_panel_type;
     if (!text || s_vfd_fd < 0) return -1;
 
     char buffer[32];

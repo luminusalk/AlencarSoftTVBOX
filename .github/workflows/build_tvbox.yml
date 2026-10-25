@@ -9,13 +9,11 @@ jobs:
   build-csky:
     name: Build para Azamerica S1009+ (NationalChip GX6622 / C-SKY)
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout do repositorio
         uses: actions/checkout@v3
 
-      - name: Instalar dependencias e 32-bit libs
+      - name: Instalar dependencias do sistema
         run: |
           sudo apt-get update
           sudo apt-get install -y lib32z1 lib32stdc++6 file wget
@@ -25,17 +23,18 @@ jobs:
           mkdir -p /opt/csky-toolchain
           wget -q "https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource/1356021/1619527806432/csky-linux-uclibc-tools-x86_64-uclibc-linux-4.9.56-20210423.tar.gz" -O /tmp/csky.tar.gz
           tar -xzf /tmp/csky.tar.gz -C /opt/csky-toolchain
-          echo "Toolchain extraida."
+          echo "Toolchain extraida com sucesso."
 
       - name: Compilar binario C-SKY
         run: |
-          CC_BIN=$(find /opt/csky-toolchain -type f -name "*csky*gcc" | head -n 1)
-          echo "Compilador: $CC_BIN"
+          CC_BIN=$(find /opt/csky-toolchain -type f -name "*gcc" | grep "/bin/" | head -n 1)
+          STRIP_BIN=$(find /opt/csky-toolchain -type f -name "*strip" | grep "/bin/" | head -n 1)
+          echo "Compilador selecionado: $CC_BIN"
           export PATH="$(dirname $CC_BIN):$PATH"
           $CC_BIN -v
           
           cd AlencarSoftTVBOX-Clang
-          $CC_BIN -O2 -Wall -Iinclude -D_GNU_SOURCE \
+          $CC_BIN -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
             src/main.c \
             src/framebuffer.c \
             src/font.c \
@@ -44,17 +43,15 @@ jobs:
             src/input.c \
             src/iptv_catalog.c \
             src/player.c \
-            -o alencarsoft_tvbox_csky 2>&1 | tee /tmp/compile_csky.log || true
+            -o alencarsoft_tvbox_csky
           
-          if [ -f alencarsoft_tvbox_csky ]; then
-            echo "SUCESSO: Binario C-SKY gerado!"
-            file alencarsoft_tvbox_csky
-            ls -lh alencarsoft_tvbox_csky
-          else
-            echo "FALHA NA COMPILACAO:"
-            cat /tmp/compile_csky.log
-            exit 1
+          if [ -n "$STRIP_BIN" ]; then
+            $STRIP_BIN alencarsoft_tvbox_csky || true
           fi
+          
+          echo "SUCESSO: Binario C-SKY gerado com sucesso!"
+          file alencarsoft_tvbox_csky
+          ls -lh alencarsoft_tvbox_csky
 
       - name: Upload Artifact C-SKY
         uses: actions/upload-artifact@v4
@@ -62,16 +59,97 @@ jobs:
           name: alencarsoft_tvbox_csky
           path: AlencarSoftTVBOX-Clang/alencarsoft_tvbox_csky
 
+  build-mips:
+    name: Build para Availink AVL2569D (Cinebox, Duosat, Tuning / MIPS)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositorio
+        uses: actions/checkout@v3
+
+      - name: Instalar compilador MIPS cross
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mips-linux-gnu gcc-mipsel-linux-gnu file
+
+      - name: Compilar binarios MIPS
+        run: |
+          cd AlencarSoftTVBOX-Clang
+          # MIPS Big Endian
+          mips-linux-gnu-gcc -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
+            src/main.c \
+            src/framebuffer.c \
+            src/font.c \
+            src/platform.c \
+            src/display_vfd.c \
+            src/input.c \
+            src/iptv_catalog.c \
+            src/player.c \
+            -o alencarsoft_tvbox_mips_be
+          mips-linux-gnu-strip alencarsoft_tvbox_mips_be || true
+            
+          # MIPS Little Endian (MIPSEL)
+          mipsel-linux-gnu-gcc -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
+            src/main.c \
+            src/framebuffer.c \
+            src/font.c \
+            src/platform.c \
+            src/display_vfd.c \
+            src/input.c \
+            src/iptv_catalog.c \
+            src/player.c \
+            -o alencarsoft_tvbox_mips_le
+          mipsel-linux-gnu-strip alencarsoft_tvbox_mips_le || true
+            
+          echo "SUCESSO: Binarios MIPS gerados com sucesso!"
+          file alencarsoft_tvbox_mips_*
+          ls -lh alencarsoft_tvbox_mips_*
+
+      - name: Upload Artifact MIPS
+        uses: actions/upload-artifact@v4
+        with:
+          name: alencarsoft_tvbox_mips
+          path: |
+            AlencarSoftTVBOX-Clang/alencarsoft_tvbox_mips_be
+            AlencarSoftTVBOX-Clang/alencarsoft_tvbox_mips_le
+
+  release:
+    name: Publicar Release com Binarios Nativos
+    needs: [build-csky, build-mips]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout do repositorio
+        uses: actions/checkout@v3
+
+      - name: Criar pasta de release
+        run: mkdir -p release_files
+
+      - name: Download Artifact C-SKY
+        uses: actions/download-artifact@v4
+        with:
+          name: alencarsoft_tvbox_csky
+          path: release_files/
+
+      - name: Download Artifact MIPS
+        uses: actions/download-artifact@v4
+        with:
+          name: alencarsoft_tvbox_mips
+          path: release_files/
+
+      - name: Copiar grade iptv.m3u8
+        run: |
+          cp AlencarSoftTVBOX-Clang/iptv.m3u8 release_files/
+          ls -la release_files/
+
       - name: Criar Release no GitHub
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: latest
-          name: "AlencarSoft TVBOX - Versao Nativa Estavel"
+          tag_name: "v1.0.0-native"
+          name: "AlencarSoft TVBOX - Versao Nativa Estavel v1.0.0"
           draft: false
           prerelease: false
-          files: |
-            AlencarSoftTVBOX-Clang/alencarsoft_tvbox_csky
-            AlencarSoftTVBOX-Clang/iptv.m3u8
+          files: release_files/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

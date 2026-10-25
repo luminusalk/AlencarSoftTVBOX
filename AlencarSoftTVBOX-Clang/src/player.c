@@ -19,6 +19,7 @@ int player_init(void) {
 }
 
 int player_play(const char *url, const char *channel_name) {
+    (void)channel_name;
     if (!url) return -1;
     strncpy(s_current_url, url, sizeof(s_current_url) - 1);
     s_player_state = PLAYER_STATE_BUFFERING;
