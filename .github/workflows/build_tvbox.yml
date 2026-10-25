@@ -59,6 +59,17 @@ jobs:
             $STRIP_BIN alencarsoft_tvbox_csky || true
           fi
           
+          # Compila mini_test de diagnostico
+          $CC_BIN -static mini_test.c -o mini_test
+          if [ -n "$STRIP_BIN" ]; then
+            $STRIP_BIN mini_test || true
+          fi
+          python3 -c '
+          with open("mini_test", "r+b") as f:
+              f.seek(18)
+              f.write(bytes([0x27]))
+          '
+          
           # Versao moderna (e_machine = 0xFC / 252)
           cp alencarsoft_tvbox_csky alencarsoft_tvbox_csky_v2
           
@@ -80,6 +91,7 @@ jobs:
           path: |
             AlencarSoftTVBOX-Clang/alencarsoft_tvbox_csky
             AlencarSoftTVBOX-Clang/alencarsoft_tvbox_csky_v2
+            AlencarSoftTVBOX-Clang/mini_test
 
   build-mips:
     name: Build para Availink AVL2569D (Cinebox, Duosat, Tuning / MIPS)
@@ -168,8 +180,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: "v1.0.2-native"
-          name: "AlencarSoft TVBOX - Versao Nativa Estavel v1.0.2"
+          tag_name: "v1.0.3-native"
+          name: "AlencarSoft TVBOX - Versao Nativa Estavel v1.0.3"
           draft: false
           prerelease: false
           overwrite: true
