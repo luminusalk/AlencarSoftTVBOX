@@ -19,6 +19,7 @@ static void sig_handler(int sig) {
 }
 
 int app_init(app_context_t *app) {
+    system("echo APP_INIT_START > /tmp/alencar_status.txt");
     memset(app, 0, sizeof(*app));
     app->running = 1;
     app->view = VIEW_CATEGORIES;
@@ -29,29 +30,38 @@ int app_init(app_context_t *app) {
     signal(SIGTERM, sig_handler);
 
     /* 1. Assume controle exclusivo: pausa daemons satelite de fundo (ex: dvbapp) */
+    system("echo PAUSING_DVBAPP >> /tmp/alencar_status.txt");
     system("killall -STOP dvbapp 2>/dev/null");
 
     /* 2. Deteccao automatica de hardware */
+    system("echo DETECTING_PLATFORM >> /tmp/alencar_status.txt");
     app->platform = platform_detect();
     printf("[%s] Hardware detectado: %s (SoC=%d, Painel=%d)\n", 
            APP_NAME, app->platform.model_name, app->platform.soc, app->platform.panel);
+    fflush(stdout);
 
     /* 3. Inicializacao do visor frontal */
+    system("echo INIT_VFD >> /tmp/alencar_status.txt");
     vfd_init(app->platform.panel);
     vfd_set_text("ALENCARSOFT");
 
     /* 4. Inicializacao do Framebuffer (/dev/fb0) */
+    system("echo INIT_FB >> /tmp/alencar_status.txt");
     if (fb_init(&app->fb, DEFAULT_FB_DEV) < 0) {
         fprintf(stderr, "Aviso: Nao foi possivel abrir %s diretamente.\n", DEFAULT_FB_DEV);
+        fflush(stderr);
     }
 
     /* 5. Inicializacao do leitor de controle remoto */
+    system("echo INIT_INPUT >> /tmp/alencar_status.txt");
     input_init(DEFAULT_IR_DEV);
 
     /* 6. Inicializacao do Player de video */
+    system("echo INIT_PLAYER >> /tmp/alencar_status.txt");
     player_init();
 
     /* 7. Inicializa e carrega catalogo inicial (M3U ou JSON) */
+    system("echo INIT_CATALOG >> /tmp/alencar_status.txt");
     catalog_init(&app->catalog);
     if (catalog_load_m3u(&app->catalog, DEFAULT_M3U_PATH) <= 0) {
         catalog_load_m3u(&app->catalog, "/mnt/plugin/lists/Canais ao Vivo.m3u");
@@ -72,6 +82,7 @@ int app_init(app_context_t *app) {
     }
 
     strcpy(app->status_message, "Grade carregada com sucesso.");
+    system("echo APP_INIT_DONE >> /tmp/alencar_status.txt");
     return 0;
 }
 
@@ -275,12 +286,15 @@ int main(int argc, char **argv) {
     (void)argc;
     (void)argv;
 
+    system("echo MAIN_ENTERED > /tmp/alencar_status.txt");
     printf("\n=========================================\n");
     printf("   Iniciando %s v%s\n", APP_NAME, APP_VERSION);
     printf("=========================================\n");
+    fflush(stdout);
 
     if (app_init(&s_app) < 0) {
         fprintf(stderr, "Erro ao inicializar %s\n", APP_NAME);
+        fflush(stderr);
         return 1;
     }
 

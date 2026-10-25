@@ -60,36 +60,35 @@ jobs:
           fi
           
           # Compila mini_test de diagnostico
-          $CC_BIN -static -mabi=abiv1 -march=ck610 mini_test.c -o mini_test 2>/dev/null || \
+          $CC_BIN -static -mcpu=ck610 mini_test.c -o mini_test 2>/dev/null || \
           $CC_BIN -static mini_test.c -o mini_test
           if [ -n "$STRIP_BIN" ]; then
             $STRIP_BIN mini_test || true
           fi
-          python3 -c '
-          with open("mini_test", "r+b") as f:
-              f.seek(18)
-              f.write(bytes([0x27]))
-          '
           
           # Compila nostdlib_test direto por syscall
+          $CC_BIN -nostdlib -mcpu=ck610 -O2 nostdlib_test.c -o nostdlib_test 2>/dev/null || \
           $CC_BIN -nostdlib -O2 nostdlib_test.c -o nostdlib_test
           if [ -n "$STRIP_BIN" ]; then
             $STRIP_BIN nostdlib_test || true
           fi
-          python3 -c '
-          with open("nostdlib_test", "r+b") as f:
-              f.seek(18)
-              f.write(bytes([0x27]))
-          '
           
           # Versao moderna (e_machine = 0xFC / 252)
           cp alencarsoft_tvbox_csky alencarsoft_tvbox_csky_v2
           
-          # Versao compativel com Kernel 3.0.8 (e_machine = 0x27 / 39)
+          # Aplica patch de compatibilidade com Kernel 3.0.8 e CPU CK610 (e_machine=0x27, e_flags=0x10002002)
           python3 -c '
-          with open("alencarsoft_tvbox_csky", "r+b") as f:
-              f.seek(18)
-              f.write(bytes([0x27]))
+          import struct
+          for fn in ["alencarsoft_tvbox_csky", "mini_test", "nostdlib_test"]:
+              try:
+                  with open(fn, "r+b") as f:
+                      f.seek(18)
+                      f.write(bytes([0x27, 0x00]))
+                      f.seek(24)
+                      f.write(struct.pack("<I", 0x10002002))
+                  print(f"Patched {fn} -> machine=0x27 flags=0x10002002")
+              except Exception as e:
+                  print(f"Patch {fn}: {e}")
           '
           
           echo "SUCESSO: Binarios C-SKY gerados com sucesso!"
@@ -194,8 +193,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: "v1.0.5-native"
-          name: "AlencarSoft TVBOX - Versao Nativa Estavel v1.0.5"
+          tag_name: "v1.0.6-native"
+          name: "AlencarSoft TVBOX - Versao Nativa Estavel v1.0.6"
           draft: false
           prerelease: false
           overwrite: true
