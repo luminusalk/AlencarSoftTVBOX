@@ -27,11 +27,13 @@ int main(int argc, char **argv) {
         hls_bridge_stop();
         return total ? 4 : 0;
     }
-    if ((strcmp(argv[1], "stream") != 0 && strcmp(argv[1], "sample") != 0) ||
+    if ((strcmp(argv[1], "stream") != 0 && strcmp(argv[1], "sample") != 0 &&
+         strcmp(argv[1], "live") != 0) ||
         expected <= 0) return 5;
     fd = open(hls_bridge_get_url(), O_RDONLY | O_NONBLOCK);
     if (fd < 0) return 6;
-    deadline = time(NULL) + 10;
+    /* Bounded diagnostic stream for the firmware player through HTTP CGI. */
+    deadline = time(NULL) + (strcmp(argv[1], "live") == 0 ? 120 : 10);
     while (total < expected && time(NULL) < deadline) {
         struct pollfd pfd;
         ssize_t n;
