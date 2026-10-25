@@ -44,6 +44,10 @@ jobs:
           # Diagnostico somente de leitura da ABI GXAV do receptor.
           $CC_BIN -static -std=gnu99 -O2 -Wall -Wextra \
             tools/gxav_probe.c -o gxav_probe_csky
+
+          # Teste isolado do caminho MPEG-TS -> demux DVB -> decodificador.
+          $CC_BIN -static -std=gnu99 -O2 -Wall -Wextra \
+            tools/dvb_native_probe.c -o dvb_native_probe_csky
           
           # Compila mini_test de diagnostico
           $CC_BIN -static -std=gnu99 -O2 mini_test.c -o mini_test
@@ -52,6 +56,7 @@ jobs:
           $STRIP_BIN alencarsoft_tvbox_csky || true
           $STRIP_BIN mini_test || true
           $STRIP_BIN gxav_probe_csky || true
+          $STRIP_BIN dvb_native_probe_csky || true
           
           echo "SUCESSO: Binarios C-SKY gerados com sucesso pelo toolchain oficial NationalChip!"
           file alencarsoft_tvbox_csky mini_test
@@ -70,6 +75,12 @@ jobs:
         with:
           name: gxav-probe-csky
           path: AlencarSoftTVBOX-Clang/gxav_probe_csky
+
+      - name: Upload DVB playback probe
+        uses: actions/upload-artifact@v4
+        with:
+          name: dvb-native-probe-csky
+          path: AlencarSoftTVBOX-Clang/dvb_native_probe_csky
 
   build-mips:
     name: Build para Availink AVL2569D (Cinebox, Duosat, Tuning / MIPS)
