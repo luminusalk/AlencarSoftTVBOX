@@ -3,10 +3,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/entropy.h>
 #include <mbedtls/net_sockets.h>
+#include <mbedtls/platform.h>
 #include <mbedtls/ssl.h>
 #include <mbedtls/x509_crt.h>
 
@@ -18,6 +20,14 @@ struct hls_tls {
     mbedtls_ctr_drbg_context drbg;
     mbedtls_net_context net;
 };
+
+static pthread_once_t s_entropy_source_once = PTHREAD_ONCE_INIT;
+
+static void use_nonblocking_entropy_source(void) {
+    /* GX6622 runs Linux 3.0, where /dev/random may wait indefinitely even
+     * hours after boot. Mbed TLS supports selecting /dev/urandom at runtime. */
+    mbedtls_platform_dev_random = "/dev/urandom";
+}
 
 static void tls_trace(const char *stage, int rc) {
     const char *enabled = getenv("HLS_TLS_TRACE");
@@ -77,6 +87,8 @@ hls_tls_t *hls_tls_open(int fd, const char *hostname) {
         goto failed;
     }
     tls_trace("ca-parsed", rc);
+    if (pthread_once(&s_entropy_source_once, use_nonblocking_entropy_source) != 0)
+        goto failed;
     rc = mbedtls_ctr_drbg_seed(&tls->drbg, mbedtls_entropy_func, &tls->entropy,
                                (const unsigned char *)personalization,
                                strlen(personalization));
