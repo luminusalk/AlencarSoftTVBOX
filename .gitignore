@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary / logs
+*.log
+*.tmp
+*.err
+live_debug.txt
+bridge_daemon.err
+last_status.txt
+activity.log
+https_probe.txt
+
+# OS generated
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Private signing keys (keep safe)
+*.pem
+
+# Firmware large binaries / dumps
+dvbapp_*
+*.dump
+*.bin
