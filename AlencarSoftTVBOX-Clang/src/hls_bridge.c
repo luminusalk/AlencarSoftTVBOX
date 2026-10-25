@@ -175,8 +175,8 @@ static int parse_http_url(const char *url, char *host, size_t host_size,
     return 0;
 }
 
-/* Cliente HTTP basico para baixar dados (direto no buffer ou via streaming para o ring buffer) */
-static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t *out_size, int stream_to_ring) {
+/* Cliente HTTP basico para baixar dados */
+static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t *out_size) {
     char host[256];
     int port = 80;
     char path[1024];
@@ -214,7 +214,7 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) return -1;
 
-    tv.tv_sec = 10;
+    tv.tv_sec = 4;
     tv.tv_usec = 0;
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
     setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
@@ -235,7 +235,7 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
         pfd.fd = fd;
         pfd.events = POLLOUT;
         pfd.revents = 0;
-        if (poll(&pfd, 1, 6000) <= 0 ||
+        if (poll(&pfd, 1, 4000) <= 0 ||
             getsockopt(fd, SOL_SOCKET, SO_ERROR, &so_error, &so_len) < 0 || so_error) {
             close(fd); return -1;
         }
@@ -249,24 +249,13 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
     }
 #endif
 
-    if ((use_tls && port == 443) || (!use_tls && port == 80)) {
-        req_len = snprintf(req, sizeof(req),
-                 "GET %s HTTP/1.0\r\n"
-                 "Host: %s\r\n"
-                 "User-Agent: Mozilla/5.0 (SmartTV; Azamerica/GX6622)\r\n"
-                 "Accept-Encoding: identity\r\n"
-                 "Connection: close\r\n\r\n", path, host);
-    } else {
-        req_len = snprintf(req, sizeof(req),
-                 "GET %s HTTP/1.0\r\n"
-                 "Host: %s:%d\r\n"
-                 "User-Agent: Mozilla/5.0 (SmartTV; Azamerica/GX6622)\r\n"
-                 "Accept-Encoding: identity\r\n"
-                 "Connection: close\r\n\r\n", path, host, port);
-    }
+    req_len = snprintf(req, sizeof(req),
+             "GET %s HTTP/1.0\r\n"
+             "Host: %s:%d\r\n"
+             "User-Agent: Mozilla/5.0 (SmartTV; Azamerica/GX6622)\r\n"
+             "Accept-Encoding: identity\r\n"
+             "Connection: close\r\n\r\n", path, host, port);
     if (req_len < 0 || (size_t)req_len >= sizeof(req)) goto done;
-
-    fprintf(stderr, "[HLS Fetch] Enviando requisicao para %s:%d (path: %.60s)\n", host, port, path);
 
     while (sent < (size_t)req_len) {
         ssize_t n;
@@ -275,30 +264,20 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
         else
 #endif
             n = send(fd, req + sent, (size_t)req_len - sent, 0);
-        if (n <= 0) {
-            fprintf(stderr, "[HLS Fetch] Falha ao enviar: n=%zd errno=%d\n", n, errno);
-            goto done;
-        }
+        if (n <= 0) goto done;
         sent += (size_t)n;
     }
 
     while (s_bridge_running) {
-        uint8_t chunk[16384];
+        uint8_t chunk[2048];
         ssize_t r;
 #ifdef HLS_WITH_MBEDTLS
         if (tls) r = hls_tls_read(tls, chunk, sizeof(chunk));
         else
 #endif
             r = recv(fd, chunk, sizeof(chunk), 0);
-        if (r < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)) {
-            usleep(2000);
-            continue;
-        }
-        if (r < 0) {
-            fprintf(stderr, "[HLS Fetch] Erro de leitura r=%zd errno=%d (total=%zu)\n", r, errno, total);
-            if (has_length && total == content_length) complete = 1;
-            break;
-        }
+        if (r < 0 && errno == EINTR) continue;
+        if (r < 0) break;
         if (r == 0) { complete = 1; break; }
 
         if (!in_body) {
@@ -311,10 +290,7 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
             split = strstr(header_buf, "\r\n\r\n");
             if (!split) continue;
             header_len = (size_t)(split + 4 - header_buf);
-            if (sscanf(header_buf, "HTTP/%*d.%*d %d", &status) != 1 || status != 200) {
-                fprintf(stderr, "[HLS Bridge] HTTP status %d: %.60s\n", status, header_buf);
-                break;
-            }
+            if (sscanf(header_buf, "HTTP/%*d.%*d %d", &status) != 1 || status != 200) break;
             *split = '\0';
             line = strstr(header_buf, "\r\n");
             if (!line) break;
@@ -330,7 +306,7 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
                     errno = 0;
                     parsed = strtoull(value, &endptr, 10);
                     while (*endptr == ' ' || *endptr == '\t') endptr++;
-                    if (errno || endptr == value || *endptr || (!stream_to_ring && parsed > max_size) || has_length) goto done;
+                    if (errno || endptr == value || *endptr || parsed > max_size || has_length) goto done;
                     content_length = (size_t)parsed;
                     has_length = 1;
                 }
@@ -344,24 +320,14 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
             }
             in_body = 1;
             body_bytes = header_pos - header_len;
+            if (body_bytes > max_size) break;
             if (body_bytes) {
-                if (stream_to_ring) {
-                    if (ring_write(&s_ring, (const uint8_t *)header_buf + header_len, body_bytes) < 0) break;
-                    s_data_ready = 1;
-                } else {
-                    if (body_bytes > max_size) break;
-                    memcpy(out_buf, header_buf + header_len, body_bytes);
-                }
+                memcpy(out_buf, header_buf + header_len, body_bytes);
                 total = body_bytes;
             }
         } else {
-            if (stream_to_ring) {
-                if (ring_write(&s_ring, chunk, (size_t)r) < 0) break;
-                s_data_ready = 1;
-            } else {
-                if ((size_t)r > max_size - total) break;
-                memcpy(out_buf + total, chunk, (size_t)r);
-            }
+            if ((size_t)r > max_size - total) break;
+            memcpy(out_buf + total, chunk, (size_t)r);
             total += (size_t)r;
         }
         if (has_length && total > content_length) break;
@@ -376,11 +342,7 @@ done:
 #endif
     close(fd);
     if (!s_bridge_running || !complete || !in_body || !total ||
-        (has_length && total != content_length)) {
-        fprintf(stderr, "[HLS Fetch] Falha final: running=%d complete=%d in_body=%d total=%zu cl=%zu has_len=%d\n",
-                s_bridge_running, complete, in_body, total, content_length, has_length);
-        return -1;
-    }
+        (has_length && total != content_length)) return -1;
     *out_size = total;
     return 0;
 }
@@ -389,10 +351,13 @@ done:
 static void *hls_producer_thread(void *arg) {
     (void)arg;
     uint8_t *playlist_buf = (uint8_t *)malloc(128 * 1024);
+    uint8_t *segment_buf = (uint8_t *)malloc(MAX_SEGMENT_SIZE);
     uint64_t next_sequence = 0;
     int started = 0;
-    if (!playlist_buf) {
-        fprintf(stderr, "[HLS Bridge] Memoria insuficiente para playlist.\n");
+    if (!playlist_buf || !segment_buf) {
+        fprintf(stderr, "[HLS Bridge] Memoria insuficiente para segmentos.\n");
+        free(playlist_buf);
+        free(segment_buf);
         return NULL;
     }
 
@@ -400,10 +365,7 @@ static void *hls_producer_thread(void *arg) {
 
     while (s_bridge_running) {
         size_t p_size = 0;
-        int fetch_rc = http_fetch(s_current_m3u8, playlist_buf, 128 * 1024 - 1, &p_size, 0);
-        if (fetch_rc != 0 || p_size == 0) {
-            fprintf(stderr, "[HLS Bridge] Falha ao baixar playlist (rc=%d): %.100s\n", fetch_rc, s_current_m3u8);
-        } else {
+        if (http_fetch(s_current_m3u8, playlist_buf, 128 * 1024 - 1, &p_size) == 0 && p_size > 0) {
             hls_segment_t segments[16];
             size_t count = 0, start_idx, i;
             uint64_t parsed_next = next_sequence;
@@ -412,15 +374,19 @@ static void *hls_producer_thread(void *arg) {
                                          &parsed_next, segments, 16, &count) < 0) {
                 fprintf(stderr, "[HLS Bridge] Playlist invalida ou formato HLS nao suportado.\n");
             } else {
-                start_idx = !started && count > 1 ? count - 1 : 0;
+                start_idx = !started && count > 2 ? count - 2 : 0;
                 for (i = start_idx; i < count && s_bridge_running; i++) {
-                    size_t seg_size = 0;
-                    if (http_fetch(segments[i].url, NULL, 0, &seg_size, 1) < 0) {
-                        fprintf(stderr, "[HLS Bridge] Falha ao baixar segmento: %.100s\n", segments[i].url);
+                    size_t seg_size = 0, offset = 0;
+                    if (http_fetch(segments[i].url, segment_buf, MAX_SEGMENT_SIZE, &seg_size) < 0)
                         break;
+                    while (offset < seg_size && s_bridge_running) {
+                        size_t chunk = seg_size - offset;
+                        if (chunk > 64 * 1024) chunk = 64 * 1024;
+                        if (ring_write(&s_ring, segment_buf + offset, chunk) < 0) break;
+                        offset += chunk;
+                        s_data_ready = 1;
                     }
-                    fprintf(stderr, "[HLS Bridge] Segmento #%llu OK (%zu bytes)\n",
-                            (unsigned long long)segments[i].sequence, seg_size);
+                    if (offset != seg_size) break;
                     next_sequence = segments[i].sequence + 1;
                     started = 1;
                 }
@@ -433,6 +399,7 @@ static void *hls_producer_thread(void *arg) {
     }
 
     free(playlist_buf);
+    free(segment_buf);
     fprintf(stderr, "[HLS Bridge] Produtor finalizado.\n");
     return NULL;
 }
@@ -485,15 +452,7 @@ int hls_bridge_start(const char *m3u8_url) {
 #endif
     hls_bridge_stop();
 
-    if (strncmp(m3u8_url, "http://player-tvcultura", 23) == 0) {
-        snprintf(s_current_m3u8, sizeof(s_current_m3u8), "https%s", m3u8_url + 4);
-    } else {
-        strcpy(s_current_m3u8, m3u8_url);
-    }
-    if (strstr(s_current_m3u8, "tvcultura") && !strstr(s_current_m3u8, "vhost=")) {
-        strncat(s_current_m3u8, "?vhost=player-tvcultura.stream.uol.com.br",
-                sizeof(s_current_m3u8) - strlen(s_current_m3u8) - 1);
-    }
+    strcpy(s_current_m3u8, m3u8_url);
     unlink(FIFO_STREAM_PATH);
     if (mkfifo(FIFO_STREAM_PATH, 0666) < 0) {
         perror("mkfifo");
