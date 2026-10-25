@@ -93,6 +93,11 @@ def _validate_payload(payload):
                     not isinstance(url, text_types) or not 1 <= len(url) <= 2048 or
                     not url.startswith(('https://', 'http://'))):
                 raise CatalogError('Canal invalido')
+            logo = channel.get('logo')
+            if logo is not None:
+                if (not isinstance(logo, text_types) or not 1 <= len(logo) <= 2048 or
+                        not logo.startswith(('https://', 'http://'))):
+                    raise CatalogError('Logo invalido')
     app = payload.get('app')
     if app is not None:
         if not isinstance(app, dict):

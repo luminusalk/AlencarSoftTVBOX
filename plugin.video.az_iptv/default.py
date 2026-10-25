@@ -50,13 +50,20 @@ def playlists():
                   if name.lower().endswith(('.m3u', '.m3u8')))
 
 
-def add_folder(handle, label, address):
-    xbmcplugin.addDirectoryItem(handle, address, xbmcgui.ListItem(label), True)
+def add_folder(handle, label, address, logo=None):
+    item = xbmcgui.ListItem(label)
+    if logo:
+        item.setThumbnailImage(logo)
+        item.setIconImage(logo)
+    xbmcplugin.addDirectoryItem(handle, address, item, True)
 
 
-def add_video(handle, label, address):
+def add_video(handle, label, address, logo=None):
     item = xbmcgui.ListItem(label)
     item.setProperty('IsPlayable', 'true')
+    if logo:
+        item.setThumbnailImage(logo)
+        item.setIconImage(logo)
     xbmcplugin.addDirectoryItem(handle, address, item, False)
 
 
@@ -90,29 +97,21 @@ def show_root(handle, base):
             pass
     catalog = CATALOG.load()
     if catalog:
-        add_folder(handle, 'Canais do GitHub (revisao %d)' % catalog['revision'],
-                   base + '?mode=cloud')
+        add_folder(handle, 'Canais ao Vivo', base + '?mode=cloud')
 
     # TV Cultura ao vivo via HLS Bridge local em background
     try:
         ensure_bridge_daemon(record)
         cultura_bridge_url = 'http://127.0.0.1:8978/live.ts?src=' + quote(LIVE_CULTURA_540)
-        add_video(handle, 'TV Cultura 540p ao vivo', cultura_bridge_url)
+        add_video(handle, 'TV Cultura ao vivo [720p HD]', cultura_bridge_url,
+                  'http://beststorage4you.com:80/logoscanais/TVCULTURA.png')
     except Exception:
         record(traceback.format_exc())
 
-    try:
-        add_video(handle, 'Teste TS local (15 segundos)',
-                  'http://%s:8977/cultura_540_copy.ts' % local_ip())
-    except Exception:
-        record(traceback.format_exc())
-
-    add_folder(handle, 'Atualizar catalogo do GitHub', base + '?mode=update')
     if playlists():
-        add_folder(handle, 'Minhas listas M3U', base + '?mode=local')
-    add_video(handle, 'Teste offline (15 segundos)', os.path.join(ROOT, 'demo.mp4'))
-    add_video(handle, 'Teste TV Cultura 720p (15 segundos)',
-              os.path.join(ROOT, 'sample720.mp4'))
+        add_folder(handle, 'Minhas Listas M3U', base + '?mode=local')
+
+    add_folder(handle, 'Atualizar Lista de Canais', base + '?mode=update')
     xbmcplugin.endOfDirectory(handle)
 
 
@@ -152,7 +151,8 @@ def show_cloud_channels(handle, base, args):
                            base + '?mode=cloud_list&id=%s&page=%d' %
                            (channel_list['id'], page - 1))
             for channel in channels[page * PAGE_SIZE:(page + 1) * PAGE_SIZE]:
-                add_video(handle, channel['name'], make_video_url(channel['url']))
+                logo = channel.get('logo')
+                add_video(handle, channel['name'], make_video_url(channel['url']), logo)
             if (page + 1) * PAGE_SIZE < len(channels):
                 add_folder(handle, 'Proxima pagina',
                            base + '?mode=cloud_list&id=%s&page=%d' %

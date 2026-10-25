@@ -25,8 +25,8 @@ except ImportError:
 MAX_PLAYLIST = 128 * 1024
 MAX_SEGMENT = 4 * 1024 * 1024
 BRIDGE_PORT = 8978
-QUEUE_BUFFER_SIZE = 8
-PREBUFFER_COUNT = 2
+QUEUE_BUFFER_SIZE = 16
+PREBUFFER_COUNT = 3
 
 
 def parse_media_playlist(body, base_url):
@@ -69,7 +69,7 @@ class HlsSequence(object):
 
 
 def _fetch(url, limit):
-    response = url_request.urlopen(url, timeout=10)
+    response = url_request.urlopen(url, timeout=8)
     try:
         data = response.read(limit + 1)
     finally:
@@ -92,7 +92,6 @@ def _hls_producer(target_url, segment_queue, stop_event, report):
                     if stop_event.is_set():
                         break
                     data = _fetch(segment_url, MAX_SEGMENT)
-                    # Block up to 5 seconds if queue is full
                     while not stop_event.is_set():
                         try:
                             segment_queue.put(data, timeout=1.0)
@@ -102,21 +101,20 @@ def _hls_producer(target_url, segment_queue, stop_event, report):
                             break
                         except queue_module.Full:
                             continue
-                # Sleep briefly between manifest updates
-                stop_event.wait(0.4)
+                # Brief check interval to catch the next segment without delay
+                stop_event.wait(0.2)
             else:
-                # No new segment yet, check again soon
-                stop_event.wait(0.4)
+                # No new segment yet, recheck in 200ms
+                stop_event.wait(0.2)
         except Exception as err:
             consecutive_errors += 1
             if report:
                 report('HLS producer err: %s' % err)
-            if consecutive_errors >= 6:
+            if consecutive_errors >= 8:
                 if report:
                     report('HLS producer aborting after repeated failures')
                 break
-            stop_event.wait(1.0)
-    # Signal consumer that stream has ended
+            stop_event.wait(0.8)
     try:
         segment_queue.put(None, timeout=1.0)
     except Exception:
@@ -128,7 +126,6 @@ class _ThreadingServer(socket_server.ThreadingMixIn, http_server.HTTPServer):
     allow_reuse_address = True
 
     def server_bind(self):
-        # The receiver's socket.getfqdn() calls a missing gethostbyaddr().
         socket_server.TCPServer.server_bind(self)
         self.server_name = 'localhost'
         self.server_port = self.socket.getsockname()[1]
@@ -190,7 +187,6 @@ class _Handler(http_server.BaseHTTPRequestHandler):
         segment_queue = queue_module.Queue(maxsize=QUEUE_BUFFER_SIZE)
         stop_event = threading.Event()
 
-        # Start producer thread to prefetch and queue segments
         producer_thread = threading.Thread(
             target=_hls_producer,
             args=(target_url, segment_queue, stop_event, report)
@@ -200,7 +196,7 @@ class _Handler(http_server.BaseHTTPRequestHandler):
 
         # Pre-buffer: wait until we have at least PREBUFFER_COUNT segments or timeout
         start_wait = time.time()
-        while segment_queue.qsize() < PREBUFFER_COUNT and (time.time() - start_wait) < 4.0:
+        while segment_queue.qsize() < PREBUFFER_COUNT and (time.time() - start_wait) < 5.0:
             if stop_event.is_set():
                 break
             time.sleep(0.1)
@@ -219,7 +215,6 @@ class _Handler(http_server.BaseHTTPRequestHandler):
                     break
 
                 if data is None:
-                    # Producer signaled end of stream
                     break
 
                 if first_segment:
@@ -273,13 +268,11 @@ def ensure_bridge_daemon(report=None, port=BRIDGE_PORT):
 
     pid = os.fork()
     if pid > 0:
-        # Processo pai (dvbapp)
         time.sleep(0.3)
         if report:
             report('Bridge daemon iniciado com PID %d' % pid)
         return 'http://127.0.0.1:%d' % port
     else:
-        # Processo filho (daemon em background)
         try:
             os.setsid()
         except Exception:
