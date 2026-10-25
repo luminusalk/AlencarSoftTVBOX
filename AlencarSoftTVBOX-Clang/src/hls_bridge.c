@@ -70,6 +70,7 @@ static void ring_reset(ring_buffer_t *rb) {
     rb->tail = 0;
     rb->count = 0;
     pthread_cond_broadcast(&rb->can_write);
+    pthread_cond_broadcast(&rb->can_read);
     pthread_mutex_unlock(&rb->lock);
 }
 
