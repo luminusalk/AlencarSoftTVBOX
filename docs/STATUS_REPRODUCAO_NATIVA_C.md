@@ -28,9 +28,18 @@ o mesmo fluxo.
   dos dois testes. O sucesso dos ioctls e da escrita não prova que os módulos
   de decodificação e saída tenham sido configurados.
 - A ponte C-SKY baixou 188000 bytes de um segmento MPEG-TS servido por HTTP na
-  rede local do receptor, sem encerrar o `dvbapp`. Os ensaios HTTPS locais
-  estabeleceram TCP, mas não entregaram bytes no prazo de 25 segundos;
-  instrumentação de etapas do TLS foi adicionada para localizar a espera.
+  rede local do receptor, sem encerrar o `dvbapp`.
+- O HTTPS parava na inicialização da entropia: Mbed TLS recorria ao
+  `/dev/random` do Linux 3.0.8, enquanto `entropy_avail` no receptor era 7.
+  O código seleciona `/dev/urandom` pela API de plataforma do Mbed TLS. Após a
+  correção, o teste HTTPS local validou o certificado e recebeu 188000 bytes
+  com MD5 exatamente igual ao segmento servido. O receptor também recebeu
+  188000 bytes MPEG-TS pela URL HTTPS ao vivo da TV Cultura; os quatro pacotes
+  inspecionados tinham byte de sincronismo `0x47`. **Ainda não houve reprodução
+  audiovisual.**
+- `kill -TERM` no `dvbapp` foi capturado/ignorado pelo processo, que continuou
+  ativo e sintonizando satélite. Por isso não foi feito novo ensaio de
+  `showcartoon` após essa tentativa.
 
 ## Correções disponíveis na branch `codex/native-iptv-repair`
 
@@ -51,7 +60,6 @@ o mesmo fluxo.
 ## Próxima validação no receptor
 
 Identificar no `dvbapp`/`gxplayer` a sequência de inicialização dos módulos de
-decodificação e saída antes de repetir o teste audiovisual. Diagnosticar a
-etapa TLS em que o receptor aguarda. Não anunciar suporte audiovisual com base
+decodificação e saída antes de repetir o teste audiovisual. Não anunciar suporte audiovisual com base
 apenas no início de um processo, na presença de bytes na FIFO, no sucesso dos
 ioctls ou na compilação.
