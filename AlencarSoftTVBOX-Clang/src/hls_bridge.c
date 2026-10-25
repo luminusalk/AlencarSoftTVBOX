@@ -5,6 +5,9 @@
 
 #include "hls_bridge.h"
 #include "hls_playlist.h"
+#ifdef HLS_WITH_MBEDTLS
+#include "hls_tls.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -134,13 +137,18 @@ static int ring_read(ring_buffer_t *rb, uint8_t *buf, size_t max_len) {
 
 /* Parser simples de URL HTTP */
 static int parse_http_url(const char *url, char *host, size_t host_size,
-                          int *port, char *path, size_t path_size) {
+                          int *port, int *use_tls, char *path, size_t path_size) {
     const char *authority, *end, *colon, *path_start;
     size_t length;
     char *port_end;
     long parsed_port;
-    if (strncmp(url, "http://", 7) != 0) return -1;
-    authority = url + 7;
+    if (strncmp(url, "http://", 7) == 0) {
+        *use_tls = 0;
+        authority = url + 7;
+    } else if (strncmp(url, "https://", 8) == 0) {
+        *use_tls = 1;
+        authority = url + 8;
+    } else return -1;
     end = strpbrk(authority, "/?#");
     if (!end) end = authority + strlen(authority);
     colon = memchr(authority, ':', (size_t)(end - authority));
@@ -148,7 +156,7 @@ static int parse_http_url(const char *url, char *host, size_t host_size,
     if (!length || length >= host_size || memchr(authority, '@', (size_t)(end - authority))) return -1;
     memcpy(host, authority, length);
     host[length] = '\0';
-    *port = 80;
+    *port = *use_tls ? 443 : 80;
     if (colon) {
         errno = 0;
         parsed_port = strtol(colon + 1, &port_end, 10);
@@ -172,7 +180,10 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
     char host[256];
     int port = 80;
     char path[1024];
-    int fd, status = 0, has_length = 0, flags, so_error = 0;
+    int fd, status = 0, has_length = 0, flags, so_error = 0, use_tls = 0;
+#ifdef HLS_WITH_MBEDTLS
+    hls_tls_t *tls = NULL;
+#endif
     size_t total = 0, content_length = 0, header_pos = 0;
     char header_buf[8192];
     struct hostent *he;
@@ -184,13 +195,21 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
     int in_body = 0, complete = 0;
 
     *out_size = 0;
-    if (parse_http_url(url, host, sizeof(host), &port, path, sizeof(path)) < 0) {
-        fprintf(stderr, "[HLS Bridge] URL HTTP invalida ou HTTPS sem TLS.\n");
+    if (parse_http_url(url, host, sizeof(host), &port, &use_tls,
+                       path, sizeof(path)) < 0) {
+        fprintf(stderr, "[HLS Bridge] URL HTTP(S) invalida.\n");
         return -1;
     }
+#ifndef HLS_WITH_MBEDTLS
+    if (use_tls) {
+        fprintf(stderr, "[HLS Bridge] Binario sem suporte HTTPS.\n");
+        return -1;
+    }
+#endif
 
     he = gethostbyname(host);
-    if (!he) return -1;
+    if (!he || he->h_addrtype != AF_INET ||
+        (size_t)he->h_length != sizeof(saddr.sin_addr)) return -1;
 
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) return -1;
@@ -223,23 +242,40 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
     }
     if (fcntl(fd, F_SETFL, flags) < 0) { close(fd); return -1; }
 
+#ifdef HLS_WITH_MBEDTLS
+    if (use_tls) {
+        tls = hls_tls_open(fd, host);
+        if (!tls) { close(fd); return -1; }
+    }
+#endif
+
     req_len = snprintf(req, sizeof(req),
              "GET %s HTTP/1.0\r\n"
              "Host: %s:%d\r\n"
              "User-Agent: Mozilla/5.0 (SmartTV; Azamerica/GX6622)\r\n"
              "Accept-Encoding: identity\r\n"
              "Connection: close\r\n\r\n", path, host, port);
-    if (req_len < 0 || (size_t)req_len >= sizeof(req)) { close(fd); return -1; }
+    if (req_len < 0 || (size_t)req_len >= sizeof(req)) goto done;
 
     while (sent < (size_t)req_len) {
-        ssize_t n = send(fd, req + sent, (size_t)req_len - sent, 0);
-        if (n <= 0) { close(fd); return -1; }
+        ssize_t n;
+#ifdef HLS_WITH_MBEDTLS
+        if (tls) n = hls_tls_write(tls, req + sent, (size_t)req_len - sent);
+        else
+#endif
+            n = send(fd, req + sent, (size_t)req_len - sent, 0);
+        if (n <= 0) goto done;
         sent += (size_t)n;
     }
 
     while (s_bridge_running) {
         uint8_t chunk[2048];
-        ssize_t r = recv(fd, chunk, sizeof(chunk), 0);
+        ssize_t r;
+#ifdef HLS_WITH_MBEDTLS
+        if (tls) r = hls_tls_read(tls, chunk, sizeof(chunk));
+        else
+#endif
+            r = recv(fd, chunk, sizeof(chunk), 0);
         if (r < 0 && errno == EINTR) continue;
         if (r < 0) break;
         if (r == 0) { complete = 1; break; }
@@ -295,8 +331,15 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
             total += (size_t)r;
         }
         if (has_length && total > content_length) break;
+        if (has_length && total == content_length) {
+            complete = 1;
+            break;
+        }
     }
 done:
+#ifdef HLS_WITH_MBEDTLS
+    hls_tls_close(tls);
+#endif
     close(fd);
     if (!s_bridge_running || !complete || !in_body || !total ||
         (has_length && total != content_length)) return -1;
@@ -396,10 +439,17 @@ static void *hls_feeder_thread(void *arg) {
 int hls_bridge_start(const char *m3u8_url) {
     int rc;
     if (!m3u8_url || !*m3u8_url || strlen(m3u8_url) >= sizeof(s_current_m3u8)) return -1;
-    if (strncmp(m3u8_url, "http://", 7) != 0) {
-        fprintf(stderr, "[HLS Bridge] HTTPS requer backend TLS; canal recusado.\n");
+    if (strncmp(m3u8_url, "http://", 7) != 0 &&
+        strncmp(m3u8_url, "https://", 8) != 0) {
+        fprintf(stderr, "[HLS Bridge] Esquema HTTP(S) invalido.\n");
         return -1;
     }
+#ifndef HLS_WITH_MBEDTLS
+    if (strncmp(m3u8_url, "https://", 8) == 0) {
+        fprintf(stderr, "[HLS Bridge] Binario sem suporte HTTPS.\n");
+        return -1;
+    }
+#endif
     hls_bridge_stop();
 
     strcpy(s_current_m3u8, m3u8_url);

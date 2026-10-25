@@ -21,6 +21,14 @@ SRCS = src/main.c \
 
 OBJS = $(SRCS:.c=.o)
 
+ifeq ($(TLS),1)
+    MBEDTLS_ROOT ?= /opt/mbedtls
+    SRCS += src/hls_tls.c
+    OBJS = $(SRCS:.c=.o)
+    CFLAGS += -DHLS_WITH_MBEDTLS -I$(MBEDTLS_ROOT)/include
+    LDFLAGS += -L$(MBEDTLS_ROOT)/library -lmbedtls -lmbedx509 -lmbedcrypto
+endif
+
 ifeq ($(TARGET), csky)
     CC = csky-linux-gcc
     CFLAGS += -mcpu=ck610 -static

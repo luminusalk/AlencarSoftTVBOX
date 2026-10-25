@@ -50,13 +50,25 @@ jobs:
           echo "Compilador selecionado: $CC_BIN"
           export PATH="/opt/csky-toolchain/csky-linux-tools-uclibc-20170724/bin:$PATH"
           $CC_BIN -v
+          wget --tries=3 --timeout=60 -q \
+            "https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.7/mbedtls-3.6.7.tar.bz2" \
+            -O /tmp/mbedtls-3.6.7.tar.bz2
+          echo "a7e8bcbec0e6f761b4af24f25677626b35f762f68eef79c08677a363212d11f6  /tmp/mbedtls-3.6.7.tar.bz2" | sha256sum -c -
+          tar -xf /tmp/mbedtls-3.6.7.tar.bz2 -C /tmp
+          make -C /tmp/mbedtls-3.6.7 lib \
+            CC="$CC_BIN" AR="/opt/csky-toolchain/csky-linux-tools-uclibc-20170724/bin/csky-linux-ar" \
+            CFLAGS="-O2 -std=gnu99" -j2
           
           cd AlencarSoftTVBOX-Clang
           
           # Compila o aplicativo AlencarSoft TVBOX estatico com o toolchain oficial NationalChip
           $CC_BIN -static -std=gnu99 -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
+            -DHLS_WITH_MBEDTLS -I/tmp/mbedtls-3.6.7/include \
             src/main.c src/framebuffer.c src/font.c src/platform.c src/display_vfd.c \
-            src/input.c src/iptv_catalog.c src/player.c src/hls_bridge.c src/hls_playlist.c \
+            src/input.c src/iptv_catalog.c src/player.c src/hls_bridge.c src/hls_playlist.c src/hls_tls.c \
+            /tmp/mbedtls-3.6.7/library/libmbedtls.a \
+            /tmp/mbedtls-3.6.7/library/libmbedx509.a \
+            /tmp/mbedtls-3.6.7/library/libmbedcrypto.a \
             -lpthread -o alencarsoft_tvbox_csky
 
           # Diagnostico somente de leitura da ABI GXAV do receptor.
@@ -87,6 +99,7 @@ jobs:
           path: |
             AlencarSoftTVBOX-Clang/alencarsoft_tvbox_csky
             AlencarSoftTVBOX-Clang/mini_test
+            AlencarSoftTVBOX-Clang/certs/cacert.pem
 
       - name: Upload GXAV ABI probe
         uses: actions/upload-artifact@v4
