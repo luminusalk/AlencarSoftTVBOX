@@ -8,12 +8,26 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/select.h>
-#include <termios.h>
 
 static int s_ir_fd = -1;
-static struct termios s_orig_termios;
-static int s_raw_terminal_set = 0;
+
+app_key_t input_decode_gxirr_packet(const uint8_t packet[4]) {
+    if (!packet || packet[2] != 0xbf || packet[3] != 0xbf ||
+        (uint8_t)(packet[0] ^ packet[1]) != 0xff) {
+        return KEY_NONE;
+    }
+
+    /* Azamerica S1009+ (RCUTYPE=61): NEC command, inverse, address BF BF. */
+    switch (packet[0]) {
+        case 0xd0: return KEY_NAV_UP;
+        case 0x70: return KEY_NAV_DOWN;
+        case 0x88: return KEY_NAV_LEFT;
+        case 0x08: return KEY_NAV_RIGHT;
+        case 0xb0: return KEY_ACTION_OK;
+        case 0x68: return KEY_ACTION_BACK;
+        default: return KEY_NONE;
+    }
+}
 
 int input_init(const char *ir_device) {
     /* 1. Tenta abrir o dispositivo de controle remoto infravermelho nativo */
@@ -21,7 +35,10 @@ int input_init(const char *ir_device) {
     for (int i = 0; devs[i]; i++) {
         if (!devs[i]) continue;
         s_ir_fd = open(devs[i], O_RDONLY | O_NONBLOCK);
-        if (s_ir_fd >= 0) break;
+        if (s_ir_fd >= 0) {
+            fprintf(stderr, "[IR] Device opened: %s\n", devs[i]);
+            break;
+        }
     }
 
     /* 2. Em TV Box e Receptores, o controle remoto nativo (/dev/gxirr0) e a fonte principal */
@@ -33,7 +50,13 @@ app_key_t input_poll(void) {
     if (s_ir_fd >= 0) {
         uint32_t ir_code = 0;
         int n = read(s_ir_fd, &ir_code, sizeof(ir_code));
-        if (n > 0) {
+        if (n == (int)sizeof(ir_code)) {
+            app_key_t decoded = input_decode_gxirr_packet((const uint8_t *)&ir_code);
+            if (decoded != KEY_NONE) {
+                fprintf(stderr, "[IR] Azamerica command 0x%02x -> key %d\n",
+                        (unsigned)((const uint8_t *)&ir_code)[0], decoded);
+                return decoded;
+            }
             uint8_t cmd = (ir_code >> 8) & 0xFF;
             switch (cmd) {
                 case 0x11: case 0x48: return KEY_NAV_UP;
@@ -86,9 +109,5 @@ void input_close(void) {
     if (s_ir_fd >= 0) {
         close(s_ir_fd);
         s_ir_fd = -1;
-    }
-    if (s_raw_terminal_set) {
-        tcsetattr(STDIN_FILENO, TCSANOW, &s_orig_termios);
-        s_raw_terminal_set = 0;
     }
 }

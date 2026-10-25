@@ -6,6 +6,8 @@
 #ifndef ALENCARSOFT_INPUT_H
 #define ALENCARSOFT_INPUT_H
 
+#include <stdint.h>
+
 typedef enum {
     KEY_NONE = 0,
     KEY_NAV_UP,
@@ -31,6 +33,7 @@ typedef enum {
 } app_key_t;
 
 int       input_init(const char *ir_device);
+app_key_t input_decode_gxirr_packet(const uint8_t packet[4]);
 app_key_t input_poll(void);
 void      input_close(void);
 
