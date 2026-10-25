@@ -4,6 +4,7 @@
  */
 
 #include "player.h"
+#include "hls_bridge.h"
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -68,9 +69,19 @@ int player_play(const char *url, const char *channel_name) {
     strncpy(s_current_url, url, sizeof(s_current_url) - 1);
     s_player_state = PLAYER_STATE_PLAYING;
 
+    const char *play_url = url;
+
+    /* Se for stream HLS (.m3u8), utiliza a ponte nativa C para fornecer MPEG-TS continuo ao chip */
+    if (strstr(url, ".m3u8") || strstr(url, ".m3u")) {
+        fprintf(stderr, "[Player] Detectado stream HLS (.m3u8). Iniciando ponte nativa C...\n");
+        if (hls_bridge_start(url) == 0) {
+            play_url = hls_bridge_get_url();
+        }
+    }
+
     /* No GX6622 / Nationalchip, o showcartoon sem '-p' ativa o decodificador completo de AV (Audio + Video) */
     char cmd[1024];
-    snprintf(cmd, sizeof(cmd), "/usr/local/bin/showcartoon \"%s\" 60 >/tmp/showcartoon.log 2>&1 &", url);
+    snprintf(cmd, sizeof(cmd), "/usr/local/bin/showcartoon \"%s\" 60 >/tmp/showcartoon.log 2>&1 &", play_url);
     system(cmd);
 
     return 0;
@@ -78,6 +89,7 @@ int player_play(const char *url, const char *channel_name) {
 
 void player_stop(void) {
     if (s_player_state != PLAYER_STATE_STOPPED) {
+        hls_bridge_stop();
         system("killall -TERM showcartoon 2>/dev/null; usleep 200000; killall -9 showcartoon 2>/dev/null");
         s_player_state = PLAYER_STATE_STOPPED;
         s_current_url[0] = '\0';

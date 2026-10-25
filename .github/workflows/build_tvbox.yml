@@ -39,7 +39,7 @@ jobs:
           # Compila o aplicativo AlencarSoft TVBOX estatico com o toolchain oficial NationalChip
           $CC_BIN -static -std=gnu99 -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
             src/main.c src/framebuffer.c src/font.c src/platform.c src/display_vfd.c \
-            src/input.c src/iptv_catalog.c src/player.c -o alencarsoft_tvbox_csky
+            src/input.c src/iptv_catalog.c src/player.c src/hls_bridge.c -lpthread -o alencarsoft_tvbox_csky
 
           # Diagnostico somente de leitura da ABI GXAV do receptor.
           $CC_BIN -static -std=gnu99 -O2 -Wall -Wextra \
@@ -107,6 +107,8 @@ jobs:
             src/input.c \
             src/iptv_catalog.c \
             src/player.c \
+            src/hls_bridge.c \
+            -lpthread \
             -o alencarsoft_tvbox_mips_be
           mips-linux-gnu-strip alencarsoft_tvbox_mips_be || true
             
@@ -120,6 +122,8 @@ jobs:
             src/input.c \
             src/iptv_catalog.c \
             src/player.c \
+            src/hls_bridge.c \
+            -lpthread \
             -o alencarsoft_tvbox_mips_le
           mipsel-linux-gnu-strip alencarsoft_tvbox_mips_le || true
             
