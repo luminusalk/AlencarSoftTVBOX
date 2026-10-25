@@ -200,12 +200,76 @@ void app_render(app_context_t *app) {
                  "[OK] Assistir   [SETAS] Navegar Grade   [MENU] Atualizar Grade   [EXIT/BACK] Sair", 
                  COLOR_TEXT_MUTED, 1);
 
+    /* Dialogo modal de confirmacao de saida para a TV Box original */
+    if (app->view == VIEW_CONFIRM_EXIT) {
+        int dw = 520;
+        int dh = 200;
+        int dx = (app->fb.width - dw) / 2;
+        int dy = (app->fb.height - dh) / 2;
+
+        fb_draw_rect(&app->fb, dx - 4, dy - 4, dw + 8, dh + 8, COLOR_HIGHLIGHT);
+        fb_draw_rect(&app->fb, dx, dy, dw, dh, COLOR_PANEL_BG);
+
+        fb_draw_text(&app->fb, dx + 40, dy + 45, "Deseja sair para o sistema original?", COLOR_WHITE, 1);
+
+        int btn_w = 140;
+        int btn_h = 45;
+        int btn_y = dy + 115;
+        int sim_x = dx + 80;
+        int nao_x = dx + 300;
+
+        uint32_t sim_bg = (app->exit_dialog_choice == 0) ? COLOR_HIGHLIGHT : COLOR_DARK_BG;
+        uint32_t nao_bg = (app->exit_dialog_choice == 1) ? COLOR_HIGHLIGHT : COLOR_DARK_BG;
+
+        fb_draw_rect(&app->fb, sim_x, btn_y, btn_w, btn_h, sim_bg);
+        fb_draw_text(&app->fb, sim_x + 45, btn_y + 14, "SIM", COLOR_WHITE, 1);
+
+        fb_draw_rect(&app->fb, nao_x, btn_y, btn_w, btn_h, nao_bg);
+        fb_draw_text(&app->fb, nao_x + 45, btn_y + 14, "NAO", COLOR_WHITE, 1);
+    }
+
     /* Envia o buffer pronto para a tela */
     fb_flip(&app->fb);
 }
 
 void app_handle_input(app_context_t *app, app_key_t key) {
     if (key == KEY_NONE) return;
+
+    /* 1. Tratamento durante a reproducao de video */
+    if (player_get_state() == PLAYER_STATE_PLAYING) {
+        if (key == KEY_ACTION_BACK || key == KEY_EXIT_APP) {
+            player_stop();
+            vfd_set_text("GRADE");
+            fb_clear(&app->fb, COLOR_DARK_BG);
+            fb_flip(&app->fb);
+            return;
+        }
+        return;
+    }
+
+    /* 2. Tratamento no dialogo de confirmacao de saida */
+    if (app->view == VIEW_CONFIRM_EXIT) {
+        if (key == KEY_NAV_LEFT || key == KEY_NAV_RIGHT) {
+            app->exit_dialog_choice = !app->exit_dialog_choice;
+        } else if (key == KEY_ACTION_BACK) {
+            app->view = VIEW_CATEGORIES;
+        } else if (key == KEY_ACTION_OK) {
+            if (app->exit_dialog_choice == 0) {
+                /* SIM: sai do app e restaura o dvbapp de fabrica */
+                printf("[%s] Encerrando app e iniciando dvbapp de fabrica...\n", APP_NAME);
+                vfd_set_text("SAINDO");
+                player_stop();
+                fb_clear(&app->fb, 0x00000000);
+                fb_flip(&app->fb);
+                system("mount /dev/mtdblock4 /app -t squashfs 2>/dev/null; /app/dvbapp &");
+                app->running = 0;
+            } else {
+                /* NAO: cancela e volta para a grade */
+                app->view = VIEW_CATEGORIES;
+            }
+        }
+        return;
+    }
 
     if (app->current_category_idx >= app->catalog.total_categories) {
         app->current_category_idx = 0;
@@ -263,12 +327,9 @@ void app_handle_input(app_context_t *app, app_key_t key) {
             break;
 
         case KEY_ACTION_BACK:
-            /* Se estiver assistindo a um canal, volta para a grade */
-            if (player_get_state() == PLAYER_STATE_PLAYING) {
-                player_stop();
-                vfd_set_text("GRADE");
-            }
-            /* Na grade principal, ignora BACK para nao fechar o aplicativo por acidente */
+            /* Na grade de canais, abre o dialogo de confirmacao de saida */
+            app->view = VIEW_CONFIRM_EXIT;
+            app->exit_dialog_choice = 1; /* Padrao selecionado: NAO */
             break;
 
         case KEY_EXIT_APP:

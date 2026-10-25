@@ -44,6 +44,9 @@ typedef struct {
     /* Status de mensagem */
     char status_message[128];
     uint32_t status_timer_ms;
+
+    /* Dialogo de saida (0 = SIM, 1 = NAO) */
+    int exit_dialog_choice;
 } app_context_t;
 
 /* Ciclo de vida da aplicacao */
