@@ -1,0 +1,103 @@
+name: Build AlencarSoft TVBOX Binaries
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-csky:
+    name: Build para Azamerica S1009+ (NationalChip GX6622 / C-SKY)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout do repositorio
+        uses: actions/checkout@v3
+
+      - name: Baixar Toolchain C-SKY (T-Head uClibc)
+        run: |
+          mkdir -p /opt/csky-toolchain
+          wget -q "https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource/1356021/1619527806432/csky-linux-uclibc-tools-x86_64-uclibc-linux-4.9.56-20210423.tar.gz" -O /tmp/csky.tar.gz
+          tar -xzf /tmp/csky.tar.gz -C /opt/csky-toolchain
+          echo "Toolchain extraida com sucesso."
+
+      - name: Compilar binario estatico C-SKY
+        run: |
+          CC_BIN=$(find /opt/csky-toolchain -type f -name "*csky*gcc" | head -n 1)
+          if [ -z "$CC_BIN" ]; then
+            echo "Erro: Compilador C-SKY nao encontrado!"
+            exit 1
+          fi
+          echo "Compilador encontrado: $CC_BIN"
+          $CC_BIN -v
+          
+          cd AlencarSoftTVBOX-Clang
+          $CC_BIN -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE -static \
+            src/main.c \
+            src/framebuffer.c \
+            src/font.c \
+            src/platform.c \
+            src/display_vfd.c \
+            src/input.c \
+            src/iptv_catalog.c \
+            src/player.c \
+            -o alencarsoft_tvbox_csky
+          
+          file alencarsoft_tvbox_csky
+          ls -lh alencarsoft_tvbox_csky
+
+      - name: Upload Artifact C-SKY
+        uses: actions/upload-artifact@v4
+        with:
+          name: alencarsoft_tvbox_csky
+          path: AlencarSoftTVBOX-Clang/alencarsoft_tvbox_csky
+
+      - name: Criar Release no GitHub
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/heads/main')
+        with:
+          tag_name: latest
+          name: "AlencarSoft TVBOX - Versao Nativa Estavel"
+          draft: false
+          prerelease: false
+          files: |
+            AlencarSoftTVBOX-Clang/alencarsoft_tvbox_csky
+            AlencarSoftTVBOX-Clang/iptv.m3u8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-mips:
+    name: Build para Cinebox / Duosat / Tuning (Availink AVL2569D / MIPS)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositorio
+        uses: actions/checkout@v3
+
+      - name: Instalar Cross-Compiler MIPS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mips-linux-gnu file
+
+      - name: Compilar binario estatico MIPS
+        run: |
+          cd AlencarSoftTVBOX-Clang
+          mips-linux-gnu-gcc -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE -static \
+            src/main.c \
+            src/framebuffer.c \
+            src/font.c \
+            src/platform.c \
+            src/display_vfd.c \
+            src/input.c \
+            src/iptv_catalog.c \
+            src/player.c \
+            -o alencarsoft_tvbox_mips
+          
+          file alencarsoft_tvbox_mips
+          ls -lh alencarsoft_tvbox_mips
+
+      - name: Upload Artifact MIPS
+        uses: actions/upload-artifact@v4
+        with:
+          name: alencarsoft_tvbox_mips
+          path: AlencarSoftTVBOX-Clang/alencarsoft_tvbox_mips
