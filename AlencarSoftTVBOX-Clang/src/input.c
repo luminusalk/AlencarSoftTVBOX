@@ -78,8 +78,9 @@ app_key_t input_decode_gxirr_packet(const uint8_t packet[4]) {
         case 0x88: return KEY_NAV_LEFT;
         case 0x08: return KEY_NAV_RIGHT;
         case 0xb0: return KEY_ACTION_OK;
+        case 0xf8: return KEY_EXIT_APP;     /* Botao EXIT fisico Azamerica S1009+ */
         case 0x68: return KEY_ACTION_BACK;  /* Botao MENU / BACK */
-        case 0x58: return KEY_EXIT_APP;     /* EXIT */
+        case 0x58: return KEY_EXIT_APP;     /* EXIT alternativo */
         case 0x48: return KEY_EXIT_APP;     /* EXIT alternativo */
         case 0x78: return KEY_EXIT_APP;     /* EXIT alternativo */
         case 0x28: return KEY_EXIT_APP;     /* EXIT alternativo */

@@ -175,8 +175,8 @@ static int parse_http_url(const char *url, char *host, size_t host_size,
     return 0;
 }
 
-/* Cliente HTTP basico para baixar dados */
-static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t *out_size) {
+/* Cliente HTTP basico para baixar dados (direto no buffer ou via streaming para o ring buffer) */
+static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t *out_size, int stream_to_ring) {
     char host[256];
     int port = 80;
     char path[1024];
@@ -214,7 +214,7 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) return -1;
 
-    tv.tv_sec = 4;
+    tv.tv_sec = 10;
     tv.tv_usec = 0;
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
     setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
@@ -235,7 +235,7 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
         pfd.fd = fd;
         pfd.events = POLLOUT;
         pfd.revents = 0;
-        if (poll(&pfd, 1, 4000) <= 0 ||
+        if (poll(&pfd, 1, 6000) <= 0 ||
             getsockopt(fd, SOL_SOCKET, SO_ERROR, &so_error, &so_len) < 0 || so_error) {
             close(fd); return -1;
         }
@@ -269,7 +269,7 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
     }
 
     while (s_bridge_running) {
-        uint8_t chunk[2048];
+        uint8_t chunk[16384];
         ssize_t r;
 #ifdef HLS_WITH_MBEDTLS
         if (tls) r = hls_tls_read(tls, chunk, sizeof(chunk));
@@ -277,7 +277,10 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
 #endif
             r = recv(fd, chunk, sizeof(chunk), 0);
         if (r < 0 && errno == EINTR) continue;
-        if (r < 0) break;
+        if (r < 0) {
+            if (has_length && total == content_length) complete = 1;
+            break;
+        }
         if (r == 0) { complete = 1; break; }
 
         if (!in_body) {
@@ -306,7 +309,7 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
                     errno = 0;
                     parsed = strtoull(value, &endptr, 10);
                     while (*endptr == ' ' || *endptr == '\t') endptr++;
-                    if (errno || endptr == value || *endptr || parsed > max_size || has_length) goto done;
+                    if (errno || endptr == value || *endptr || (!stream_to_ring && parsed > max_size) || has_length) goto done;
                     content_length = (size_t)parsed;
                     has_length = 1;
                 }
@@ -320,14 +323,24 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
             }
             in_body = 1;
             body_bytes = header_pos - header_len;
-            if (body_bytes > max_size) break;
             if (body_bytes) {
-                memcpy(out_buf, header_buf + header_len, body_bytes);
+                if (stream_to_ring) {
+                    if (ring_write(&s_ring, (const uint8_t *)header_buf + header_len, body_bytes) < 0) break;
+                    s_data_ready = 1;
+                } else {
+                    if (body_bytes > max_size) break;
+                    memcpy(out_buf, header_buf + header_len, body_bytes);
+                }
                 total = body_bytes;
             }
         } else {
-            if ((size_t)r > max_size - total) break;
-            memcpy(out_buf + total, chunk, (size_t)r);
+            if (stream_to_ring) {
+                if (ring_write(&s_ring, chunk, (size_t)r) < 0) break;
+                s_data_ready = 1;
+            } else {
+                if ((size_t)r > max_size - total) break;
+                memcpy(out_buf + total, chunk, (size_t)r);
+            }
             total += (size_t)r;
         }
         if (has_length && total > content_length) break;
@@ -351,13 +364,10 @@ done:
 static void *hls_producer_thread(void *arg) {
     (void)arg;
     uint8_t *playlist_buf = (uint8_t *)malloc(128 * 1024);
-    uint8_t *segment_buf = (uint8_t *)malloc(MAX_SEGMENT_SIZE);
     uint64_t next_sequence = 0;
     int started = 0;
-    if (!playlist_buf || !segment_buf) {
-        fprintf(stderr, "[HLS Bridge] Memoria insuficiente para segmentos.\n");
-        free(playlist_buf);
-        free(segment_buf);
+    if (!playlist_buf) {
+        fprintf(stderr, "[HLS Bridge] Memoria insuficiente para playlist.\n");
         return NULL;
     }
 
@@ -365,7 +375,7 @@ static void *hls_producer_thread(void *arg) {
 
     while (s_bridge_running) {
         size_t p_size = 0;
-        int fetch_rc = http_fetch(s_current_m3u8, playlist_buf, 128 * 1024 - 1, &p_size);
+        int fetch_rc = http_fetch(s_current_m3u8, playlist_buf, 128 * 1024 - 1, &p_size, 0);
         if (fetch_rc != 0 || p_size == 0) {
             fprintf(stderr, "[HLS Bridge] Falha ao baixar playlist (rc=%d): %.100s\n", fetch_rc, s_current_m3u8);
         } else {
@@ -379,19 +389,11 @@ static void *hls_producer_thread(void *arg) {
             } else {
                 start_idx = !started && count > 1 ? count - 1 : 0;
                 for (i = start_idx; i < count && s_bridge_running; i++) {
-                    size_t seg_size = 0, offset = 0;
-                    if (http_fetch(segments[i].url, segment_buf, MAX_SEGMENT_SIZE, &seg_size) < 0) {
+                    size_t seg_size = 0;
+                    if (http_fetch(segments[i].url, NULL, 0, &seg_size, 1) < 0) {
                         fprintf(stderr, "[HLS Bridge] Falha ao baixar segmento: %.100s\n", segments[i].url);
                         break;
                     }
-                    while (offset < seg_size && s_bridge_running) {
-                        size_t chunk = seg_size - offset;
-                        if (chunk > 64 * 1024) chunk = 64 * 1024;
-                        if (ring_write(&s_ring, segment_buf + offset, chunk) < 0) break;
-                        offset += chunk;
-                        s_data_ready = 1;
-                    }
-                    if (offset != seg_size) break;
                     next_sequence = segments[i].sequence + 1;
                     started = 1;
                 }
@@ -404,7 +406,6 @@ static void *hls_producer_thread(void *arg) {
     }
 
     free(playlist_buf);
-    free(segment_buf);
     fprintf(stderr, "[HLS Bridge] Produtor finalizado.\n");
     return NULL;
 }
