@@ -50,6 +50,11 @@ int app_init(app_context_t *app) {
     system("killall -9 dvbapp 2>/dev/null; umount -l /app 2>/dev/null;");
 #endif
 
+    /* Configura CA bundle padrao a partir de /mnt/plugin/cacert.pem se disponivel */
+    if (!getenv("HLS_CA_BUNDLE") && access("/mnt/plugin/cacert.pem", R_OK) == 0) {
+        setenv("HLS_CA_BUNDLE", "/mnt/plugin/cacert.pem", 1);
+    }
+
     /* 2. Deteccao automatica de hardware */
     system("echo DETECTING_PLATFORM >> /tmp/alencar_status.txt");
     app->platform = platform_detect();

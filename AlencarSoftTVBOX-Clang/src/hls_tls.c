@@ -79,7 +79,7 @@ static int init_global_tls(const char *override_ca) {
                                     (size_t)(hls_embedded_ca_end - hls_embedded_ca_start));
         s_last_override_ca[0] = '\0';
     }
-    if (rc != 0) {
+    if (rc < 0) {
         fprintf(stderr, "[HLS TLS] CA bundle invalido (%d).\n", rc);
         pthread_mutex_unlock(&s_global_tls_lock);
         return -1;

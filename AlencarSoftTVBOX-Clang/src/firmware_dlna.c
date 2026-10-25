@@ -192,8 +192,25 @@ static int http_request(const char *host, int port, const char *path,
     memset(&peer, 0, sizeof(peer));
     peer.sin_family = AF_INET;
     peer.sin_port = htons(port);
-    if (inet_pton(AF_INET, host, &peer.sin_addr) != 1 ||
-        connect(fd, (struct sockaddr *)&peer, sizeof(peer)) < 0) goto done;
+    if (inet_pton(AF_INET, host, &peer.sin_addr) != 1) goto done;
+
+    {
+        int flags = fcntl(fd, F_GETFL, 0);
+        if (flags < 0 || fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) goto done;
+        if (connect(fd, (struct sockaddr *)&peer, sizeof(peer)) < 0) {
+            if (errno != EINPROGRESS) goto done;
+            struct pollfd pfd;
+            int so_error = 0;
+            socklen_t so_len = sizeof(so_error);
+            pfd.fd = fd;
+            pfd.events = POLLOUT;
+            pfd.revents = 0;
+            if (poll(&pfd, 1, timeout_seconds * 1000) <= 0 ||
+                getsockopt(fd, SOL_SOCKET, SO_ERROR, &so_error, &so_len) < 0 || so_error)
+                goto done;
+        }
+        if (fcntl(fd, F_SETFL, flags) < 0) goto done;
+    }
     if (soap_action && *soap_action) {
         request_length = snprintf(request, sizeof(request),
             "%s %s HTTP/1.0\r\nHost: %s:%d\r\nContent-Type: text/xml; charset=\"utf-8\"\r\n"
