@@ -27,7 +27,8 @@ int main(int argc, char **argv) {
         hls_bridge_stop();
         return total ? 4 : 0;
     }
-    if (strcmp(argv[1], "stream") != 0 || expected <= 0) return 5;
+    if ((strcmp(argv[1], "stream") != 0 && strcmp(argv[1], "sample") != 0) ||
+        expected <= 0) return 5;
     fd = open(hls_bridge_get_url(), O_RDONLY | O_NONBLOCK);
     if (fd < 0) return 6;
     deadline = time(NULL) + 10;
@@ -38,7 +39,9 @@ int main(int argc, char **argv) {
         pfd.events = POLLIN;
         pfd.revents = 0;
         if (poll(&pfd, 1, 200) <= 0) continue;
-        n = read(fd, bytes, sizeof(bytes));
+        n = read(fd, bytes,
+                 (size_t)(expected - total) < sizeof(bytes) ?
+                 (size_t)(expected - total) : sizeof(bytes));
         if (n < 0 && (errno == EINTR || errno == EAGAIN)) continue;
         if (n <= 0) break;
         if (fwrite(bytes, 1, (size_t)n, stdout) != (size_t)n) break;

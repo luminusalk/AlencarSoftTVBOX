@@ -93,6 +93,14 @@ jobs:
           # Teste isolado do caminho MPEG-TS -> demux DVB -> decodificador.
           $CC_BIN -static -std=gnu99 -O2 -Wall -Wextra \
             tools/dvb_native_probe.c -o dvb_native_probe_csky
+
+          $CC_BIN -static -std=gnu99 -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
+            -DHLS_WITH_MBEDTLS -I/tmp/mbedtls-3.6.7/include \
+            tests/hls_bridge_harness.c src/hls_bridge.c src/hls_playlist.c src/hls_tls.c \
+            /tmp/mbedtls-3.6.7/library/libmbedtls.a \
+            /tmp/mbedtls-3.6.7/library/libmbedx509.a \
+            /tmp/mbedtls-3.6.7/library/libmbedcrypto.a \
+            -lpthread -o hls_bridge_probe_csky
           
           # Compila mini_test de diagnostico
           $CC_BIN -static -std=gnu99 -O2 mini_test.c -o mini_test
@@ -102,6 +110,7 @@ jobs:
           $STRIP_BIN mini_test || true
           $STRIP_BIN gxav_probe_csky || true
           $STRIP_BIN dvb_native_probe_csky || true
+          $STRIP_BIN hls_bridge_probe_csky || true
           
           echo "SUCESSO: Binarios C-SKY gerados com sucesso pelo toolchain oficial NationalChip!"
           file alencarsoft_tvbox_csky mini_test
@@ -127,6 +136,12 @@ jobs:
         with:
           name: dvb-native-probe-csky
           path: AlencarSoftTVBOX-Clang/dvb_native_probe_csky
+
+      - name: Upload transport-only probe
+        uses: actions/upload-artifact@v4
+        with:
+          name: hls-bridge-probe-csky
+          path: AlencarSoftTVBOX-Clang/hls_bridge_probe_csky
 
   build-mips:
     name: Build para Availink AVL2569D (Cinebox, Duosat, Tuning / MIPS)
