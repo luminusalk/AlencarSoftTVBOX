@@ -403,6 +403,33 @@ int main(int argc, char **argv) {
     printf("=========================================\n");
     fflush(stdout);
 
+    /* Modo C isolado (headless): testa o transporte DLNA e player C sem tocar em framebuffer, IR, VFD ou watchdog */
+    if (argc >= 3 && strcmp(argv[1], "--headless") == 0) {
+        const char *source = argv[2];
+        int duration = argc >= 4 ? atoi(argv[3]) : 15;
+        if (duration <= 0) duration = 15;
+        printf("[%s] Modo HEADLESS isolado: fonte='%s', duracao=%ds\n", APP_NAME, source, duration);
+        fflush(stdout);
+
+        player_init();
+        if (player_play(source, "Headless Test") < 0) {
+            fprintf(stderr, "[%s] Falha no player_play headless\n", APP_NAME);
+            return 1;
+        }
+
+        for (int i = 0; i < duration; i++) {
+            sleep(1);
+            printf("[%s] Headless t=%ds/%ds, estado player=%d\n", APP_NAME, i + 1, duration, player_get_state());
+            fflush(stdout);
+        }
+
+        printf("[%s] Encerrando reproducao headless...\n", APP_NAME);
+        player_stop();
+        player_close();
+        printf("[%s] Modo headless concluido com sucesso.\n", APP_NAME);
+        return 0;
+    }
+
     if (app_init(&s_app) < 0) {
         fprintf(stderr, "Erro ao inicializar %s\n", APP_NAME);
         fflush(stderr);
