@@ -12,10 +12,9 @@ substitui o texto antigo, que continha afirmações não comprovadas.
 - Branch: `codex/native-iptv-repair`. Conferir `git log -1` e a execução
   mais recente do workflow antes de instalar qualquer artefato; os números
   antigos abaixo são históricos.
-- GitHub Actions run `40221253923` passou no commit `7f20eef`, incluindo o
-  novo teste HLS C → FIFO → HTTP C → renderizador simulado e build C-SKY.
-  Alterações posteriores em `main.c`, `input.c` e `hls_tls.c` precisam de
-  novo build. A publicação de release só ocorre em `main`.
+- GitHub Actions run `40221895862` passou no commit `3b506e4`, incluindo o
+  teste HLS C → FIFO → HTTP C → renderizador simulado e builds C-SKY/MIPS.
+  A publicação de release só ocorre em `main`.
 - Após o guia original, outro modelo instalou um aplicativo e copiou
   `/mnt/plugin/cacert.pem` para a box. **Não assumir** o MD5 antigo ou que
   a instalação tenha sido restaurada. Na última inspeção apenas de leitura,
@@ -114,6 +113,7 @@ descrição via BusyBox `wget` no próprio IP.
 | Aplicativo C integrado no commit `686cdd8` | Falha na descoberta DLNA | Sem teste audiovisual do aplicativo integrado. |
 | Aplicativo C integrado no commit `c694046` | Play aceito e GET recebido; usuário viu tela preta | Faltava comprovar bytes TS e revisar interferência do reinício de `dvbapp`. |
 | CI `40221253923` no commit `7f20eef` | Build e teste completo de transporte simulados passaram | Não confirma TV, IR ou estabilidade longa. |
+| CI `40221895862` no commit `3b506e4` | Build após a revisão de firmware/IR/CA passou | Ainda não confirma imagem e som no aplicativo. |
 
 Não ressuscitar a alegação de que a varredura `GXAV_IOCTL_FIFO_UNLINK`
 resolve o áudio: a rotina antiga passava ponteiro de canal nulo, incompatível

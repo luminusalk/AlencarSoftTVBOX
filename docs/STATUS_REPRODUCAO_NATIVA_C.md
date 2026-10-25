@@ -40,9 +40,8 @@ continuar.
   pedido do usuário; a versão intermediária dependia de um arquivo copiado
   para `/mnt/plugin/cacert.pem`. HTTP direto sem `.m3u` é entregue ao renderer;
   este caminho só foi testado com mock.
-- CI run `40221253923` no commit `7f20eef`: testes Linux e builds C-SKY/MIPS
-  passaram. As alterações posteriores ainda exigem novo build. Isso não é
-  confirmação audiovisual.
+- CI run `40221895862` no commit `3b506e4`: testes Linux e builds C-SKY/MIPS
+  passaram após a revisão de firmware/IR/CA. Isso não é confirmação audiovisual.
 - Não assumir que o binário antigo está instalado: outro modelo instalou
   versões após o guia anterior e copiou um certificado para a box. Na última
   inspeção apenas de leitura, `dvbapp` estava ativo e `/dev/gxirr0` era FIFO.

@@ -13,6 +13,7 @@ etapa. Execute apenas revisão de fonte e CI até ele retomar os testes na TV.
 | `showcartoon` com `dvbapp` pausado | Tela preta/sem som, erro 962 | Caminho direto não validado. |
 | DVB direto, duas tentativas | Tela preta/sem som | Escrita de TS não basta. |
 | CI `40221253923`, commit `7f20eef` | Testes Linux e builds C-SKY/MIPS passaram | Inclui HLS C → FIFO → HTTP C → renderer simulado, sem hardware. |
+| CI `40221895862`, commit `3b506e4` | Build após revisão de IR/firmware/CA passou | Pronto para teste audiovisual autorizado; sem hardware nesta revisão. |
 
 ## Antes de voltar à box
 

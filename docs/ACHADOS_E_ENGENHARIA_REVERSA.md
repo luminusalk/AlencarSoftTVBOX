@@ -65,7 +65,8 @@ alterar o firmware original. O estado e as próximas ações estão no
     HTTP C → renderer. O CI `40221253923` passou. O FIFO não pode ser
     declarado causa da falha sem medição: ele estava no caminho que deu som
     e imagem. O cache do OSD também foi corrigido para limpar a tela ao
-    reabrir o mesmo canal.
+    reabrir o mesmo canal. O CI `40221895862` passou após a revisão de
+    firmware/IR/CA, ainda sem novo teste audiovisual.
 
 ## Alegações antigas corrigidas
 

@@ -37,7 +37,8 @@ flowchart LR
 
 O teste de 25 segundos de ponte C + HTTP CGI de diagnóstico + DLNA produziu
 imagem e som na TV. Uma versão integrada recebeu Play/GET, mas deu tela preta.
-O teste de transporte integrado simulado passou no CI `40221253923`;
+O teste de transporte integrado simulado e o build revisado passaram no CI
+`40221895862`;
 **ainda falta teste audiovisual do aplicativo integrado**.
 Não interpretar `Play` aceito, bytes transmitidos ou processo vivo como
 confirmação de imagem e áudio.
