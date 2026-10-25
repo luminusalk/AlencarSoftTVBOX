@@ -18,82 +18,39 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y lib32z1 lib32stdc++6 file wget python3
 
-      - name: Baixar Toolchain C-SKY (T-Head uClibc)
+      - name: Baixar Toolchain NationalChip C-SKY (Linux 3.0.8 / CK610)
         run: |
           mkdir -p /opt/csky-toolchain
-          wget -q "https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource/1356021/1619527806432/csky-linux-uclibc-tools-x86_64-uclibc-linux-4.9.56-20210423.tar.gz" -O /tmp/csky.tar.gz
-          tar -xzf /tmp/csky.tar.gz -C /opt/csky-toolchain
-          echo "Toolchain extraida com sucesso."
+          wget -q "https://launchpad.net/~nationalchip-repo/+archive/ubuntu/gxtools/+sourcefiles/csky-linux-tools-uclibc-2.8.01/1.0.0.0/csky-linux-tools-uclibc-2.8.01_1.0.0.0.tar.xz" -O /tmp/csky_pkg.tar.xz
+          tar -xf /tmp/csky_pkg.tar.xz -C /tmp
+          tar -xf /tmp/csky-linux-tools-uclibc-2.8.01/csky-linux-tools-uclibc-20170724.tar.xz -C /opt/csky-toolchain
+          echo "Toolchain NationalChip C-SKY extraida com sucesso."
 
       - name: Compilar binario C-SKY Estatico
         run: |
-          CC_BIN=$(find /opt/csky-toolchain -type f -name "*gcc" | grep "/bin/" | head -n 1)
-          STRIP_BIN=$(find /opt/csky-toolchain -type f -name "*strip" | grep "/bin/" | head -n 1)
+          CC_BIN="/opt/csky-toolchain/csky-linux-tools-uclibc-20170724/bin/csky-linux-gcc"
+          STRIP_BIN="/opt/csky-toolchain/csky-linux-tools-uclibc-20170724/bin/csky-linux-strip"
           echo "Compilador selecionado: $CC_BIN"
-          export PATH="$(dirname $CC_BIN):$PATH"
+          export PATH="/opt/csky-toolchain/csky-linux-tools-uclibc-20170724/bin:$PATH"
           $CC_BIN -v
           
           cd AlencarSoftTVBOX-Clang
           
-          # Mostra opcoes de arquitetura do compilador
-          $CC_BIN --target-help 2>&1 | grep -E "(ck610|ck810|ck807|abiv1|abiv2)" | head -n 30 || true
-          
-          # Tenta compilar especificamente para C-SKY ABIV1 (CK610)
-          if $CC_BIN -static -mabi=abiv1 -march=ck610 -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
+          # Compila o aplicativo AlencarSoft TVBOX estatico com o toolchain oficial NationalChip
+          $CC_BIN -static -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
             src/main.c src/framebuffer.c src/font.c src/platform.c src/display_vfd.c \
-            src/input.c src/iptv_catalog.c src/player.c -o alencarsoft_tvbox_csky 2>/tmp/abiv1.log; then
-            echo "SUCESSO: Compilado com -mabi=abiv1 -march=ck610!"
-          elif $CC_BIN -static -mcpu=ck610 -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
-            src/main.c src/framebuffer.c src/font.c src/platform.c src/display_vfd.c \
-            src/input.c src/iptv_catalog.c src/player.c -o alencarsoft_tvbox_csky 2>/tmp/ck610.log; then
-            echo "Compilado com -mcpu=ck610!"
-          else
-            echo "Compilando padrao estatico:"
-            cat /tmp/abiv1.log || true
-            $CC_BIN -static -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
-              src/main.c src/framebuffer.c src/font.c src/platform.c src/display_vfd.c \
-              src/input.c src/iptv_catalog.c src/player.c -o alencarsoft_tvbox_csky
-          fi
-          
-          if [ -n "$STRIP_BIN" ]; then
-            $STRIP_BIN alencarsoft_tvbox_csky || true
-          fi
+            src/input.c src/iptv_catalog.c src/player.c -o alencarsoft_tvbox_csky
           
           # Compila mini_test de diagnostico
-          $CC_BIN -static -mcpu=ck610 mini_test.c -o mini_test 2>/dev/null || \
-          $CC_BIN -static mini_test.c -o mini_test
-          if [ -n "$STRIP_BIN" ]; then
-            $STRIP_BIN mini_test || true
-          fi
+          $CC_BIN -static -O2 mini_test.c -o mini_test
           
-          # Compila nostdlib_test direto por syscall
-          $CC_BIN -nostdlib -mcpu=ck610 -O2 nostdlib_test.c -o nostdlib_test 2>/dev/null || \
-          $CC_BIN -nostdlib -O2 nostdlib_test.c -o nostdlib_test
-          if [ -n "$STRIP_BIN" ]; then
-            $STRIP_BIN nostdlib_test || true
-          fi
+          # Strip para reduzir tamanho
+          $STRIP_BIN alencarsoft_tvbox_csky || true
+          $STRIP_BIN mini_test || true
           
-          # Versao moderna (e_machine = 0xFC / 252)
-          cp alencarsoft_tvbox_csky alencarsoft_tvbox_csky_v2
-          
-          # Aplica patch de compatibilidade com Kernel 3.0.8 e CPU CK610 (e_machine=0x27, e_flags=0x10002002)
-          python3 -c '
-          import struct
-          for fn in ["alencarsoft_tvbox_csky", "mini_test", "nostdlib_test"]:
-              try:
-                  with open(fn, "r+b") as f:
-                      f.seek(18)
-                      f.write(bytes([0x27, 0x00]))
-                      f.seek(24)
-                      f.write(struct.pack("<I", 0x10002002))
-                  print(f"Patched {fn} -> machine=0x27 flags=0x10002002")
-              except Exception as e:
-                  print(f"Patch {fn}: {e}")
-          '
-          
-          echo "SUCESSO: Binarios C-SKY gerados com sucesso!"
-          file alencarsoft_tvbox_csky*
-          ls -lh alencarsoft_tvbox_csky*
+          echo "SUCESSO: Binarios C-SKY gerados com sucesso pelo toolchain oficial NationalChip!"
+          file alencarsoft_tvbox_csky mini_test
+          ls -lh alencarsoft_tvbox_csky mini_test
 
       - name: Upload Artifact C-SKY
         uses: actions/upload-artifact@v4
@@ -101,9 +58,7 @@ jobs:
           name: alencarsoft_tvbox_csky
           path: |
             AlencarSoftTVBOX-Clang/alencarsoft_tvbox_csky
-            AlencarSoftTVBOX-Clang/alencarsoft_tvbox_csky_v2
             AlencarSoftTVBOX-Clang/mini_test
-            AlencarSoftTVBOX-Clang/nostdlib_test
 
   build-mips:
     name: Build para Availink AVL2569D (Cinebox, Duosat, Tuning / MIPS)
@@ -193,8 +148,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: "v1.0.6-native"
-          name: "AlencarSoft TVBOX - Versao Nativa Estavel v1.0.6"
+          tag_name: "v1.0.7-native"
+          name: "AlencarSoft TVBOX - Versao Nativa Estavel v1.0.7 (NationalChip Toolchain)"
           draft: false
           prerelease: false
           overwrite: true
