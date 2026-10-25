@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <signal.h>
+#include <fcntl.h>
 
 static app_context_t s_app;
 
