@@ -262,7 +262,7 @@ void app_handle_input(app_context_t *app, app_key_t key) {
     /* 1. Tratamento durante a reproducao de video */
     if (player_get_state() == PLAYER_STATE_PLAYING ||
         player_get_state() == PLAYER_STATE_BUFFERING) {
-        if (key == KEY_ACTION_BACK || key == KEY_EXIT_APP) {
+        if (key == KEY_ACTION_BACK || key == KEY_EXIT_APP || key == KEY_ACTION_MENU) {
             player_stop();
             vfd_set_text("GRADE");
             fb_clear(&app->fb, COLOR_DARK_BG);

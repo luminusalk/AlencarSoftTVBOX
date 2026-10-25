@@ -15,13 +15,16 @@
 struct hls_tls {
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config config;
-    mbedtls_x509_crt ca;
-    mbedtls_entropy_context entropy;
-    mbedtls_ctr_drbg_context drbg;
     mbedtls_net_context net;
 };
 
 static pthread_once_t s_entropy_source_once = PTHREAD_ONCE_INIT;
+static mbedtls_x509_crt s_global_ca;
+static mbedtls_entropy_context s_global_entropy;
+static mbedtls_ctr_drbg_context s_global_drbg;
+static pthread_mutex_t s_global_tls_lock = PTHREAD_MUTEX_INITIALIZER;
+static int s_global_initialized = 0;
+static char s_last_override_ca[256] = {0};
 
 /* GNU assembler includes the pinned Mozilla CA store in the executable.
  * The final byte is required by mbedtls_x509_crt_parse for PEM input. */
@@ -48,19 +51,69 @@ static void tls_trace(const char *stage, int rc) {
         fprintf(stderr, "[HLS TLS] %s rc=%d\n", stage, rc);
 }
 
+static int init_global_tls(const char *override_ca) {
+    const char personalization[] = "AlencarSoftTVBOX HLS";
+    int rc;
+
+    pthread_mutex_lock(&s_global_tls_lock);
+    if (s_global_initialized) {
+        if (!override_ca && !s_last_override_ca[0]) {
+            pthread_mutex_unlock(&s_global_tls_lock);
+            return 0;
+        }
+        if (override_ca && strcmp(override_ca, s_last_override_ca) == 0) {
+            pthread_mutex_unlock(&s_global_tls_lock);
+            return 0;
+        }
+        mbedtls_x509_crt_free(&s_global_ca);
+        s_global_initialized = 0;
+    }
+
+    mbedtls_x509_crt_init(&s_global_ca);
+    if (override_ca && *override_ca) {
+        rc = mbedtls_x509_crt_parse_file(&s_global_ca, override_ca);
+        strncpy(s_last_override_ca, override_ca, sizeof(s_last_override_ca) - 1);
+    } else {
+        rc = mbedtls_x509_crt_parse(&s_global_ca, hls_embedded_ca_start,
+                                    (size_t)(hls_embedded_ca_end - hls_embedded_ca_start));
+        s_last_override_ca[0] = '\0';
+    }
+    if (rc != 0) {
+        fprintf(stderr, "[HLS TLS] CA bundle invalido (%d).\n", rc);
+        pthread_mutex_unlock(&s_global_tls_lock);
+        return -1;
+    }
+    tls_trace("ca-parsed", rc);
+
+    if (pthread_once(&s_entropy_source_once, use_nonblocking_entropy_source) != 0) {
+        pthread_mutex_unlock(&s_global_tls_lock);
+        return -1;
+    }
+    mbedtls_entropy_init(&s_global_entropy);
+    mbedtls_ctr_drbg_init(&s_global_drbg);
+    rc = mbedtls_ctr_drbg_seed(&s_global_drbg, mbedtls_entropy_func, &s_global_entropy,
+                               (const unsigned char *)personalization,
+                               strlen(personalization));
+    tls_trace("entropy-seeded", rc);
+    if (rc != 0) {
+        pthread_mutex_unlock(&s_global_tls_lock);
+        return -1;
+    }
+
+    s_global_initialized = 1;
+    pthread_mutex_unlock(&s_global_tls_lock);
+    return 0;
+}
+
 void hls_tls_close(hls_tls_t *tls) {
     if (!tls) return;
     mbedtls_ssl_free(&tls->ssl);
     mbedtls_ssl_config_free(&tls->config);
-    mbedtls_x509_crt_free(&tls->ca);
-    mbedtls_ctr_drbg_free(&tls->drbg);
-    mbedtls_entropy_free(&tls->entropy);
     /* net.fd belongs to the caller; mbedtls_net_free would close it. */
     free(tls);
 }
 
 hls_tls_t *hls_tls_open(int fd, const char *hostname) {
-    const char personalization[] = "AlencarSoftTVBOX HLS";
     const char *override_ca = getenv("HLS_CA_BUNDLE");
     hls_tls_t *tls = (hls_tls_t *)calloc(1, sizeof(*tls));
     int rc = -1;
@@ -68,40 +121,25 @@ hls_tls_t *hls_tls_open(int fd, const char *hostname) {
         free(tls);
         return NULL;
     }
+
+    if (init_global_tls(override_ca) != 0) {
+        free(tls);
+        return NULL;
+    }
+
     mbedtls_ssl_init(&tls->ssl);
     mbedtls_ssl_config_init(&tls->config);
-    mbedtls_x509_crt_init(&tls->ca);
-    mbedtls_entropy_init(&tls->entropy);
-    mbedtls_ctr_drbg_init(&tls->drbg);
     mbedtls_net_init(&tls->net);
     tls->net.fd = fd;
     tls_trace("open", 0);
 
-    if (override_ca && *override_ca) {
-        rc = mbedtls_x509_crt_parse_file(&tls->ca, override_ca);
-    } else {
-        rc = mbedtls_x509_crt_parse(&tls->ca, hls_embedded_ca_start,
-                                   (size_t)(hls_embedded_ca_end - hls_embedded_ca_start));
-    }
-    if (rc != 0) {
-        fprintf(stderr, "[HLS TLS] CA bundle invalido (%d).\n", rc);
-        goto failed;
-    }
-    tls_trace("ca-parsed", rc);
-    if (pthread_once(&s_entropy_source_once, use_nonblocking_entropy_source) != 0)
-        goto failed;
-    rc = mbedtls_ctr_drbg_seed(&tls->drbg, mbedtls_entropy_func, &tls->entropy,
-                               (const unsigned char *)personalization,
-                               strlen(personalization));
-    tls_trace("entropy-seeded", rc);
-    if (rc != 0) goto failed;
     rc = mbedtls_ssl_config_defaults(&tls->config, MBEDTLS_SSL_IS_CLIENT,
                                      MBEDTLS_SSL_TRANSPORT_STREAM,
                                      MBEDTLS_SSL_PRESET_DEFAULT);
     if (rc != 0) goto failed;
     mbedtls_ssl_conf_authmode(&tls->config, MBEDTLS_SSL_VERIFY_REQUIRED);
-    mbedtls_ssl_conf_ca_chain(&tls->config, &tls->ca, NULL);
-    mbedtls_ssl_conf_rng(&tls->config, mbedtls_ctr_drbg_random, &tls->drbg);
+    mbedtls_ssl_conf_ca_chain(&tls->config, &s_global_ca, NULL);
+    mbedtls_ssl_conf_rng(&tls->config, mbedtls_ctr_drbg_random, &s_global_drbg);
     rc = mbedtls_ssl_setup(&tls->ssl, &tls->config);
     if (rc != 0) goto failed;
     rc = mbedtls_ssl_set_hostname(&tls->ssl, hostname);

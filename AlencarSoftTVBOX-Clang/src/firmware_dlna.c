@@ -421,6 +421,15 @@ int firmware_dlna_start(const char *source, const char *title) {
     if (n < 0 || (size_t)n >= sizeof(metadata) ||
         xml_escape(metadata, metadata_escaped, sizeof(metadata_escaped)) < 0)
         goto failed;
+
+    if (s_bridge_started) {
+        /* Aguarda o primeiro segmento chegar no buffer para o player receber dados de imediato */
+        for (int w = 0; w < 30 && s_running; w++) {
+            if (hls_bridge_has_data()) break;
+            usleep(100000);
+        }
+    }
+
     n = snprintf(args, sizeof(args),
         "<InstanceID>0</InstanceID><CurrentURI>%s</CurrentURI>"
         "<CurrentURIMetaData>%s</CurrentURIMetaData>", uri_escaped, metadata_escaped);

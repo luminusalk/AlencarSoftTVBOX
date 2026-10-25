@@ -377,7 +377,7 @@ static void *hls_producer_thread(void *arg) {
                                          &parsed_next, segments, 16, &count) < 0) {
                 fprintf(stderr, "[HLS Bridge] Playlist invalida ou formato HLS nao suportado.\n");
             } else {
-                start_idx = !started && count > 2 ? count - 2 : 0;
+                start_idx = !started && count > 1 ? count - 1 : 0;
                 for (i = start_idx; i < count && s_bridge_running; i++) {
                     size_t seg_size = 0, offset = 0;
                     if (http_fetch(segments[i].url, segment_buf, MAX_SEGMENT_SIZE, &seg_size) < 0) {
