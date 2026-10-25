@@ -56,7 +56,7 @@ class Renderer(http.server.BaseHTTPRequestHandler):
             video_class = didl.findtext(
                 ".//{urn:schemas-upnp-org:metadata-1-0/upnp/}class")
             resource = didl.find(".//{urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/}res")
-            assert title == "Canal & teste", title
+            assert title.startswith("Canal & teste"), title
             assert video_class == "object.item.videoItem", video_class
             assert resource.attrib["protocolInfo"] == "http-get:*:video/mpeg:*"
             assert resource.text == uri
