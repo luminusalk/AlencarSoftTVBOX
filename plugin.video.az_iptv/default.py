@@ -17,6 +17,11 @@ import xbmcplugin
 from playlist import read_page
 from plugin_catalog import CatalogStore, fetch_catalog
 from hls_bridge import ensure_bridge_daemon
+try:
+    from vfd_display import set_display
+except ImportError:
+    def set_display(text, logger=None):
+        return False
 
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -77,13 +82,16 @@ def local_ip():
         route.close()
 
 
-def make_video_url(url):
+def make_video_url(url, name=None):
     if not url:
         return url
     if '.m3u8' in url.lower():
         try:
             ensure_bridge_daemon(record)
-            return 'http://127.0.0.1:8978/live.ts?src=' + quote(url)
+            bridge_url = 'http://127.0.0.1:8978/live.ts?src=' + quote(url)
+            if name:
+                bridge_url += '&name=' + quote(name)
+            return bridge_url
         except Exception:
             record(traceback.format_exc())
     return url
@@ -102,7 +110,7 @@ def show_root(handle, base):
     # TV Cultura ao vivo via HLS Bridge local em background
     try:
         ensure_bridge_daemon(record)
-        cultura_bridge_url = 'http://127.0.0.1:8978/live.ts?src=' + quote(LIVE_CULTURA_540)
+        cultura_bridge_url = make_video_url(LIVE_CULTURA_540, 'TV Cultura')
         add_video(handle, 'TV Cultura ao vivo [720p HD]', cultura_bridge_url,
                   'http://beststorage4you.com:80/logoscanais/TVCULTURA.png')
     except Exception:
@@ -152,7 +160,7 @@ def show_cloud_channels(handle, base, args):
                            (channel_list['id'], page - 1))
             for channel in channels[page * PAGE_SIZE:(page + 1) * PAGE_SIZE]:
                 logo = channel.get('logo')
-                add_video(handle, channel['name'], make_video_url(channel['url']), logo)
+                add_video(handle, channel['name'], make_video_url(channel['url'], channel['name']), logo)
             if (page + 1) * PAGE_SIZE < len(channels):
                 add_folder(handle, 'Proxima pagina',
                            base + '?mode=cloud_list&id=%s&page=%d' %
@@ -189,7 +197,7 @@ def show_playlist(handle, base, args):
         add_folder(handle, 'Pagina anterior',
                    base + '?list=%d&page=%d' % (index, page - 1))
     for label, address in channels:
-        add_video(handle, label, make_video_url(address))
+        add_video(handle, label, make_video_url(address, label))
     if more:
         add_folder(handle, 'Proxima pagina',
                    base + '?list=%d&page=%d' % (index, page + 1))
@@ -200,6 +208,10 @@ def main():
     handle = int(sys.argv[1])
     base = sys.argv[0]
     args = fields()
+    try:
+        set_display('AZ IPTV', record)
+    except Exception:
+        pass
     if args.get('mode') == 'update':
         update_catalog(handle, base)
     elif args.get('mode') == 'cloud':

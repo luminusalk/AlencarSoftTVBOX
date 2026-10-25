@@ -8,8 +8,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("command")
 args = parser.parse_args()
 
-def accepts_telnet(index):
-    address = "192.168.137.%d" % index
+def accepts_telnet(address):
     try:
         with socket.create_connection((address, 23), timeout=0.35):
             return address
@@ -17,8 +16,9 @@ def accepts_telnet(index):
         return None
 
 
-with ThreadPoolExecutor(max_workers=48) as pool:
-    hosts = [host for host in pool.map(accepts_telnet, range(2, 255)) if host]
+targets = [f"192.168.18.{i}" for i in range(1, 255)] + [f"192.168.137.{i}" for i in range(1, 255)]
+with ThreadPoolExecutor(max_workers=64) as pool:
+    hosts = [host for host in pool.map(accepts_telnet, targets) if host]
 if len(hosts) != 1:
     raise RuntimeError("Expected one receiver on the direct cable; found %r" % hosts)
 

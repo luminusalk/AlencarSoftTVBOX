@@ -180,9 +180,24 @@ class _Handler(http_server.BaseHTTPRequestHandler):
             self.send_error(400, 'Parametro src ausente')
             return
 
+        channel_name = None
+        if 'name' in query_params and query_params['name']:
+            channel_name = unquote(query_params['name'][0])
+
         report = getattr(self.server, 'report', None)
         if report:
-            report('Cliente conectado para %s' % target_url)
+            msg = 'Cliente conectado para %s' % target_url
+            if channel_name:
+                msg = 'Cliente conectado canal [%s] para %s' % (channel_name, target_url)
+            report(msg)
+
+        if channel_name:
+            try:
+                from vfd_display import set_display
+                set_display(channel_name, report)
+            except Exception as vfd_err:
+                if report:
+                    report('Erro ao atualizar visor: %s' % vfd_err)
 
         segment_queue = queue_module.Queue(maxsize=QUEUE_BUFFER_SIZE)
         stop_event = threading.Event()
