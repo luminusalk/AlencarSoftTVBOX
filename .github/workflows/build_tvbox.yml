@@ -160,10 +160,11 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: "v1.0.0-native"
-          name: "AlencarSoft TVBOX - Versao Nativa Estavel v1.0.0"
+          tag_name: "v1.0.1-native"
+          name: "AlencarSoft TVBOX - Versao Nativa Estavel v1.0.1"
           draft: false
           prerelease: false
+          overwrite: true
           files: release_files/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
