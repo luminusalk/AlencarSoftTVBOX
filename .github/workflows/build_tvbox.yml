@@ -6,6 +6,22 @@ on:
   workflow_dispatch:
 
 jobs:
+  test-native:
+    name: Testar parser HLS em Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Compilar e executar testes C
+        run: |
+          cd AlencarSoftTVBOX-Clang
+          gcc -std=c99 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined \
+            -Iinclude tests/hls_playlist_test.c src/hls_playlist.c -o hls_playlist_test
+          ./hls_playlist_test
+          gcc -std=gnu99 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined \
+            -D_GNU_SOURCE -Iinclude tests/hls_bridge_harness.c src/hls_bridge.c \
+            src/hls_playlist.c -lpthread -o hls_bridge_harness
+          python3 tests/test_hls_bridge.py ./hls_bridge_harness
+
   build-csky:
     name: Build para Azamerica S1009+ (NationalChip GX6622 / C-SKY)
     runs-on: ubuntu-latest
@@ -39,7 +55,8 @@ jobs:
           # Compila o aplicativo AlencarSoft TVBOX estatico com o toolchain oficial NationalChip
           $CC_BIN -static -std=gnu99 -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
             src/main.c src/framebuffer.c src/font.c src/platform.c src/display_vfd.c \
-            src/input.c src/iptv_catalog.c src/player.c src/hls_bridge.c -lpthread -o alencarsoft_tvbox_csky
+            src/input.c src/iptv_catalog.c src/player.c src/hls_bridge.c src/hls_playlist.c \
+            -lpthread -o alencarsoft_tvbox_csky
 
           # Diagnostico somente de leitura da ABI GXAV do receptor.
           $CC_BIN -static -std=gnu99 -O2 -Wall -Wextra \
@@ -108,6 +125,7 @@ jobs:
             src/iptv_catalog.c \
             src/player.c \
             src/hls_bridge.c \
+            src/hls_playlist.c \
             -lpthread \
             -o alencarsoft_tvbox_mips_be
           mips-linux-gnu-strip alencarsoft_tvbox_mips_be || true
@@ -123,6 +141,7 @@ jobs:
             src/iptv_catalog.c \
             src/player.c \
             src/hls_bridge.c \
+            src/hls_playlist.c \
             -lpthread \
             -o alencarsoft_tvbox_mips_le
           mipsel-linux-gnu-strip alencarsoft_tvbox_mips_le || true
@@ -141,7 +160,7 @@ jobs:
 
   release:
     name: Publicar Release com Binarios Nativos
-    needs: [build-csky, build-mips]
+    needs: [test-native, build-csky, build-mips]
     runs-on: ubuntu-latest
     permissions:
       contents: write

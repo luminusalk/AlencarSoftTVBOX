@@ -28,6 +28,10 @@ void hls_bridge_stop(void);
  */
 int hls_bridge_is_running(void);
 
+/* True after a complete MPEG-TS segment has been downloaded and its first
+ * bytes have entered the FIFO pipeline. Does not imply audiovisual output. */
+int hls_bridge_has_data(void);
+
 /**
  * @brief Retorna o URL local servido pela ponte para o player de hardware.
  * @return String com URL local, ex: "http://127.0.0.1:8978/live.ts"

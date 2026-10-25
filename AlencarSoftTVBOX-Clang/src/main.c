@@ -87,12 +87,6 @@ int app_init(app_context_t *app) {
         app->catalog.categories[0].channel_indices[1] = 1;
         app->catalog.categories[0].count = 2;
         app->catalog.total_categories = 1;
-        /* Clean fallback done */
-
-        strcpy(app->catalog.categories[0].name, "Canais Abertos");
-        app->catalog.categories[0].channel_indices[0] = 0;
-        app->catalog.categories[0].count = 1;
-        app->catalog.total_categories = 1;
     }
 
     strcpy(app->status_message, "Grade carregada com sucesso.");
@@ -101,9 +95,11 @@ int app_init(app_context_t *app) {
 }
 
 void app_render(app_context_t *app) {
+    player_state_t playback_state;
     if (!app->fb.back_buffer) return;
 
-    if (player_get_state() == PLAYER_STATE_PLAYING) {
+    playback_state = player_get_state();
+    if (playback_state == PLAYER_STATE_PLAYING || playback_state == PLAYER_STATE_BUFFERING) {
         /* Modo Reproducao: Framebuffer 100% transparente para permitir que o
          * plano de hardware de video subjacente seja exibido diretamente na TV */
         fb_clear(&app->fb, 0x00000000);
@@ -114,6 +110,8 @@ void app_render(app_context_t *app) {
             fb_draw_rect(&app->fb, 40, app->fb.height - 80, app->fb.width - 80, 50, COLOR_PANEL_BG);
             fb_draw_text(&app->fb, 60, app->fb.height - 65, ch->name, COLOR_WHITE, 1);
             fb_draw_text(&app->fb, app->fb.width - 280, app->fb.height - 65, "[BACK] Voltar a Grade", COLOR_ACCENT, 1);
+            if (playback_state == PLAYER_STATE_BUFFERING)
+                fb_draw_text(&app->fb, 60, app->fb.height - 105, "Aguardando dados do canal...", COLOR_WHITE, 1);
         }
 
         fb_flip(&app->fb);
@@ -199,6 +197,9 @@ void app_render(app_context_t *app) {
     fb_draw_text(&app->fb, 40, app->fb.height - 40, 
                  "[OK] Assistir   [SETAS] Navegar Grade   [MENU] Atualizar Grade   [EXIT/BACK] Sair", 
                  COLOR_TEXT_MUTED, 1);
+    if (playback_state == PLAYER_STATE_ERROR)
+        fb_draw_text(&app->fb, 40, app->fb.height - 95,
+                     "Falha ao iniciar canal. Consulte /tmp/showcartoon.log.", COLOR_WHITE, 1);
 
     /* Dialogo modal de confirmacao de saida para a TV Box original */
     if (app->view == VIEW_CONFIRM_EXIT) {
@@ -236,7 +237,8 @@ void app_handle_input(app_context_t *app, app_key_t key) {
     if (key == KEY_NONE) return;
 
     /* 1. Tratamento durante a reproducao de video */
-    if (player_get_state() == PLAYER_STATE_PLAYING) {
+    if (player_get_state() == PLAYER_STATE_PLAYING ||
+        player_get_state() == PLAYER_STATE_BUFFERING) {
         if (key == KEY_ACTION_BACK || key == KEY_EXIT_APP) {
             player_stop();
             vfd_set_text("GRADE");
@@ -315,14 +317,20 @@ void app_handle_input(app_context_t *app, app_key_t key) {
             if (cat && cat->count > 0) {
                 int ch_idx = cat->channel_indices[app->current_channel_idx];
                 iptv_channel_t *ch = &app->catalog.channels[ch_idx];
-                printf("[%s] Selecionado canal: %s -> URL: %s\n", APP_NAME, ch->name, ch->url);
+                printf("[%s] Selecionado canal: %s\n", APP_NAME, ch->name);
 
                 /* Atualiza o visor frontal fisico imediatamente */
                 vfd_set_text(ch->name);
 
                 /* Inicia player */
-                player_play(ch->url, ch->name);
-                app->active_playing_idx = ch_idx;
+                if (player_play(ch->url, ch->name) == 0) {
+                    app->active_playing_idx = ch_idx;
+                } else {
+                    snprintf(app->status_message, sizeof(app->status_message),
+                             "Falha ao abrir canal: %.90s", ch->name);
+                    fprintf(stderr, "[%s] %s\n", APP_NAME, app->status_message);
+                    vfd_set_text("FALHA");
+                }
             }
             break;
 

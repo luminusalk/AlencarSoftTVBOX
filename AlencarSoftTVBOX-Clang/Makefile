@@ -6,7 +6,7 @@ APP_NAME = alencarsoft_tvbox
 
 CC ?= gcc
 CFLAGS ?= -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE
-LDFLAGS ?= 
+LDFLAGS ?= -lpthread
 
 SRCS = src/main.c \
        src/framebuffer.c \
@@ -15,7 +15,9 @@ SRCS = src/main.c \
        src/display_vfd.c \
        src/input.c \
        src/iptv_catalog.c \
-       src/player.c
+       src/player.c \
+       src/hls_bridge.c \
+       src/hls_playlist.c
 
 OBJS = $(SRCS:.c=.o)
 
