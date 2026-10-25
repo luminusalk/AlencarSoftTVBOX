@@ -266,6 +266,8 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
     }
     if (req_len < 0 || (size_t)req_len >= sizeof(req)) goto done;
 
+    fprintf(stderr, "[HLS Fetch] Enviando requisicao para %s:%d (path: %.60s)\n", host, port, path);
+
     while (sent < (size_t)req_len) {
         ssize_t n;
 #ifdef HLS_WITH_MBEDTLS
@@ -273,7 +275,10 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
         else
 #endif
             n = send(fd, req + sent, (size_t)req_len - sent, 0);
-        if (n <= 0) goto done;
+        if (n <= 0) {
+            fprintf(stderr, "[HLS Fetch] Falha ao enviar: n=%zd errno=%d\n", n, errno);
+            goto done;
+        }
         sent += (size_t)n;
     }
 
@@ -290,6 +295,7 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
             continue;
         }
         if (r < 0) {
+            fprintf(stderr, "[HLS Fetch] Erro de leitura r=%zd errno=%d (total=%zu)\n", r, errno, total);
             if (has_length && total == content_length) complete = 1;
             break;
         }
@@ -370,7 +376,11 @@ done:
 #endif
     close(fd);
     if (!s_bridge_running || !complete || !in_body || !total ||
-        (has_length && total != content_length)) return -1;
+        (has_length && total != content_length)) {
+        fprintf(stderr, "[HLS Fetch] Falha final: running=%d complete=%d in_body=%d total=%zu cl=%zu has_len=%d\n",
+                s_bridge_running, complete, in_body, total, content_length, has_length);
+        return -1;
+    }
     *out_size = total;
     return 0;
 }
