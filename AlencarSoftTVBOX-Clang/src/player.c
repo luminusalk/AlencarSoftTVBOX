@@ -129,7 +129,12 @@ void player_stop(void) {
 }
 
 player_state_t player_get_state(void) {
-#ifndef RECEIVER_DLNA_BACKEND
+#ifdef RECEIVER_DLNA_BACKEND
+    if (firmware_dlna_active()) {
+        return PLAYER_STATE_PLAYING;
+    }
+    return s_player_state;
+#else
     if (s_player_pid > 0) {
         int status = 0;
         pid_t ended = waitpid(s_player_pid, &status, WNOHANG);
@@ -140,7 +145,6 @@ player_state_t player_get_state(void) {
             s_player_state = PLAYER_STATE_ERROR;
         }
     }
-#endif
     if (s_player_state == PLAYER_STATE_BUFFERING && s_uses_bridge) {
         if (hls_bridge_has_data()) s_player_state = PLAYER_STATE_PLAYING;
         else if (time(NULL) - s_start_time > 15) {
@@ -150,6 +154,7 @@ player_state_t player_get_state(void) {
         }
     }
     return s_player_state;
+#endif
 }
 
 void player_close(void) {
