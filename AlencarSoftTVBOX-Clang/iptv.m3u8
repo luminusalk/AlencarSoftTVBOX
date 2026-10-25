@@ -1,4 +1,25 @@
 #EXTM3U
+#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/luminusalk/AlencarSoftTVBOX/master/assets/cultura.png" group-title="Notícias — Apuração",TV Cultura HD
+#EXTGRP:Notícias — Apuração
+https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8?vhost=player-tvcultura.stream.uol.com.br
+#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBONEWS.png" group-title="Notícias — Apuração",GloboNews HD
+#EXTGRP:Notícias — Apuração
+http://dns.explouddev.com:80/632270679/F823j7133R/478
+#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/CNNBRASIL.png" group-title="Notícias — Apuração",CNN Brasil HD
+#EXTGRP:Notícias — Apuração
+http://dns.explouddev.com:80/632270679/F823j7133R/472
+#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/BANDNEWS.png" group-title="Notícias — Apuração",BandNews HD
+#EXTGRP:Notícias — Apuração
+http://dns.explouddev.com:80/632270679/F823j7133R/467
+#EXTINF:-1 tvg-logo="http://media.jovempan.com.br/uploads/2018/07/JPNews-imagem-pagina-e1530887165749.png" group-title="Notícias — Apuração",Jovem Pan News HD
+#EXTGRP:Notícias — Apuração
+http://dns.explouddev.com:80/632270679/F823j7133R/482
+#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/RECORDNEWS.png" group-title="Notícias — Apuração",Record News HD
+#EXTGRP:Notícias — Apuração
+http://dns.explouddev.com:80/632270679/F823j7133R/486
+#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SBT.png" group-title="Notícias — Apuração",SBT News HD
+#EXTGRP:Notícias — Apuração
+http://dns.explouddev.com:80/632270679/F823j7133R/599767
 #EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBO.png" group-title="Canais Abertos",Globo SP [1080p FULL HD]
 #EXTGRP:Canais Abertos
 http://dns.explouddev.com:80/632270679/F823j7133R/289881

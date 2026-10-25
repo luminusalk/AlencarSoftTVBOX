@@ -102,31 +102,40 @@ void app_render(app_context_t *app) {
     player_state_t playback_state;
     static player_state_t last_rendered = PLAYER_STATE_STOPPED;
     static int last_channel = -2;
+    static time_t play_start_time = 0;
+    static int play_frame = 0;
     if (!app->fb.back_buffer) return;
 
     playback_state = player_get_state();
     if (playback_state == PLAYER_STATE_PLAYING || playback_state == PLAYER_STATE_BUFFERING) {
-        if (last_rendered == playback_state && last_channel == app->active_playing_idx) {
-            return;
+        if (last_channel != app->active_playing_idx) {
+            play_start_time = time(NULL);
+            last_channel = app->active_playing_idx;
+            last_rendered = playback_state;
+            play_frame = 0;
         }
-        last_rendered = playback_state;
-        last_channel = app->active_playing_idx;
 
         /* Modo Reproducao: Framebuffer 100% transparente para permitir que o
          * plano de hardware de video subjacente seja exibido diretamente na TV */
         fb_clear(&app->fb, 0x00000000);
 
-        /* Barra de informacoes inferior sobreposta com identificacao do canal */
-        if (app->active_playing_idx >= 0 && app->active_playing_idx < app->catalog.total_channels) {
-            iptv_channel_t *ch = &app->catalog.channels[app->active_playing_idx];
-            fb_draw_rect(&app->fb, 40, app->fb.height - 80, app->fb.width - 80, 50, COLOR_PANEL_BG);
-            fb_draw_text(&app->fb, 60, app->fb.height - 65, ch->name, COLOR_WHITE, 1);
-            fb_draw_text(&app->fb, app->fb.width - 280, app->fb.height - 65, "[BACK] Voltar a Grade", COLOR_ACCENT, 1);
-            if (playback_state == PLAYER_STATE_BUFFERING)
-                fb_draw_text(&app->fb, 60, app->fb.height - 105, "Aguardando dados do canal...", COLOR_WHITE, 1);
+        /* Barra de informacoes inferior sobreposta com identificacao do canal por 5s */
+        time_t now = time(NULL);
+        if (now - play_start_time <= 5 || playback_state == PLAYER_STATE_BUFFERING) {
+            if (app->active_playing_idx >= 0 && app->active_playing_idx < app->catalog.total_channels) {
+                iptv_channel_t *ch = &app->catalog.channels[app->active_playing_idx];
+                fb_draw_rect(&app->fb, 40, app->fb.height - 80, app->fb.width - 80, 50, COLOR_PANEL_BG);
+                fb_draw_text(&app->fb, 60, app->fb.height - 65, ch->name, COLOR_WHITE, 1);
+                fb_draw_text(&app->fb, app->fb.width - 280, app->fb.height - 65, "[BACK] Voltar a Grade", COLOR_ACCENT, 1);
+                if (playback_state == PLAYER_STATE_BUFFERING)
+                    fb_draw_text(&app->fb, 60, app->fb.height - 105, "Aguardando dados do canal...", COLOR_WHITE, 1);
+            }
         }
 
-        fb_flip(&app->fb);
+        /* Atualiza a cada ~300ms (10 frames) ou nos primeiros 5s para manter a camada limpa */
+        if (++play_frame % 10 == 0 || (now - play_start_time <= 5)) {
+            fb_flip(&app->fb);
+        }
         return;
     }
 
@@ -424,27 +433,41 @@ int main(int argc, char **argv) {
         memset(&test_fb, 0, sizeof(test_fb));
 
         if (with_osd_ir) {
-            if (argc < 4) duration = 120;
-            printf("[%s] [OSD+IR] Modo Interativo: fonte='%s', timeout=%ds\n", APP_NAME, source, duration);
+            if (argc < 4) duration = 300;
+            printf("[%s] [OSD+IR] Modo Interativo: duracao=%ds\n", APP_NAME, duration);
             fflush(stdout);
+
+            /* Limpa fb1 (still layer 1080p do dvbapp) para evitar interferencia visual */
+            int fb1_fd = open("/dev/fb1", O_WRONLY);
+            if (fb1_fd >= 0) {
+                uint8_t zero[4096];
+                memset(zero, 0, sizeof(zero));
+                for (int z = 0; z < (1920*1080*2)/4096; z++) write(fb1_fd, zero, sizeof(zero));
+                close(fb1_fd);
+            }
 
             memset(&s_app, 0, sizeof(s_app));
             s_app.platform = platform_detect();
             s_app.view = VIEW_CATEGORIES;
             s_app.channels_per_page = OSD_MAX_CHANNELS_PER_PAGE;
             s_app.running = 1;
-            s_app.active_playing_idx = -1; /* Comeca na grade */
+            s_app.active_playing_idx = -1;
 
             catalog_init(&s_app.catalog);
-            strcpy(s_app.catalog.channels[0].name, "TV Cultura ao vivo [720p HD]");
-            strcpy(s_app.catalog.channels[0].url, source);
-            strcpy(s_app.catalog.channels[0].category, "Canais Abertos");
-            s_app.catalog.channels[0].is_hd = 1;
-            s_app.catalog.total_channels = 1;
-            strcpy(s_app.catalog.categories[0].name, "Canais Abertos");
-            s_app.catalog.categories[0].channel_indices[0] = 0;
-            s_app.catalog.categories[0].count = 1;
-            s_app.catalog.total_categories = 1;
+            if (catalog_load_m3u(&s_app.catalog, DEFAULT_M3U_PATH) <= 0) {
+                catalog_load_m3u(&s_app.catalog, "/mnt/plugin/lists/Canais ao Vivo.m3u");
+            }
+            if (s_app.catalog.total_channels == 0) {
+                strcpy(s_app.catalog.channels[0].name, "TV Cultura ao vivo [720p HD]");
+                strcpy(s_app.catalog.channels[0].url, source);
+                strcpy(s_app.catalog.channels[0].category, "Notícias — Apuração");
+                s_app.catalog.channels[0].is_hd = 1;
+                s_app.catalog.total_channels = 1;
+                strcpy(s_app.catalog.categories[0].name, "Notícias — Apuração");
+                s_app.catalog.categories[0].channel_indices[0] = 0;
+                s_app.catalog.categories[0].count = 1;
+                s_app.catalog.total_categories = 1;
+            }
 
             if (fb_init(&s_app.fb, DEFAULT_FB_DEV) < 0) {
                 fprintf(stderr, "[%s] Falha ao abrir framebuffer para OSD+IR\n", APP_NAME);
@@ -454,10 +477,12 @@ int main(int argc, char **argv) {
             input_init(DEFAULT_IR_DEV);
             player_init();
 
-            printf("[%s] [OSD+IR] Grade exibida na TV. Aguardando comando do controle remoto...\n", APP_NAME);
-            printf("[%s] [OSD+IR] Pressione [OK] no controle remoto para iniciar TV Cultura.\n", APP_NAME);
-            printf("[%s] [OSD+IR] Pressione [BACK / EXIT / MENU] para parar o video e voltar a grade.\n", APP_NAME);
-            printf("[%s] [OSD+IR] Pressione [EXIT] na grade para encerrar o teste.\n", APP_NAME);
+            printf("[%s] [OSD+IR] Grade carregada: %d canais, %d categorias.\n",
+                   APP_NAME, s_app.catalog.total_channels, s_app.catalog.total_categories);
+            printf("[%s] [OSD+IR] Categoria ativa: '%s'\n", APP_NAME, s_app.catalog.categories[0].name);
+            printf("[%s] [OSD+IR] Use as SETAS (CIMA/BAIXO) para navegar na lista de noticias.\n", APP_NAME);
+            printf("[%s] [OSD+IR] Pressione [OK] para abrir o canal selecionado.\n", APP_NAME);
+            printf("[%s] [OSD+IR] Pressione [BACK/EXIT] durante o video para voltar a grade.\n", APP_NAME);
             fflush(stdout);
 
             app_render(&s_app);
@@ -468,34 +493,10 @@ int main(int argc, char **argv) {
                 app_key_t key = input_poll();
                 if (key != KEY_NONE) {
                     player_state_t cur_st = player_get_state();
-                    printf("[%s] [OSD+IR] Tecla=%d (estado player=%d)\n", APP_NAME, key, cur_st);
+                    printf("[%s] [OSD+IR] Tecla=%d (estado player=%d, canal=%d)\n",
+                           APP_NAME, key, cur_st, s_app.current_channel_idx);
                     fflush(stdout);
-
-                    if (cur_st == PLAYER_STATE_PLAYING || cur_st == PLAYER_STATE_BUFFERING) {
-                        if (key == KEY_ACTION_BACK || key == KEY_EXIT_APP || key == KEY_ACTION_MENU) {
-                            printf("[%s] [OSD+IR] Comando de parada recebido! Parando video e voltando para a grade...\n", APP_NAME);
-                            fflush(stdout);
-                            player_stop();
-                            s_app.active_playing_idx = -1;
-                            app_render(&s_app);
-                        }
-                    } else {
-                        /* Na grade de canais */
-                        if (key == KEY_ACTION_OK) {
-                            printf("[%s] [OSD+IR] Comando OK recebido! Abrindo TV Cultura...\n", APP_NAME);
-                            fflush(stdout);
-                            s_app.active_playing_idx = 0;
-                            if (player_play(s_app.catalog.channels[0].url, s_app.catalog.channels[0].name) < 0) {
-                                fprintf(stderr, "[%s] Falha ao iniciar TV Cultura.\n", APP_NAME);
-                                s_app.active_playing_idx = -1;
-                            }
-                            app_render(&s_app);
-                        } else if (key == KEY_EXIT_APP) {
-                            printf("[%s] [OSD+IR] Comando EXIT recebido na grade! Encerrando teste...\n", APP_NAME);
-                            fflush(stdout);
-                            s_app.running = 0;
-                        }
-                    }
+                    app_handle_input(&s_app, key);
                 }
 
                 app_render(&s_app);
@@ -509,7 +510,7 @@ int main(int argc, char **argv) {
                 }
 
                 if (duration > 0 && (time(NULL) - start_time) > duration) {
-                    printf("[%s] [OSD+IR] Tempo limite de teste atingido (%ds). Encerrando...\n", APP_NAME, duration);
+                    printf("[%s] [OSD+IR] Tempo limite atingido (%ds). Encerrando...\n", APP_NAME, duration);
                     break;
                 }
             }
