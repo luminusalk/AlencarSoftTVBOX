@@ -148,8 +148,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: "v1.0.7-native"
-          name: "AlencarSoft TVBOX - Versao Nativa Estavel v1.0.7 (NationalChip Toolchain)"
+          tag_name: "v1.0.8-native"
+          name: "AlencarSoft TVBOX - Versao Nativa Estavel v1.0.8 (NationalChip Toolchain)"
           draft: false
           prerelease: false
           overwrite: true

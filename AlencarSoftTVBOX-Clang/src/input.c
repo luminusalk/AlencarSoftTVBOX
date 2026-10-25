@@ -24,15 +24,7 @@ int input_init(const char *ir_device) {
         if (s_ir_fd >= 0) break;
     }
 
-    /* 2. Configura stdin como modo non-blocking raw para testes e controle via console */
-    if (tcgetattr(STDIN_FILENO, &s_orig_termios) == 0) {
-        struct termios raw = s_orig_termios;
-        raw.c_lflag &= ~(ICANON | ECHO);
-        raw.c_cc[VMIN] = 0;
-        raw.c_cc[VTIME] = 0;
-        tcsetattr(STDIN_FILENO, TCSANOW, &raw);
-        s_raw_terminal_set = 1;
-    }
+    /* 2. Em TV Box e Receptores, o controle remoto nativo (/dev/gxirr0) e a fonte principal */
     return 0;
 }
 

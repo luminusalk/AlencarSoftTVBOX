@@ -28,6 +28,8 @@ int app_init(app_context_t *app) {
     /* Configura tratamento de sinais para encerramento seguro */
     signal(SIGINT, sig_handler);
     signal(SIGTERM, sig_handler);
+    signal(SIGTTOU, SIG_IGN);
+    signal(SIGTTIN, SIG_IGN);
 
     /* 1. Assume controle exclusivo: pausa daemons satelite de fundo (ex: dvbapp) */
     system("echo PAUSING_DVBAPP >> /tmp/alencar_status.txt");
@@ -299,7 +301,12 @@ int main(int argc, char **argv) {
     }
 
     printf("[%s] Iniciando loop de eventos nativo...\n", APP_NAME);
+    system("echo MAIN_LOOP_RUNNING >> /tmp/alencar_status.txt");
+    int frame_cnt = 0;
     while (s_app.running) {
+        if (++frame_cnt % 30 == 0) {
+            system("echo 1 > /dev/watchdog 2>/dev/null || true");
+        }
         app_key_t key = input_poll();
         if (key != KEY_NONE) {
             app_handle_input(&s_app, key);
