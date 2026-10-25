@@ -193,11 +193,17 @@ static int http_request(const char *host, int port, const char *path,
     peer.sin_port = htons(port);
     if (inet_pton(AF_INET, host, &peer.sin_addr) != 1 ||
         connect(fd, (struct sockaddr *)&peer, sizeof(peer)) < 0) goto done;
-    request_length = snprintf(request, sizeof(request),
-        "%s %s HTTP/1.0\r\nHost: %s:%d\r\nContent-Type: text/xml; charset=\"utf-8\"\r\n"
-        "SOAPAction: \"%s\"\r\nContent-Length: %lu\r\nConnection: close\r\n\r\n%s",
-        method, path, host, port, soap_action ? soap_action : "",
-        (unsigned long)(body ? strlen(body) : 0), body ? body : "");
+    if (soap_action && *soap_action) {
+        request_length = snprintf(request, sizeof(request),
+            "%s %s HTTP/1.0\r\nHost: %s:%d\r\nContent-Type: text/xml; charset=\"utf-8\"\r\n"
+            "SOAPAction: \"%s\"\r\nContent-Length: %lu\r\nConnection: close\r\n\r\n%s",
+            method, path, host, port, soap_action,
+            (unsigned long)(body ? strlen(body) : 0), body ? body : "");
+    } else {
+        request_length = snprintf(request, sizeof(request),
+            "%s %s HTTP/1.0\r\nHost: %s:%d\r\nConnection: close\r\n\r\n",
+            method, path, host, port);
+    }
     if (request_length < 0 || (size_t)request_length >= sizeof(request)) goto done;
     while (size < (size_t)request_length) {
         ssize_t n = send(fd, request + size, (size_t)request_length - size, MSG_NOSIGNAL);
@@ -261,12 +267,27 @@ static int scan_local_listeners(const char *own_ip) {
         if (sscanf(line, " %*d: %8[0-9A-Fa-f]:%x %*s %x",
                    address, &port, &state) != 3 || state != 0x0a ||
             port < 1024 || port > 65535) continue;
-        if (try_renderer(own_ip, (int)port, "/description.xml") == 0) {
+
+        /* Se /proc/net/tcp contem o IP da interface (ex: 1712A8C0 -> 192.168.18.23),
+         * converte dinamicamente para texto. Isso garante funcionamento se o IP mudar! */
+        unsigned int ip_hex = 0;
+        if (sscanf(address, "%x", &ip_hex) == 1 && ip_hex != 0) {
+            struct in_addr in;
+            char ip_buf[64];
+            in.s_addr = (in_addr_t)ip_hex;
+            if (inet_ntop(AF_INET, &in, ip_buf, sizeof(ip_buf))) {
+                if (try_renderer(ip_buf, (int)port, "/description.xml") == 0) {
+                    fclose(tcp);
+                    return 0;
+                }
+            }
+        }
+
+        if (own_ip && *own_ip && try_renderer(own_ip, (int)port, "/description.xml") == 0) {
             fclose(tcp);
             return 0;
         }
-        if (strcmp(own_ip, "127.0.0.1") != 0 &&
-            try_renderer("127.0.0.1", (int)port, "/description.xml") == 0) {
+        if (try_renderer("127.0.0.1", (int)port, "/description.xml") == 0) {
             fclose(tcp);
             return 0;
         }
@@ -373,7 +394,7 @@ int firmware_dlna_start(const char *source, const char *title) {
     if (s_listener < 0) goto failed;
     memset(&address, 0, sizeof(address));
     address.sin_family = AF_INET;
-    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    address.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bind(s_listener, (struct sockaddr *)&address, sizeof(address)) < 0 ||
         listen(s_listener, 2) < 0 ||
         getsockname(s_listener, (struct sockaddr *)&address, &address_size) < 0)
