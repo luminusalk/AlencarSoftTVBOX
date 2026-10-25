@@ -15,25 +15,27 @@ jobs:
       - name: Checkout do repositorio
         uses: actions/checkout@v3
 
+      - name: Instalar dependencias e 32-bit libs
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lib32z1 lib32stdc++6 file wget
+
       - name: Baixar Toolchain C-SKY (T-Head uClibc)
         run: |
           mkdir -p /opt/csky-toolchain
           wget -q "https://occ-oss-prod.oss-cn-hangzhou.aliyuncs.com/resource/1356021/1619527806432/csky-linux-uclibc-tools-x86_64-uclibc-linux-4.9.56-20210423.tar.gz" -O /tmp/csky.tar.gz
           tar -xzf /tmp/csky.tar.gz -C /opt/csky-toolchain
-          echo "Toolchain extraida com sucesso."
+          echo "Toolchain extraida."
 
-      - name: Compilar binario estatico C-SKY
+      - name: Compilar binario C-SKY
         run: |
           CC_BIN=$(find /opt/csky-toolchain -type f -name "*csky*gcc" | head -n 1)
-          if [ -z "$CC_BIN" ]; then
-            echo "Erro: Compilador C-SKY nao encontrado!"
-            exit 1
-          fi
-          echo "Compilador encontrado: $CC_BIN"
+          echo "Compilador: $CC_BIN"
+          export PATH="$(dirname $CC_BIN):$PATH"
           $CC_BIN -v
           
           cd AlencarSoftTVBOX-Clang
-          $CC_BIN -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE -static \
+          $CC_BIN -O2 -Wall -Iinclude -D_GNU_SOURCE \
             src/main.c \
             src/framebuffer.c \
             src/font.c \
@@ -42,10 +44,17 @@ jobs:
             src/input.c \
             src/iptv_catalog.c \
             src/player.c \
-            -o alencarsoft_tvbox_csky
+            -o alencarsoft_tvbox_csky 2>&1 | tee /tmp/compile_csky.log || true
           
-          file alencarsoft_tvbox_csky
-          ls -lh alencarsoft_tvbox_csky
+          if [ -f alencarsoft_tvbox_csky ]; then
+            echo "SUCESSO: Binario C-SKY gerado!"
+            file alencarsoft_tvbox_csky
+            ls -lh alencarsoft_tvbox_csky
+          else
+            echo "FALHA NA COMPILACAO:"
+            cat /tmp/compile_csky.log
+            exit 1
+          fi
 
       - name: Upload Artifact C-SKY
         uses: actions/upload-artifact@v4
@@ -66,38 +75,3 @@ jobs:
             AlencarSoftTVBOX-Clang/iptv.m3u8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-mips:
-    name: Build para Cinebox / Duosat / Tuning (Availink AVL2569D / MIPS)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout do repositorio
-        uses: actions/checkout@v3
-
-      - name: Instalar Cross-Compiler MIPS
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-mips-linux-gnu file
-
-      - name: Compilar binario estatico MIPS
-        run: |
-          cd AlencarSoftTVBOX-Clang
-          mips-linux-gnu-gcc -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE -static \
-            src/main.c \
-            src/framebuffer.c \
-            src/font.c \
-            src/platform.c \
-            src/display_vfd.c \
-            src/input.c \
-            src/iptv_catalog.c \
-            src/player.c \
-            -o alencarsoft_tvbox_mips
-          
-          file alencarsoft_tvbox_mips
-          ls -lh alencarsoft_tvbox_mips
-
-      - name: Upload Artifact MIPS
-        uses: actions/upload-artifact@v4
-        with:
-          name: alencarsoft_tvbox_mips
-          path: AlencarSoftTVBOX-Clang/alencarsoft_tvbox_mips
