@@ -23,15 +23,16 @@ int player_play(const char *url, const char *channel_name) {
     (void)channel_name;
     if (!url) return -1;
     
-    /* Para qualquer reproducao anterior */
+    /* Para qualquer reproducao anterior e limpa processos conflitantes */
     player_stop();
+    system("killall -9 dvbapp 2>/dev/null; usleep 50000;");
 
     strncpy(s_current_url, url, sizeof(s_current_url) - 1);
     s_player_state = PLAYER_STATE_PLAYING;
 
-    /* No GX6622 / Nationalchip, o showcartoon reproduz streams com aceleracao por hardware */
+    /* No GX6622 / Nationalchip, o showcartoon sem '-p' ativa o decodificador completo de AV (Audio + Video) */
     char cmd[1024];
-    snprintf(cmd, sizeof(cmd), "showcartoon -p \"%s\" 100 >/dev/null 2>&1 &", url);
+    snprintf(cmd, sizeof(cmd), "/usr/local/bin/showcartoon \"%s\" 60 >/dev/null 2>&1 &", url);
     system(cmd);
 
     return 0;
@@ -39,7 +40,7 @@ int player_play(const char *url, const char *channel_name) {
 
 void player_stop(void) {
     if (s_player_state != PLAYER_STATE_STOPPED) {
-        system("killall -9 showcartoon 2>/dev/null");
+        system("killall -TERM showcartoon 2>/dev/null; usleep 200000; killall -9 showcartoon 2>/dev/null");
         s_player_state = PLAYER_STATE_STOPPED;
         s_current_url[0] = '\0';
     }

@@ -91,7 +91,24 @@ int app_init(app_context_t *app) {
 void app_render(app_context_t *app) {
     if (!app->fb.back_buffer) return;
 
-    /* Fundo escuro elegante */
+    if (player_get_state() == PLAYER_STATE_PLAYING) {
+        /* Modo Reproducao: Framebuffer 100% transparente para permitir que o
+         * plano de hardware de video subjacente seja exibido diretamente na TV */
+        fb_clear(&app->fb, 0x00000000);
+
+        /* Barra de informacoes inferior sobreposta com identificacao do canal */
+        if (app->active_playing_idx >= 0 && app->active_playing_idx < app->catalog.total_channels) {
+            iptv_channel_t *ch = &app->catalog.channels[app->active_playing_idx];
+            fb_draw_rect(&app->fb, 40, app->fb.height - 80, app->fb.width - 80, 50, COLOR_PANEL_BG);
+            fb_draw_text(&app->fb, 60, app->fb.height - 65, ch->name, COLOR_WHITE, 1);
+            fb_draw_text(&app->fb, app->fb.width - 280, app->fb.height - 65, "[BACK] Voltar a Grade", COLOR_ACCENT, 1);
+        }
+
+        fb_flip(&app->fb);
+        return;
+    }
+
+    /* Fundo escuro elegante para o Menu / Grade de Canais */
     fb_clear(&app->fb, COLOR_DARK_BG);
 
     /* --- CABECALHO (Header) --- */

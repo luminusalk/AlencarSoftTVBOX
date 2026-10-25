@@ -7,7 +7,7 @@
 #define ALENCARSOFT_CONFIG_H
 
 #define APP_NAME            "AlencarSoft TVBOX"
-#define APP_VERSION         "1.0.0"
+#define APP_VERSION         "1.0.9"
 #define APP_AUTHOR          "Pedro Alencar"
 
 /* Caminhos padrao no sistema embarcado */
