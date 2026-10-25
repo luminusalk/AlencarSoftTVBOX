@@ -1,0 +1,72 @@
+/**
+ * @file display_vfd.c
+ * @brief Driver nativo de baixo nivel para visores VFD e LED.
+ */
+
+#include "display_vfd.h"
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <termios.h>
+
+static int s_vfd_fd = -1;
+static panel_type_t s_panel_type = PANEL_NONE;
+
+int vfd_init(panel_type_t type) {
+    s_panel_type = type;
+
+    /* Abre a porta serial conectada ao visor / MCU frontal */
+    s_vfd_fd = open("/dev/ttyS1", O_RDWR | O_NOCTTY | O_NONBLOCK);
+    if (s_vfd_fd >= 0) {
+        struct termios tty;
+        if (tcgetattr(s_vfd_fd, &tty) == 0) {
+            cfsetospeed(&tty, B9600);
+            cfsetispeed(&tty, B9600);
+            tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8;
+            tty.c_cflag |= (CLOCAL | CREAD);
+            tty.c_cflag &= ~(PARENB | PARODD);
+            tty.c_cflag &= ~CSTOPB;
+            tty.c_cflag &= ~CRTSCTS;
+            tcsetattr(s_vfd_fd, TCSANOW, &tty);
+        }
+    }
+    return (s_vfd_fd >= 0) ? 0 : -1;
+}
+
+int vfd_set_text(const char *text) {
+    if (!text || s_vfd_fd < 0) return -1;
+
+    char buffer[32];
+    memset(buffer, ' ', sizeof(buffer));
+
+    /* Limita o texto para o visor (max 12 caracteres alfanumericos) */
+    int len = strlen(text);
+    if (len > 12) len = 12;
+    memcpy(buffer, text, len);
+    buffer[12] = '\r';
+    buffer[13] = '\n';
+
+    /* Envia comando ASCII/UART para o controlador do painel */
+    write(s_vfd_fd, buffer, 14);
+    return 0;
+}
+
+int vfd_set_channel_number(int number) {
+    char buf[16];
+    snprintf(buf, sizeof(buf), "CH %04d", number);
+    return vfd_set_text(buf);
+}
+
+int vfd_set_clock(int hours, int minutes) {
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%02d:%02d", hours, minutes);
+    return vfd_set_text(buf);
+}
+
+void vfd_close(void) {
+    if (s_vfd_fd >= 0) {
+        close(s_vfd_fd);
+        s_vfd_fd = -1;
+    }
+}
