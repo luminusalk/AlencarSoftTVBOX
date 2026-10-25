@@ -408,12 +408,14 @@ int main(int argc, char **argv) {
                       strcmp(argv[1], "--headless-vfd") == 0 ||
                       strcmp(argv[1], "--headless-watchdog") == 0 ||
                       strcmp(argv[1], "--headless-fb") == 0 ||
+                      strcmp(argv[1], "--headless-osd") == 0 ||
                       strcmp(argv[1], "--headless-input") == 0)) {
         const char *source = argv[2];
         int duration = argc >= 4 ? atoi(argv[3]) : 15;
         int with_vfd = (strcmp(argv[1], "--headless-vfd") == 0);
         int with_watchdog = (strcmp(argv[1], "--headless-watchdog") == 0);
         int with_fb = (strcmp(argv[1], "--headless-fb") == 0);
+        int with_osd = (strcmp(argv[1], "--headless-osd") == 0);
         int with_input = (strcmp(argv[1], "--headless-input") == 0);
         fb_context_t test_fb;
         memset(&test_fb, 0, sizeof(test_fb));
@@ -438,10 +440,43 @@ int main(int argc, char **argv) {
                 fb_flip(&test_fb);
             }
         }
+        if (with_osd) {
+            printf("[%s] [OSD] Configurando interface grafica e grade...\n", APP_NAME);
+            memset(&s_app, 0, sizeof(s_app));
+            s_app.platform = platform_detect();
+            s_app.view = VIEW_CATEGORIES;
+            s_app.channels_per_page = OSD_MAX_CHANNELS_PER_PAGE;
+            s_app.running = 1;
+            catalog_init(&s_app.catalog);
+            strcpy(s_app.catalog.channels[0].name, "TV Cultura ao vivo [720p HD]");
+            strcpy(s_app.catalog.channels[0].url, source);
+            strcpy(s_app.catalog.channels[0].category, "Canais Abertos");
+            s_app.catalog.channels[0].is_hd = 1;
+            s_app.catalog.total_channels = 1;
+            strcpy(s_app.catalog.categories[0].name, "Canais Abertos");
+            s_app.catalog.categories[0].channel_indices[0] = 0;
+            s_app.catalog.categories[0].count = 1;
+            s_app.catalog.total_categories = 1;
+
+            if (fb_init(&s_app.fb, DEFAULT_FB_DEV) < 0) {
+                fprintf(stderr, "[%s] Falha ao abrir framebuffer para OSD\n", APP_NAME);
+                return 1;
+            }
+
+            printf("[%s] [OSD] Exibindo grade completa por 3 segundos...\n", APP_NAME);
+            fflush(stdout);
+            app_render(&s_app);
+            sleep(3);
+        }
 
         player_init();
+        if (with_osd) s_app.active_playing_idx = 0;
         if (player_play(source, "Headless Test") < 0) {
             fprintf(stderr, "[%s] Falha no player_play headless\n", APP_NAME);
+            if (with_osd) {
+                fb_close(&s_app.fb);
+                catalog_free(&s_app.catalog);
+            }
             if (with_fb) fb_close(&test_fb);
             if (with_input) input_close();
             if (with_vfd) vfd_close();
@@ -449,6 +484,9 @@ int main(int argc, char **argv) {
         }
 
         for (int i = 0; i < duration; i++) {
+            if (with_osd) {
+                app_render(&s_app);
+            }
             if (with_watchdog) {
                 system("echo 1 > /dev/watchdog 2>/dev/null || true");
             }
@@ -468,6 +506,17 @@ int main(int argc, char **argv) {
         player_stop();
         player_close();
 
+        if (with_osd) {
+            printf("[%s] [OSD] Retornando a grade por 2 segundos apos parada...\n", APP_NAME);
+            fflush(stdout);
+            s_app.active_playing_idx = -1;
+            app_render(&s_app);
+            sleep(2);
+            fb_clear(&s_app.fb, 0x00000000);
+            fb_flip(&s_app.fb);
+            fb_close(&s_app.fb);
+            catalog_free(&s_app.catalog);
+        }
         if (with_fb) fb_close(&test_fb);
         if (with_input) input_close();
         if (with_vfd) {
