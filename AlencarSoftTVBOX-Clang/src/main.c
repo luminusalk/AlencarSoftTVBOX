@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <signal.h>
+#include <sys/stat.h>
 
 static app_context_t s_app;
 
@@ -33,9 +34,17 @@ int app_init(app_context_t *app) {
     signal(SIGTTIN, SIG_IGN);
 
     /* O player DLNA do S1009+ pertence ao dvbapp: mantê-lo vivo é essencial.
-     * Pausamos o dvbapp durante a navegação no menu para evitar disputa de IR e tela. */
+     * Isolamos o hardware de infravermelho para que dvbapp nunca receba teclas:
+     * 1. Criamos /dev/gxirr_real (c 10 62) para uso exclusivo do AlencarSoftTVBOX.
+     * 2. Se /dev/gxirr0 ainda for char device, substituimos por FIFO mudo e reiniciamos dvbapp. */
 #ifdef RECEIVER_DLNA_BACKEND
-    system("killall -STOP dvbapp 2>/dev/null");
+    system("mknod /dev/gxirr_real c 10 62 2>/dev/null || true");
+    struct stat st;
+    if (stat("/dev/gxirr0", &st) == 0 && S_ISCHR(st.st_mode)) {
+        system("rm -f /dev/gxirr0; mkfifo /dev/gxirr0; killall -9 dvbapp 2>/dev/null; /app/dvbapp >/dev/null 2>&1 &");
+        sleep(1);
+    }
+    system("killall -CONT dvbapp 2>/dev/null || true");
 #else
     system("echo PAUSING_DVBAPP >> /tmp/alencar_status.txt");
     system("killall -9 dvbapp 2>/dev/null; umount -l /app 2>/dev/null;");
@@ -389,8 +398,10 @@ void app_cleanup(app_context_t *app) {
     fb_flip(&app->fb);
     fb_close(&app->fb);
     
-    /* Garante que o dvbapp seja retomado ao sair do aplicativo */
-    system("killall -CONT dvbapp 2>/dev/null");
+#ifdef RECEIVER_DLNA_BACKEND
+    /* Restaura o controle remoto fisico para o dvbapp ao sair do aplicativo */
+    system("rm -f /dev/gxirr0; mknod /dev/gxirr0 c 10 62 2>/dev/null; killall -9 dvbapp 2>/dev/null; /app/dvbapp >/dev/null 2>&1 &");
+#endif
     
     printf("[%s] Aplicativo finalizado com sucesso.\n", APP_NAME);
 }
