@@ -32,6 +32,9 @@ endif
 ifeq ($(TARGET), csky)
     CC = csky-linux-gcc
     CFLAGS += -mcpu=ck610 -static
+    CFLAGS += -DRECEIVER_DLNA_BACKEND
+    SRCS += src/firmware_dlna.c
+    OBJS = $(SRCS:.c=.o)
 endif
 
 ifeq ($(TARGET), mips)

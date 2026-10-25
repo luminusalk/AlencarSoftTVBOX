@@ -78,9 +78,10 @@ jobs:
           
           # Compila o aplicativo AlencarSoft TVBOX estatico com o toolchain oficial NationalChip
           $CC_BIN -static -std=gnu99 -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
-            -DHLS_WITH_MBEDTLS -I/tmp/mbedtls-3.6.7/include \
+            -DHLS_WITH_MBEDTLS -DRECEIVER_DLNA_BACKEND -I/tmp/mbedtls-3.6.7/include \
             src/main.c src/framebuffer.c src/font.c src/platform.c src/display_vfd.c \
-            src/input.c src/iptv_catalog.c src/player.c src/hls_bridge.c src/hls_playlist.c src/hls_tls.c \
+            src/input.c src/iptv_catalog.c src/player.c src/firmware_dlna.c \
+            src/hls_bridge.c src/hls_playlist.c src/hls_tls.c \
             /tmp/mbedtls-3.6.7/library/libmbedtls.a \
             /tmp/mbedtls-3.6.7/library/libmbedx509.a \
             /tmp/mbedtls-3.6.7/library/libmbedcrypto.a \

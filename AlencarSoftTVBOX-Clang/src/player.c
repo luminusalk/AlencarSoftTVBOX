@@ -5,6 +5,9 @@
 
 #include "player.h"
 #include "hls_bridge.h"
+#ifdef RECEIVER_DLNA_BACKEND
+#include "firmware_dlna.h"
+#endif
 
 #include <errno.h>
 #include <fcntl.h>
@@ -17,18 +20,35 @@
 #include <unistd.h>
 
 static player_state_t s_player_state = PLAYER_STATE_STOPPED;
+#ifndef RECEIVER_DLNA_BACKEND
 static pid_t s_player_pid = -1;
+#endif
 static int s_uses_bridge = 0;
 static time_t s_start_time = 0;
 
 int player_init(void) {
     s_player_state = PLAYER_STATE_STOPPED;
+#ifndef RECEIVER_DLNA_BACKEND
     s_player_pid = -1;
+#endif
     s_uses_bridge = 0;
     return 0;
 }
 
 int player_play(const char *url, const char *channel_name) {
+#ifdef RECEIVER_DLNA_BACKEND
+    if (!url || !*url) return -1;
+    player_stop();
+    if (firmware_dlna_start(url, channel_name) < 0) {
+        fprintf(stderr, "[Player] Falha ao iniciar player DLNA do firmware.\n");
+        s_player_state = PLAYER_STATE_ERROR;
+        return -1;
+    }
+    s_uses_bridge = strstr(url, ".m3u") != NULL;
+    s_start_time = time(NULL);
+    s_player_state = s_uses_bridge ? PLAYER_STATE_BUFFERING : PLAYER_STATE_PLAYING;
+    return 0;
+#else
     const char *play_url = url;
     pid_t pid;
     int status;
@@ -79,9 +99,13 @@ int player_play(const char *url, const char *channel_name) {
     /* Running process is only a launch check; it does not prove image or audio. */
     if (!s_uses_bridge) s_player_state = PLAYER_STATE_PLAYING;
     return 0;
+#endif
 }
 
 void player_stop(void) {
+#ifdef RECEIVER_DLNA_BACKEND
+    firmware_dlna_stop();
+#else
     pid_t pid = s_player_pid;
     if (pid > 0) {
         int status;
@@ -99,11 +123,13 @@ void player_stop(void) {
         s_player_pid = -1;
     }
     hls_bridge_stop();
+#endif
     s_uses_bridge = 0;
     s_player_state = PLAYER_STATE_STOPPED;
 }
 
 player_state_t player_get_state(void) {
+#ifndef RECEIVER_DLNA_BACKEND
     if (s_player_pid > 0) {
         int status = 0;
         pid_t ended = waitpid(s_player_pid, &status, WNOHANG);
@@ -114,6 +140,7 @@ player_state_t player_get_state(void) {
             s_player_state = PLAYER_STATE_ERROR;
         }
     }
+#endif
     if (s_player_state == PLAYER_STATE_BUFFERING && s_uses_bridge) {
         if (hls_bridge_has_data()) s_player_state = PLAYER_STATE_PLAYING;
         else if (time(NULL) - s_start_time > 15) {

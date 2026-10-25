@@ -31,9 +31,11 @@ int app_init(app_context_t *app) {
     signal(SIGTTOU, SIG_IGN);
     signal(SIGTTIN, SIG_IGN);
 
-    /* 1. Assume controle exclusivo: pausa daemons satelite de fundo (ex: dvbapp) */
+    /* O player DLNA do S1009+ pertence ao dvbapp: mantê-lo vivo é essencial. */
+#ifndef RECEIVER_DLNA_BACKEND
     system("echo PAUSING_DVBAPP >> /tmp/alencar_status.txt");
     system("killall -9 dvbapp 2>/dev/null; umount -l /app 2>/dev/null;");
+#endif
 
     /* 2. Deteccao automatica de hardware */
     system("echo DETECTING_PLATFORM >> /tmp/alencar_status.txt");
@@ -199,7 +201,7 @@ void app_render(app_context_t *app) {
                  COLOR_TEXT_MUTED, 1);
     if (playback_state == PLAYER_STATE_ERROR)
         fb_draw_text(&app->fb, 40, app->fb.height - 95,
-                     "Falha ao iniciar canal. Consulte /tmp/showcartoon.log.", COLOR_WHITE, 1);
+                     "Falha ao iniciar canal. Consulte o log do aplicativo.", COLOR_WHITE, 1);
 
     /* Dialogo modal de confirmacao de saida para a TV Box original */
     if (app->view == VIEW_CONFIRM_EXIT) {
@@ -263,7 +265,9 @@ void app_handle_input(app_context_t *app, app_key_t key) {
                 player_stop();
                 fb_clear(&app->fb, 0x00000000);
                 fb_flip(&app->fb);
+#ifndef RECEIVER_DLNA_BACKEND
                 system("mount /dev/mtdblock4 /app -t squashfs 2>/dev/null; /app/dvbapp &");
+#endif
                 app->running = 0;
             } else {
                 /* NAO: cancela e volta para a grade */
@@ -374,15 +378,15 @@ void app_cleanup(app_context_t *app) {
     input_close();
     fb_close(&app->fb);
     
-    /* Restaura o processo do receptor ao encerrar */
+    /* Apenas o backend exclusivo pode ter pausado o processo original. */
+#ifndef RECEIVER_DLNA_BACKEND
     system("killall -CONT dvbapp 2>/dev/null");
+#endif
     
     printf("[%s] Aplicativo finalizado com sucesso.\n", APP_NAME);
 }
 
 int main(int argc, char **argv) {
-    (void)argc;
-    (void)argv;
 
     system("echo MAIN_ENTERED > /tmp/alencar_status.txt");
     printf("\n=========================================\n");
@@ -394,6 +398,19 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Erro ao inicializar %s\n", APP_NAME);
         fflush(stderr);
         return 1;
+    }
+
+    /* Diagnostico temporario: abre uma URL sem depender do controle remoto. */
+    if (argc == 3 && strcmp(argv[1], "--play-url") == 0) {
+        if (player_play(argv[2], "Teste IPTV") < 0) {
+            app_cleanup(&s_app);
+            return 1;
+        }
+        s_app.active_playing_idx = -1;
+    } else if (argc != 1) {
+        fprintf(stderr, "Uso: %s [--play-url URL]\n", argv[0]);
+        app_cleanup(&s_app);
+        return 2;
     }
 
     printf("[%s] Iniciando loop de eventos nativo...\n", APP_NAME);
