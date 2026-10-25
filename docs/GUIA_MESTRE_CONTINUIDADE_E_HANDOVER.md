@@ -1,178 +1,166 @@
-# GUIA MESTRE DE CONTINUIDADE, ENGENHARIA REVERSA E HANDOVER
-## Projeto AlencarSoft TVBOX — Azamerica S1009+ (NationalChip GX6622)
+# Guia mestre de continuidade — IPTV C no Azamerica S1009+
 
-> **Destinatário:** Engenheiro de Sistemas Embarcados / Agente Sênior de Baixo Nível.  
-> **Objetivo:** Assumir o projeto, entender a arquitetura interna do hardware, dominar as ferramentas de conexão, compilação no GitHub e dar sequência imediata para reproduzir IPTV com áudio e vídeo 100% nativos (igual ao Netlink e XBMC).
+Atualizado em 25/10/2026 para a próxima sessão com Luna em esforço alto. Leia
+antes de agir e confira o Git e o CI atualizados. O objetivo é abrir o
+aplicativo **em C**, escolher um canal e obter **imagem e som**. O AZ IPTV em
+Python funciona como referência, mas não é o produto a implementar. Este guia
+substitui o texto antigo, que continha afirmações não comprovadas.
 
----
+## Estado ao interromper o trabalho
 
-## 1. Conexão e Controle do Aparelho (Telnet e Reboot)
+- Repositório: `D:\EMULADORES\Git\AlencarSoftTVBOX`.
+- Branch: `codex/native-iptv-repair`; último commit de código: `a6a3114`.
+- GitHub Actions `build_tvbox.yml`, run `40200018458`: testes Linux, builds
+  C-SKY/MIPS e job de release terminaram com **success**. A publicação real
+  de release só ocorre em `main`; esta branch não foi publicada como release.
+- A instalação anterior na box foi **restaurada**. O binário
+  `/mnt/plugin/alencarsoft_tvbox` tem MD5
+  `4b9f99a5105c21a5b8497e9e61f010ae`; a cópia local exata está em
+  `bin/alencarsoft_tvbox_csky`. O certificado copiado durante esta sessão em
+  `/mnt/plugin/iptv/cacert.pem` foi removido após conferir o MD5. O novo
+  binário **não está instalado** na box.
+- O usuário mandou **parar os testes e alterações no aparelho** e preparar a
+  documentação. Não instalar nem executar builds no receptor até ele retomar
+  essa autorização. Revisão de código, documentação e CI não tocam a box.
+- Preserve todos os arquivos não rastreados em `bin/`, `build-artifacts/` e
+  `tools/`; muitos são pesquisas e scripts de diagnóstico anteriores.
 
-### 1.1. Conexão Telnet Direta
-O receptor **Azamerica S1009+** possui um servidor Telnet nativo rodando na porta `23`, com login automático de `root` (sem senha).
-- **IP do Aparelho na Rede Local:** `192.168.18.23`
-- **Porta:** `23`
-- **Usuário:** `root`
-- **Senha:** *(nenhuma / pressione Enter)*
+## O que realmente deu imagem e som
 
-#### Comando via PowerShell / CMD / Terminal Linux:
-```bash
-telnet 192.168.18.23 23
+O usuário confirmou **imagem e som** em dois testes com o renderizador
+DLNA/UPnP do firmware `/app/dvbapp`. O teste decisivo, de 25 segundos, foi:
+
+```text
+TV Cultura HLS HTTPS
+  -> ponte HLS C-SKY em C na própria box
+  -> FIFO /tmp/live_stream.ts
+  -> HTTP local BusyBox CGI de diagnóstico
+  -> DLNA AVTransport do dvbapp
+  -> imagem e som observados pelo usuário
 ```
 
-#### Automação em Python (sem travar prompt):
-```python
-import telnetlib, time
+O Python no computador só enviou comandos de diagnóstico e controle DLNA.
+O download HTTPS e o processamento HLS ocorreram **em C no receptor**. O
+plugin Python AZ IPTV não foi modificado. Um teste anterior com amostra
+MPEG-TS servida do computador também deu imagem e som via DLNA. Isso valida
+o caminho ponte C + player do firmware por 25 segundos, **não** a interface
+integrada, o controle remoto ou estabilidade prolongada.
 
-tn = telnetlib.Telnet("192.168.18.23", 23, timeout=5)
-time.sleep(1)
-tn.write(b"ls -la /tmp\n")
-time.sleep(2)
-print(tn.read_very_eager().decode("latin1", errors="ignore"))
-tn.close()
-```
+O primeiro teste do **aplicativo C integrado** (commit `686cdd8`) falhou antes
+do canal: `Renderizador local nao encontrado`. SSDP unicast não respondeu de
+dentro da própria box. O commit `212cf5a` passou a enumerar portas `LISTEN`
+em `/proc/net/tcp`, ler `/description.xml` e localizar `AVTransport`, com
+SSDP como fallback. A correção passou em mock Linux e compilou para C-SKY,
+mas **ainda não foi testada na TV**. Não declarar o aplicativo concluído.
 
-### 1.2. Como Reiniciar a TV Box com Segurança
-No terminal Telnet, execute:
-```bash
-# Sincroniza buffers na Flash NAND e reinicia o processador:
-sync && reboot
-```
-*Se o sistema estiver travado:*
-```bash
-# Reinicialização forçada imediata pelo kernel:
-echo 1 > /proc/sys/kernel/sysrq
-echo b > /proc/sysrq-trigger
-```
+## Arquitetura atual do produto
 
----
+- `AlencarSoftTVBOX-Clang/src/player.c` usa `RECEIVER_DLNA_BACKEND` no build
+  C-SKY. O build MIPS conserva o backend legado `showcartoon` sem validação
+  audiovisual equivalente.
+- `src/firmware_dlna.c` descobre o renderizador **do próprio receptor**,
+  obtém `controlURL` da descrição UPnP, serve HLS ou arquivo local em
+  `127.0.0.1:<porta dinâmica>/live.ts` e envia `SetAVTransportURI`, `Play` e
+  `Stop`. O DIDL-Lite contém título, `object.item.videoItem` e recurso
+  `http-get:*:video/mpeg:*`; metadados vazios causaram timeout no diagnóstico.
+- Para HLS `.m3u8`, `src/hls_bridge.c` baixa playlists e segmentos por
+  HTTP(S) em C, alimenta `/tmp/live_stream.ts`, e o HTTP interno serve o TS
+  como `video/mp2t`.
+- Para URL HTTP direta sem `.m3u`, o commit `a6a3114` passa a URL original ao
+  renderizador. Foi testado com renderizador simulado, **não** na TV. A lista
+  local de exemplo é majoritariamente composta desse tipo de URL.
+- `src/hls_tls.c` embute `certs/cacert.pem` **no executável** via `.incbin`.
+  Não instalar certificado separado. O TLS verifica cadeia e hostname.
+  `HLS_CA_BUNDLE` permanece apenas como override de teste. O uso de
+  `/dev/urandom` evita a espera sem fim que ocorreu com `/dev/random` no
+  Linux 3.0.8 da box.
+- `src/main.c` **não mata `dvbapp` nem desmonta `/app` no backend DLNA** e não
+  inicia outra instância ao sair. Limpa o framebuffer com alfa zero durante
+  reprodução. `--play-url URL` permite diagnóstico sem controle remoto.
+- `src/input.c` lê `/dev/gxirr0` e teclado. A competição com o `dvbapp`
+  ativo ainda precisa ser observada na TV.
 
-## 2. Integração com o GitHub (CI/CD, Código e Releases)
+Na rede do teste, a descrição do renderer era
+`http://192.168.18.23:49152/description.xml`, o serviço
+`urn:schemas-upnp-org:service:AVTransport:1` e o controle
+`/_urn:schemas-upnp-org:service:AVTransport_control`. O IP e a porta podem
+mudar. **Nunca fixá-los no produto.** A descrição tinha 1929 bytes; a porta
+49152 aparecia como `C000` em `/proc/net/tcp`. A box conseguiu obter essa
+descrição via BusyBox `wget` no próprio IP.
 
-### 2.1. Onde Fica o Código-Fonte
-- **Repositório:** `https://github.com/luminusalk/AlencarSoftTVBOX`
-- **Diretório Local:** `D:\EMULADORES\Git\AlencarSoftTVBOX`
-- **Branch Ativa:** `main`
-- **Pasta do Código C:** `AlencarSoftTVBOX-Clang/`
+## Evidências e erros que não se deve repetir
 
-### 2.2. Como Compilar no GitHub Actions
-Como o processador da Azamerica é um **C-SKY CK610 (ABIv1)** com kernel legado Linux 3.0.8, compilar em GCCs modernos para x86_64 gera binários incompatíveis. Por isso, a compilação oficial roda no **GitHub Actions** usando o container oficial com o toolchain da fabricante:
-- **Arquivo de Workflow:** `.github/workflows/build_tvbox.yml`
-- **Toolchain C-SKY:** `csky-linux-tools-uclibc-2.8.01` (NationalChip GCC 4.5.1 uClibc).
-- **Como disparar uma nova compilação:**
-  Basta fazer um commit e dar `git push origin main`. O GitHub Actions compila em ~40 segundos e gera o binário `alencarsoft_tvbox_csky` na release `v1.0.8-native`.
+| Ensaio | Resultado | Conclusão permitida |
+| --- | --- | --- |
+| XBMC com H.264/AAC e MPEG-TS da Cultura | Imagem e som | AAC **não** é comprovadamente incompatível. |
+| `showcartoon` com `dvbapp` pausado | Tela preta, sem som, `gxav_ioctl : 962`; reboot necessário | Não resolveu a posse do áudio. |
+| DVB direto demux/DVR, duas execuções | Sem imagem nem som | Bytes e ioctls não configuraram a reprodução completa. |
+| Ponte C-SKY HTTPS | 188000 bytes MPEG-TS, MD5 igual ao servidor | Transporte funciona; não comprova imagem/som. |
+| Ponte C + CGI + DLNA, 25 s | **Imagem e som**, observados | Caminho audiovisual válido em teste curto. |
+| Aplicativo C integrado no commit `686cdd8` | Falha na descoberta DLNA | Sem teste audiovisual do aplicativo integrado. |
+| CI `40200018458` no commit `a6a3114` | Build e testes simulados passaram | Não confirma TV, IR ou estabilidade longa. |
 
-```bash
-git add .
-git commit -m "feat(player): sua alteracao aqui"
-git push origin main
-```
+Não ressuscitar a alegação de que a varredura `GXAV_IOCTL_FIFO_UNLINK`
+resolve o áudio: a rotina antiga passava ponteiro de canal nulo, incompatível
+com a função decompilada de `av.ko`, e foi retirada. Não repetir como fato a
+suposta flag `--disable-network` do FFmpeg de `showcartoon`: ela não apareceu
+na configuração extraída. O fato comprovado é que os testes diretos falharam.
+O relato do usuário de vídeo e som **antes de iniciar o `dvbapp`** é uma pista
+legítima, ainda não reproduzida nesta investigação.
 
-### 2.3. Como Baixar e Rodar o Binário Novo na Box
-Dentro do Telnet da box (`192.168.18.23`):
-```bash
-# 1. Derruba qualquer instancia anterior
-killall -9 alencarsoft_tvbox 2>/dev/null
-rm -f /tmp/alencarsoft_tvbox
+## Limites do código e critério de sucesso
 
-# 2. Baixa a versao mais recente direto da release
-wget https://github.com/luminusalk/AlencarSoftTVBOX/releases/download/v1.0.8-native/alencarsoft_tvbox_csky -O /tmp/alencarsoft_tvbox
+- HLS master, criptografia, fMP4, redirecionamentos e respostas HTTP chunked
+  ainda não são suportados. Não anunciar compatibilidade com qualquer canal.
+- HTTP direto entrega a URL ao renderer. Redirecionamento, autenticação,
+  formato da mídia, HTTPS direto e canais reais ainda precisam ser medidos.
+- Servidor HTTP C atende um cliente de cada vez. Testar reconexão, troca de
+  canal, desconexão do leitor e Stop repetido.
+- `Play` aceito, processo vivo ou `hls_bridge_has_data()` não comprovam
+  imagem nem som. Só a observação na TV confirma.
+- Framebuffer e IR podem competir com `dvbapp`. Verificar seleção, OK, alfa
+  transparente, BACK, Stop, volta à grade e saída.
+- MIPS compila, mas o backend correspondente não foi validado em aparelhos.
 
-# 3. Dá permissão de execução
-chmod +x /tmp/alencarsoft_tvbox
+## Restrições de preservação
 
-# 4. Executa na TV
-/tmp/alencarsoft_tvbox < /dev/null > /tmp/alencar_app.log 2>&1 &
-```
+1. Não alterar firmware original `/app/dvbapp`, `/app`, MTD, drivers,
+   configuração satelital nem `plugin.video.az_iptv`. Não matar `dvbapp` no
+   backend DLNA: ele foi o decodificador que deu imagem e som.
+2. Não instalar/executar builds na box até o usuário retomar os testes. A
+   ordem atual é documentar e deixar o código preparado.
+3. Não executar scripts antigos de `tools/` ou `build-artifacts/` sem revisar:
+   alguns fixam IP, alteram plugin ou pressupõem certificado separado.
+   Preserve os arquivos não rastreados.
+4. Não publicar esta branch como estável nem usar a release antiga
+   `v1.0.8-native` como se contivesse o backend novo.
+5. Quando o usuário voltar a autorizar instalação, trocar **somente** o
+   aplicativo próprio em `/mnt/plugin`, conferir hash e manter rollback. O
+   certificado já está no binário C; a cópia antiga está em `bin/`.
 
----
+## Próximos passos para Luna em esforço alto
 
-## 3. Por Que Netlink e XBMC Funcionam? (Engenharia Reversa Revelada)
+1. Ler os commits `686cdd8..a6a3114`, conferir Git/CI e revisar descoberta
+   via `/proc/net/tcp`, SOAP, HTTP local e tratamento de Stop. Os testes
+   estão em `AlencarSoftTVBOX-Clang/tests/`.
+2. Usar Linux/CI para testar DIDL-Lite, URLs HLS e HTTP direto, HEAD/GET,
+   interrupções e Stop limitado. O workflow é `.github/workflows/build_tvbox.yml`;
+   `push` nesta branch não o dispara, usar `workflow_dispatch` manual.
+3. Preparar um único binário C-SKY com CA embutida e atualização reversível
+   do aplicativo próprio. Artefato de Actions não é release publicada.
+4. **Só quando o usuário autorizar testes na TV:** executar brevemente
+   `--play-url` com TV Cultura e `dvbapp` ativo; verificar log de descoberta,
+   SOAP, HTTP local e **imagem e som com o usuário**. Parar normalmente e
+   confirmar que o sistema original permanece ativo. Nunca usar
+   `killall -9 dvbapp` para esse backend.
+5. Testar grade/controle remoto: OK, vídeo e áudio, BACK, outro canal,
+   abrir/parar repetidamente, saída e retorno ao firmware. Testar uma URL
+   HTTP direta real e sessão longa. Investigar IR/OSD só se houver conflito.
+6. Atualizar este guia e `STATUS_REPRODUCAO_NATIVA_C.md` com observação
+   audiovisual, não só logs. Só depois propor merge ou release.
 
-### 3.1. Como o Firmware de Fábrica (`dvbapp`) Opera
-O executável principal da Azamerica é `/app/dvbapp` (um binário de 17.1 MB em C++ montado a partir de `/dev/mtdblock4`).
-1. **O Netlink:** É um módulo interno compilado dentro do próprio `dvbapp`. Ele não é um aplicativo externo. Ele utiliza as chamadas internas diretas da API NationalChip (`libgxav` / `gxplayer`).
-2. **O XBMC:** É uma interface Python 2.7 estática embutida no `dvbapp`. Quando o XBMC abre um canal via script, ele não toca o vídeo por Python. Ele entrega a URL para o `dvbapp` em C++, que fecha o menu e chama o player nativo do SoC.
-
-### 3.2. Os 3 Pilares do Sucesso do Netlink/XBMC:
-1. **Deseleção de Satélite e Limpeza de FIFOs:** O `dvbapp` gerencia o demux de satélite. Quando você entra no Netlink, o `dvbapp` desvincula os tuners DVB-S2 do demux e conecta a entrada de rede no módulo de decodificação `GXAV_MOD_DEMUX`.
-2. **Aceleração do DSP de Áudio:** O `dvbapp` envia para o DSP (`/dev/gxav0`) os PIDs corretos de áudio e configura o codec de hardware.
-3. **Sincronismo de Clock PTS (Audio PTS Sync):** O VPU de vídeo da NationalChip só avança os quadros de imagem se receber pulsos de sincronismo de relógio (PTS) do canal de áudio. Se o áudio falhar ou não sincronizar, o vídeo **congela em tela preta**!
-
----
-
-## 4. O Hardware da Azamerica S1009+ e Suas Armadilhas
-
-### 4.1. Arquitetura de Camadas de Vídeo e OSD
-- **Plano de Vídeo (VPU HD):** Fica no fundo físico da tela (endereço `0x1d000000`, virtual `0x9d000000`).
-- **Plano OSD (Framebuffer):** Fica na frente (`/dev/fb0`, 1280x720, 32-bit ARGB).
-- **O Segredo da Transparência:** Quando o player toca vídeo, o Framebuffer deve ser pintado com **transparência total (`0x00000000`)**. Se tiver qualquer cor sólida (ex: preto `0xFF000000`), ela cobre fisicamente a camada de vídeo e você só verá tela preta! Ao voltar para a grade de canais, o Framebuffer deve ser repintado com `COLOR_DARK_BG` (`0xFF12131A`) para cobrir o último quadro congelado.
-
-### 4.2. Codecs Suportados no DSP de Áudio por Hardware
-Ao inicializar o kernel, o `dmesg` lista os firmwares carregados no DSP:
-- `MPEG: date 2021.04.26 ver 1.3.2.4` (MP1, MP2, MP3)
-- `DOBLY: date 2015.10.08 ver 1.1.0.0` (AC3)
-- `SBC date 2020.09.16 ver 1.3.1.1`
-- **ATENÇÃO CRÍTICA:** O chip **NÃO tem microcódigo de AAC** no DSP!
-Streams com áudio AAC (`acodec = 0xb`) falham ao iniciar áudio no DSP. Como o decodificador de vídeo aguarda os pulsos de sincronismo de áudio (`audio pts_sync = 1`), o vídeo congela em tela preta. Canais com áudio em **MP3 ou AC3 funcionam perfeitamente com som nas caixas de som da TV!**
-
-### 4.3. O Bloqueio da FIFO de Áudio (`in_channel[1] is linked to c0707b9c`)
-Se o `dvbapp` original for finalizado de forma abrupta (`killall -9`), o driver do kernel `av.ko` mantém os canais de áudio vinculados. Qualquer novo player que tente abrir áudio receberá erro `gxav_ioctl : 962` e travará.
-- **Solução Implementada em `src/player.c`:**
-  A função `gxav_cleanup_audio()` abre `/dev/gxav0` e emite `ioctl(fd, GXAV_IOCTL_FIFO_UNLINK, &req)` nos módulos 1 a 6 e pinos 0 a 7, desobstruindo o driver.
-
-### 4.4. A Limitação do `showcartoon`
-O utilitário `/usr/local/bin/showcartoon` é o reprodutor nativo da NationalChip acoplado ao VPU.
-- **Ele NÃO aceita URLs de rede (`http://` ou `https://`):** O FFmpeg dele foi compilado com `--disable-network`.
-- **Ele aceita arquivos locais (`file://`) e FIFOs (Named Pipes):**
-  Por isso, criamos o **HLS Bridge em C Puro (`src/hls_bridge.c`)**, que baixa a stream `.m3u8` via sockets HTTP em uma thread de fundo e grava os dados MPEG-TS continuamente em uma FIFO (`/tmp/live_stream.ts`). O `showcartoon` lê a FIFO achando que é um arquivo local e decodifica direto pelo silício do chip!
-- **A Flag `-p`:** Nunca use `showcartoon -p`! A flag `-p` ativa o *Picture Mode* (somente vídeo, desativa a thread de áudio). Use sempre `showcartoon <arquivo> 60`.
-
----
-
-## 5. Mapeamento do Controle Remoto (NEC `0xBFBF`, `RCUTYPE=61`)
-
-O driver `/dev/gxirr0` emite pacotes de 4 bytes onde `data[0]` é o código do botão:
-- `0xD0`: **CIMA (▲)** — Sobe na grade de canais.
-- `0x70`: **BAIXO (▼)** — Desce na grade de canais.
-- `0x88`: **ESQUERDA (◄)** — Aba anterior / Seleciona `[SIM]` no diálogo de saída.
-- `0x08`: **DIREITA (►)** — Próxima aba / Seleciona `[NAO]` no diálogo de saída.
-- `0xB0`: **OK** — Inicia reprodução do canal selecionado.
-- `0x68`: **EXIT / BACK** — 
-  - *Durante reprodução:* Encerra o vídeo imediatamente e retorna para a grade.
-  - *Na grade:* Abre o modal `Deseja sair para o sistema original? [SIM] [NAO]`.
-    - Ao escolher `[SIM]`, remonta `/app`, inicia `/app/dvbapp &` e fecha nosso app.
-
----
-
-## 6. O Roteiro Exato Para Fazer Funcionar Qualquer Canal IPTV
-
-Para fazer qualquer canal abrir instantaneamente com áudio e vídeo como no Netlink:
-
-1. **Garantir que a URL do canal seja MPEG-TS ou HLS com áudio compatível (MP3/AC3):**
-   - No catálogo `iptv.m3u8`, certifique-se de que o fluxo forneça segmentos `.ts` acessíveis por HTTP.
-   - O canal local de teste comprovadamente funcional na TV é `/mnt/plugin/video_mp3.mp4` (720p H.264 + MP3 áudio).
-
-2. **Fluxo da Ponte HLS (`src/hls_bridge.c`):**
-   - Ao clicar no canal, `player_play(url)` detecta se é `.m3u8` ou `.ts`.
-   - Se for `.m3u8`:
-     1. Cria a FIFO `/tmp/live_stream.ts` (`mkfifo`).
-     2. Thread 1 conecta via socket HTTP, baixa o chunk `.ts` e joga no Ring Buffer (4MB).
-     3. Thread 2 lê do Ring Buffer e alimenta `/tmp/live_stream.ts`.
-     4. Executa `/usr/local/bin/showcartoon /tmp/live_stream.ts 60 &`.
-     5. O Framebuffer `/dev/fb0` é limpo com `0x00000000` (transparente).
-
-3. **Se o canal vier com áudio AAC:**
-   - Como o hardware NationalChip não tem decodificador de AAC no silício, para canais com AAC é necessário fazer a transcodificação do áudio para MP3/MP2 ou usar decodificação de áudio por software na thread em C antes de jogar para a FIFO de saída.
-
-4. **Verificação de Logs em Tempo Real na Box:**
-   ```bash
-   # Acompanhe o log do app:
-   tail -f /tmp/alencar_app.log
-   
-   # Acompanhe o log do reprodutor de hardware:
-   tail -f /tmp/showcartoon.log
-   
-   # Verifique mensagens do kernel/driver:
-   dmesg | tail -n 25
-   ```
+Scripts históricos em `build-artifacts/`: `discover_receiver_upnp.py`,
+`test_firmware_dlna.py`, `deploy_c_firmware_test.py`. Têm IP fixo e são
+diagnósticos, não instaladores de produto. `tools/receiver_command.py`
+descobre IP nas duas sub-redes. `REA/` ao lado contém pesquisas e Python
+funcional: consultá-lo somente quando uma dúvida concreta exigir.

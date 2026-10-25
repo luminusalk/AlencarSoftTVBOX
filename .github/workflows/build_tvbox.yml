@@ -2,7 +2,7 @@ name: Build AlencarSoft TVBOX Binaries
 
 on:
   push:
-    branches: [ main, codex/azamerica-ir ]
+    branches: [ main, codex/azamerica-ir, codex/native-iptv-repair ]
   workflow_dispatch:
 
 jobs:

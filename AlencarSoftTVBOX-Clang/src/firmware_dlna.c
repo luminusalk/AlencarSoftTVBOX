@@ -134,6 +134,10 @@ static int local_ip(char *out, size_t cap) {
         getsockname(fd, (struct sockaddr *)&local, &length) < 0 ||
         !inet_ntop(AF_INET, &local.sin_addr, out, cap)) {
         close(fd);
+        if (cap > strlen("127.0.0.1")) {
+            strcpy(out, "127.0.0.1");
+            return 0;
+        }
         return -1;
     }
     close(fd);
@@ -258,6 +262,11 @@ static int scan_local_listeners(const char *own_ip) {
                    address, &port, &state) != 3 || state != 0x0a ||
             port < 1024 || port > 65535) continue;
         if (try_renderer(own_ip, (int)port, "/description.xml") == 0) {
+            fclose(tcp);
+            return 0;
+        }
+        if (strcmp(own_ip, "127.0.0.1") != 0 &&
+            try_renderer("127.0.0.1", (int)port, "/description.xml") == 0) {
             fclose(tcp);
             return 0;
         }

@@ -255,7 +255,7 @@ void app_handle_input(app_context_t *app, app_key_t key) {
     if (app->view == VIEW_CONFIRM_EXIT) {
         if (key == KEY_NAV_LEFT || key == KEY_NAV_RIGHT) {
             app->exit_dialog_choice = !app->exit_dialog_choice;
-        } else if (key == KEY_ACTION_BACK) {
+        } else if (key == KEY_ACTION_BACK || key == KEY_EXIT_APP) {
             app->view = VIEW_CATEGORIES;
         } else if (key == KEY_ACTION_OK) {
             if (app->exit_dialog_choice == 0) {
@@ -339,13 +339,10 @@ void app_handle_input(app_context_t *app, app_key_t key) {
             break;
 
         case KEY_ACTION_BACK:
+        case KEY_EXIT_APP:
             /* Na grade de canais, abre o dialogo de confirmacao de saida */
             app->view = VIEW_CONFIRM_EXIT;
             app->exit_dialog_choice = 1; /* Padrao selecionado: NAO */
-            break;
-
-        case KEY_EXIT_APP:
-            app->running = 0;
             break;
 
         case KEY_ACTION_MENU:
@@ -376,6 +373,8 @@ void app_cleanup(app_context_t *app) {
     vfd_set_text("PRONTO");
     vfd_close();
     input_close();
+    fb_clear(&app->fb, 0x00000000);
+    fb_flip(&app->fb);
     fb_close(&app->fb);
     
     /* Apenas o backend exclusivo pode ter pausado o processo original. */

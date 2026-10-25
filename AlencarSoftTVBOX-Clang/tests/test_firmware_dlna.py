@@ -62,6 +62,13 @@ class Renderer(http.server.BaseHTTPRequestHandler):
             assert resource.text == uri
             self.server.stream_uri = uri
         elif action == "Play":
+            if "live.ts" in self.server.stream_uri:
+                req_head = urllib.request.Request(self.server.stream_uri, method="HEAD")
+                with urllib.request.urlopen(req_head, timeout=5) as head_resp:
+                    assert head_resp.headers["Content-Type"] in ("video/mp2t", "video/mp4")
+                    assert head_resp.read() == b""
+                with urllib.request.urlopen(self.server.stream_uri, timeout=5) as partial:
+                    _ = partial.read(64)
             with urllib.request.urlopen(self.server.stream_uri, timeout=5) as response:
                 assert response.headers["Content-Type"] == "video/mp2t"
                 assert response.read() == sample
@@ -93,6 +100,12 @@ with tempfile.TemporaryDirectory() as directory:
         assert result.returncode == 0, result.returncode
         assert renderer.stream_uri == direct_url
         assert events == ["SetAVTransportURI", "Play", "Stop"] * 2, events
+
+        result = subprocess.run([sys.argv[1], str(path), "cycle"], timeout=35,
+                                capture_output=True, text=True)
+        print(result.stdout, result.stderr)
+        assert result.returncode == 0, result.returncode
+        assert events == ["SetAVTransportURI", "Play", "Stop"] * 4, events
     finally:
         renderer.shutdown()
         renderer.server_close()
