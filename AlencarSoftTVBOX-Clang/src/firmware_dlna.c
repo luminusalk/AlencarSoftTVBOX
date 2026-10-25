@@ -262,7 +262,17 @@ static int try_renderer(const char *host, int port, const char *path) {
 static int scan_local_listeners(const char *own_ip) {
     char line[256], address[9];
     unsigned int port, state;
-    FILE *tcp = fopen("/proc/net/tcp", "r");
+    FILE *tcp;
+
+    /* Tenta portas padrão do UPnP/DLNA do dvbapp primeiro (49152 e 49153) em 1ms */
+    if (own_ip && *own_ip) {
+        if (try_renderer(own_ip, 49152, "/description.xml") == 0) return 0;
+        if (try_renderer(own_ip, 49153, "/description.xml") == 0) return 0;
+    }
+    if (try_renderer("127.0.0.1", 49152, "/description.xml") == 0) return 0;
+    if (try_renderer("127.0.0.1", 49153, "/description.xml") == 0) return 0;
+
+    tcp = fopen("/proc/net/tcp", "r");
     if (!tcp) return -1;
     while (fgets(line, sizeof(line), tcp)) {
         if (sscanf(line, " %*d: %8[0-9A-Fa-f]:%x %*s %x",

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <pthread.h>
 
 #include <mbedtls/ctr_drbg.h>
@@ -115,6 +116,8 @@ void hls_tls_close(hls_tls_t *tls) {
 
 hls_tls_t *hls_tls_open(int fd, const char *hostname) {
     const char *override_ca = getenv("HLS_CA_BUNDLE");
+    if (!override_ca && access("/mnt/plugin/cacert.pem", R_OK) == 0)
+        override_ca = "/mnt/plugin/cacert.pem";
     hls_tls_t *tls = (hls_tls_t *)calloc(1, sizeof(*tls));
     int rc = -1;
     if (!tls || fd < 0 || !hostname || !*hostname) {
