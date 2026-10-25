@@ -103,16 +103,18 @@ void app_render(app_context_t *app) {
     player_state_t playback_state;
     static player_state_t last_rendered = PLAYER_STATE_STOPPED;
     static int last_channel = -2;
+    static app_view_t last_view = (app_view_t)-1;
     static time_t play_start_time = 0;
     static int play_frame = 0;
     if (!app->fb.back_buffer) return;
 
     playback_state = player_get_state();
-    if (playback_state == PLAYER_STATE_PLAYING || playback_state == PLAYER_STATE_BUFFERING) {
-        if (last_channel != app->active_playing_idx) {
+    if (app->view == VIEW_PLAYING && (playback_state == PLAYER_STATE_PLAYING || playback_state == PLAYER_STATE_BUFFERING)) {
+        if (last_channel != app->active_playing_idx || last_view != app->view) {
             play_start_time = time(NULL);
             last_channel = app->active_playing_idx;
             last_rendered = playback_state;
+            last_view = app->view;
             play_frame = 0;
         }
 
@@ -140,10 +142,9 @@ void app_render(app_context_t *app) {
         return;
     }
 
-    /* A grade foi desenhada sobre o mesmo framebuffer. A proxima abertura,
-     * inclusive do mesmo canal, precisa limpar esse plano novamente. */
     last_rendered = PLAYER_STATE_STOPPED;
     last_channel = -2;
+    last_view = app->view;
 
     /* Fundo escuro elegante para o Menu / Grade de Canais */
     fb_clear(&app->fb, COLOR_DARK_BG);
@@ -263,11 +264,12 @@ void app_render(app_context_t *app) {
 void app_handle_input(app_context_t *app, app_key_t key) {
     if (key == KEY_NONE) return;
 
-    /* 1. Tratamento durante a reproducao de video */
-    if (player_get_state() == PLAYER_STATE_PLAYING ||
-        player_get_state() == PLAYER_STATE_BUFFERING) {
+    /* 1. Tratamento durante a reproducao de video em tela cheia */
+    if (app->view == VIEW_PLAYING) {
         if (key == KEY_ACTION_BACK || key == KEY_EXIT_APP || key == KEY_ACTION_MENU) {
-            player_stop();
+            /* NAO encerra o player DLNA! Apenas traz a grade para a frente.
+             * Manter o DLNA ativo engana o firmware para nunca voltar ao satelite! */
+            app->view = VIEW_CATEGORIES;
             vfd_set_text("GRADE");
             fb_clear(&app->fb, COLOR_DARK_BG);
             fb_flip(&app->fb);
@@ -354,6 +356,7 @@ void app_handle_input(app_context_t *app, app_key_t key) {
                 /* Inicia player */
                 if (player_play(ch->url, ch->name) == 0) {
                     app->active_playing_idx = ch_idx;
+                    app->view = VIEW_PLAYING;
                 } else {
                     snprintf(app->status_message, sizeof(app->status_message),
                              "Falha ao abrir canal: %.90s", ch->name);
@@ -477,6 +480,17 @@ int main(int argc, char **argv) {
 
             input_init(DEFAULT_IR_DEV);
             player_init();
+
+            /* Bloqueia o modo satelite do dvbapp iniciando imediatamente o DLNA em background */
+            if (s_app.catalog.total_channels > 0) {
+                iptv_channel_t *ch0 = &s_app.catalog.channels[0];
+                printf("[%s] [OSD+IR] Enganando dvbapp: ativando modo DLNA continuo (%s)...\n",
+                       APP_NAME, ch0->name);
+                if (player_play(ch0->url, ch0->name) == 0) {
+                    s_app.active_playing_idx = 0;
+                }
+            }
+            s_app.view = VIEW_CATEGORIES; /* Garante que a grade de canais esta visivel sobreposta */
 
             printf("[%s] [OSD+IR] Grade carregada: %d canais, %d categorias.\n",
                    APP_NAME, s_app.catalog.total_channels, s_app.catalog.total_categories);
