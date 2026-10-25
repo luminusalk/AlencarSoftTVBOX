@@ -426,6 +426,40 @@ int main(int argc, char **argv) {
     fflush(stdout);
 
     /* Modo C isolado (headless): testa o transporte DLNA e player C, com flags para isolar componentes */
+    /* Modo Daemon EXIT 3x: escuta controle remoto e dispara o app se apertar EXIT 3 vezes */
+    if (argc >= 2 && strcmp(argv[1], "--exit3-daemon") == 0) {
+        input_init(DEFAULT_IR_DEV);
+        printf("[%s] Daemon EXIT 3x ativo em segundo plano (PID %d).\n", APP_NAME, getpid());
+        fflush(stdout);
+
+        int exit_count = 0;
+        time_t last_exit_time = 0;
+
+        while (1) {
+            app_key_t key = input_poll();
+            if (key == KEY_EXIT_APP) {
+                time_t now = time(NULL);
+                if (now - last_exit_time <= 2) {
+                    exit_count++;
+                } else {
+                    exit_count = 1;
+                }
+                last_exit_time = now;
+                printf("[%s] [Daemon] EXIT detectado (%d/3)...\n", APP_NAME, exit_count);
+                fflush(stdout);
+
+                if (exit_count >= 3) {
+                    printf("[%s] [Daemon] ATALHO EXIT 3x ACIONADO! Abrindo AlencarSoft TVBOX...\n", APP_NAME);
+                    fflush(stdout);
+                    exit_count = 0;
+                    system("/mnt/plugin/alencarsoft_tvbox --headless-osd-ir 'https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8?vhost=player-tvcultura.stream.uol.com.br' 86400 &");
+                }
+            }
+            usleep(25000);
+        }
+        return 0;
+    }
+
     if (argc >= 2 && (strcmp(argv[1], "--headless") == 0 ||
                       strcmp(argv[1], "--headless-vfd") == 0 ||
                       strcmp(argv[1], "--headless-watchdog") == 0 ||
