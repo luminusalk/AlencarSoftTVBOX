@@ -9,6 +9,14 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include <signal.h>
+
+static app_context_t s_app;
+
+static void sig_handler(int sig) {
+    (void)sig;
+    s_app.running = 0;
+}
 
 int app_init(app_context_t *app) {
     memset(app, 0, sizeof(*app));
@@ -16,27 +24,34 @@ int app_init(app_context_t *app) {
     app->view = VIEW_CATEGORIES;
     app->channels_per_page = OSD_MAX_CHANNELS_PER_PAGE;
     
-    /* 1. Deteccao automatica de hardware */
+    /* Configura tratamento de sinais para encerramento seguro */
+    signal(SIGINT, sig_handler);
+    signal(SIGTERM, sig_handler);
+
+    /* 1. Assume controle exclusivo: pausa daemons satelite de fundo (ex: dvbapp) */
+    system("killall -STOP dvbapp 2>/dev/null");
+
+    /* 2. Deteccao automatica de hardware */
     app->platform = platform_detect();
     printf("[%s] Hardware detectado: %s (SoC=%d, Painel=%d)\n", 
            APP_NAME, app->platform.model_name, app->platform.soc, app->platform.panel);
 
-    /* 2. Inicializacao do visor frontal */
+    /* 3. Inicializacao do visor frontal */
     vfd_init(app->platform.panel);
     vfd_set_text("ALENCARSOFT");
 
-    /* 3. Inicializacao do Framebuffer (/dev/fb0) */
+    /* 4. Inicializacao do Framebuffer (/dev/fb0) */
     if (fb_init(&app->fb, DEFAULT_FB_DEV) < 0) {
         fprintf(stderr, "Aviso: Nao foi possivel abrir %s diretamente.\n", DEFAULT_FB_DEV);
     }
 
-    /* 4. Inicializacao do leitor de controle remoto */
+    /* 5. Inicializacao do leitor de controle remoto */
     input_init(DEFAULT_IR_DEV);
 
-    /* 5. Inicializacao do Player de video */
+    /* 6. Inicializacao do Player de video */
     player_init();
 
-    /* 6. Carrega catalogo inicial (M3U ou JSON) */
+    /* 7. Carrega catalogo inicial (M3U ou JSON) */
     if (catalog_load_m3u(&app->catalog, DEFAULT_M3U_PATH) <= 0) {
         catalog_load_m3u(&app->catalog, "/mnt/plugin/lists/Canais ao Vivo.m3u");
     }
@@ -247,29 +262,36 @@ void app_cleanup(app_context_t *app) {
     vfd_close();
     input_close();
     fb_close(&app->fb);
+    
+    /* Restaura o processo do receptor ao encerrar */
+    system("killall -CONT dvbapp 2>/dev/null");
+    
     printf("[%s] Aplicativo finalizado com sucesso.\n", APP_NAME);
 }
 
 int main(int argc, char **argv) {
     (void)argc;
     (void)argv;
-    app_context_t app;
 
-    if (app_init(&app) < 0) {
+    printf("\n=========================================\n");
+    printf("   Iniciando %s v%s\n", APP_NAME, APP_VERSION);
+    printf("=========================================\n");
+
+    if (app_init(&s_app) < 0) {
         fprintf(stderr, "Erro ao inicializar %s\n", APP_NAME);
         return 1;
     }
 
     printf("[%s] Iniciando loop de eventos nativo...\n", APP_NAME);
-    while (app.running) {
+    while (s_app.running) {
         app_key_t key = input_poll();
         if (key != KEY_NONE) {
-            app_handle_input(&app, key);
+            app_handle_input(&s_app, key);
         }
-        app_render(&app);
+        app_render(&s_app);
         usleep(30000); /* ~33 FPS para suavidade maxima com CPU baixa */
     }
 
-    app_cleanup(&app);
+    app_cleanup(&s_app);
     return 0;
 }

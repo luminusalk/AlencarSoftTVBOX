@@ -154,8 +154,6 @@ jobs:
       - name: Copiar arquivos complementares
         run: |
           cp AlencarSoftTVBOX-Clang/iptv.m3u8 release_files/
-          cp AlencarSoftTVBOX-Clang/launcher/alencarsoft.sh release_files/
-          chmod +x release_files/alencarsoft.sh
           ls -la release_files/
 
       - name: Criar Release no GitHub
