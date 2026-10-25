@@ -365,7 +365,10 @@ static void *hls_producer_thread(void *arg) {
 
     while (s_bridge_running) {
         size_t p_size = 0;
-        if (http_fetch(s_current_m3u8, playlist_buf, 128 * 1024 - 1, &p_size) == 0 && p_size > 0) {
+        int fetch_rc = http_fetch(s_current_m3u8, playlist_buf, 128 * 1024 - 1, &p_size);
+        if (fetch_rc != 0 || p_size == 0) {
+            fprintf(stderr, "[HLS Bridge] Falha ao baixar playlist (rc=%d): %.100s\n", fetch_rc, s_current_m3u8);
+        } else {
             hls_segment_t segments[16];
             size_t count = 0, start_idx, i;
             uint64_t parsed_next = next_sequence;
@@ -377,8 +380,10 @@ static void *hls_producer_thread(void *arg) {
                 start_idx = !started && count > 2 ? count - 2 : 0;
                 for (i = start_idx; i < count && s_bridge_running; i++) {
                     size_t seg_size = 0, offset = 0;
-                    if (http_fetch(segments[i].url, segment_buf, MAX_SEGMENT_SIZE, &seg_size) < 0)
+                    if (http_fetch(segments[i].url, segment_buf, MAX_SEGMENT_SIZE, &seg_size) < 0) {
+                        fprintf(stderr, "[HLS Bridge] Falha ao baixar segmento: %.100s\n", segments[i].url);
                         break;
+                    }
                     while (offset < seg_size && s_bridge_running) {
                         size_t chunk = seg_size - offset;
                         if (chunk > 64 * 1024) chunk = 64 * 1024;
@@ -452,7 +457,15 @@ int hls_bridge_start(const char *m3u8_url) {
 #endif
     hls_bridge_stop();
 
-    strcpy(s_current_m3u8, m3u8_url);
+    if (strncmp(m3u8_url, "http://player-tvcultura", 23) == 0) {
+        snprintf(s_current_m3u8, sizeof(s_current_m3u8), "https%s", m3u8_url + 4);
+    } else {
+        strcpy(s_current_m3u8, m3u8_url);
+    }
+    if (strstr(s_current_m3u8, "tvcultura") && !strstr(s_current_m3u8, "vhost=")) {
+        strncat(s_current_m3u8, "?vhost=player-tvcultura.stream.uol.com.br",
+                sizeof(s_current_m3u8) - strlen(s_current_m3u8) - 1);
+    }
     unlink(FIFO_STREAM_PATH);
     if (mkfifo(FIFO_STREAM_PATH, 0666) < 0) {
         perror("mkfifo");

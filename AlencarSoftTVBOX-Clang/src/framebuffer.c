@@ -100,6 +100,16 @@ static inline void put_pixel(fb_context_t *ctx, int x, int y, uint32_t color) {
 
 void fb_clear(fb_context_t *ctx, uint32_t color) {
     if (!ctx || !ctx->back_buffer) return;
+    if (color == 0) {
+        memset(ctx->back_buffer, 0, (size_t)ctx->screensize);
+        return;
+    }
+    if (ctx->bpp == 32) {
+        uint32_t *p = (uint32_t *)ctx->back_buffer;
+        size_t total = (size_t)ctx->width * ctx->height;
+        for (size_t i = 0; i < total; i++) p[i] = color;
+        return;
+    }
     for (int y = 0; y < ctx->height; y++) {
         for (int x = 0; x < ctx->width; x++) {
             put_pixel(ctx, x, y, color);

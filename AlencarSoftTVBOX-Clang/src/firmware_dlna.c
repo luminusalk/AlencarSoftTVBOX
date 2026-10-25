@@ -69,6 +69,7 @@ static void serve_client(int client) {
         request[used] = '\0';
         if (strstr(request, "\r\n\r\n")) break;
     }
+    fprintf(stderr, "[DLNA HTTP] Request recebida: %.80s\n", request);
     if (strncmp(request, "GET /live.ts ", 13) != 0 &&
         strncmp(request, "HEAD /live.ts ", 14) != 0) {
         static const char bad[] = "HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\n\r\n";

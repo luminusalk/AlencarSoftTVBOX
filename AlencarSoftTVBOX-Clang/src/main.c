@@ -106,6 +106,14 @@ void app_render(app_context_t *app) {
 
     playback_state = player_get_state();
     if (playback_state == PLAYER_STATE_PLAYING || playback_state == PLAYER_STATE_BUFFERING) {
+        static player_state_t last_rendered = PLAYER_STATE_STOPPED;
+        static int last_channel = -2;
+        if (last_rendered == playback_state && last_channel == app->active_playing_idx) {
+            return;
+        }
+        last_rendered = playback_state;
+        last_channel = app->active_playing_idx;
+
         /* Modo Reproducao: Framebuffer 100% transparente para permitir que o
          * plano de hardware de video subjacente seja exibido diretamente na TV */
         fb_clear(&app->fb, 0x00000000);
