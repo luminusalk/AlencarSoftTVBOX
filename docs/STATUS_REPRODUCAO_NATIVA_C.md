@@ -21,6 +21,16 @@ o mesmo fluxo.
 - O relato de reprodução H.264/AAC com imagem e som no XBMC, registrado em
   `HANDOFF_RESUMO.md`, contradiz a afirmação de que o receptor não suporta AAC.
   O codec de áudio ainda deve ser medido no caminho C escolhido.
+- Em 25/10, o teste limitado de `dvb_native_probe_csky` com
+  `/mnt/plugin/cultura_10s.ts` foi repetido duas vezes com o `dvbapp` ativo.
+  Os filtros de vídeo/áudio e `/dev/dvb/adapter0/dvr0` abriram, e os bytes MPEG-TS
+  foram escritos. O usuário confirmou que **não houve imagem nem som** em nenhum
+  dos dois testes. O sucesso dos ioctls e da escrita não prova que os módulos
+  de decodificação e saída tenham sido configurados.
+- A ponte C-SKY baixou 188000 bytes de um segmento MPEG-TS servido por HTTP na
+  rede local do receptor, sem encerrar o `dvbapp`. Os ensaios HTTPS locais
+  estabeleceram TCP, mas não entregaram bytes no prazo de 25 segundos;
+  instrumentação de etapas do TLS foi adicionada para localizar a espera.
 
 ## Correções disponíveis na branch `codex/native-iptv-repair`
 
@@ -40,10 +50,8 @@ o mesmo fluxo.
 
 ## Próxima validação no receptor
 
-Com alguém observando a TV: começar por um arquivo local sabidamente
-reproduzível no XBMC e testar o caminho nativo `DVB demux/DVR` do diagnóstico
-`dvb_native_probe_csky` com tempo limitado. Registrar tela, áudio, retorno dos
-ioctls e `dmesg`. Se o driver continuar ocupado, investigar uma transferência
-limpa do hardware do `dvbapp` antes de substituir o backend de reprodução do
-aplicativo. Não anunciar suporte audiovisual com base apenas no início de um
-processo, na presença de bytes na FIFO ou no sucesso da compilação.
+Identificar no `dvbapp`/`gxplayer` a sequência de inicialização dos módulos de
+decodificação e saída antes de repetir o teste audiovisual. Diagnosticar a
+etapa TLS em que o receptor aguarda. Não anunciar suporte audiovisual com base
+apenas no início de um processo, na presença de bytes na FIFO, no sucesso dos
+ioctls ou na compilação.

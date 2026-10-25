@@ -19,6 +19,12 @@ struct hls_tls {
     mbedtls_net_context net;
 };
 
+static void tls_trace(const char *stage, int rc) {
+    const char *enabled = getenv("HLS_TLS_TRACE");
+    if (enabled && *enabled && strcmp(enabled, "0") != 0)
+        fprintf(stderr, "[HLS TLS] %s rc=%d\n", stage, rc);
+}
+
 void hls_tls_close(hls_tls_t *tls) {
     if (!tls) return;
     mbedtls_ssl_free(&tls->ssl);
@@ -53,6 +59,7 @@ hls_tls_t *hls_tls_open(int fd, const char *hostname) {
     mbedtls_ctr_drbg_init(&tls->drbg);
     mbedtls_net_init(&tls->net);
     tls->net.fd = fd;
+    tls_trace("open", 0);
 
     if (override_ca && *override_ca) {
         rc = mbedtls_x509_crt_parse_file(&tls->ca, override_ca);
@@ -69,9 +76,11 @@ hls_tls_t *hls_tls_open(int fd, const char *hostname) {
         fprintf(stderr, "[HLS TLS] CA bundle ausente ou invalido.\n");
         goto failed;
     }
+    tls_trace("ca-parsed", rc);
     rc = mbedtls_ctr_drbg_seed(&tls->drbg, mbedtls_entropy_func, &tls->entropy,
                                (const unsigned char *)personalization,
                                strlen(personalization));
+    tls_trace("entropy-seeded", rc);
     if (rc != 0) goto failed;
     rc = mbedtls_ssl_config_defaults(&tls->config, MBEDTLS_SSL_IS_CLIENT,
                                      MBEDTLS_SSL_TRANSPORT_STREAM,
@@ -85,9 +94,11 @@ hls_tls_t *hls_tls_open(int fd, const char *hostname) {
     rc = mbedtls_ssl_set_hostname(&tls->ssl, hostname);
     if (rc != 0) goto failed;
     mbedtls_ssl_set_bio(&tls->ssl, &tls->net, mbedtls_net_send, mbedtls_net_recv, NULL);
+    tls_trace("handshake-start", 0);
     do {
         rc = mbedtls_ssl_handshake(&tls->ssl);
     } while (rc == MBEDTLS_ERR_SSL_WANT_READ || rc == MBEDTLS_ERR_SSL_WANT_WRITE);
+    tls_trace("handshake-end", rc);
     if (rc != 0 || mbedtls_ssl_get_verify_result(&tls->ssl) != 0) goto failed;
     return tls;
 failed:
