@@ -40,6 +40,10 @@ jobs:
           $CC_BIN -static -std=gnu99 -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
             src/main.c src/framebuffer.c src/font.c src/platform.c src/display_vfd.c \
             src/input.c src/iptv_catalog.c src/player.c -o alencarsoft_tvbox_csky
+
+          # Diagnostico somente de leitura da ABI GXAV do receptor.
+          $CC_BIN -static -std=gnu99 -O2 -Wall -Wextra \
+            tools/gxav_probe.c -o gxav_probe_csky
           
           # Compila mini_test de diagnostico
           $CC_BIN -static -std=gnu99 -O2 mini_test.c -o mini_test
@@ -47,6 +51,7 @@ jobs:
           # Strip para reduzir tamanho
           $STRIP_BIN alencarsoft_tvbox_csky || true
           $STRIP_BIN mini_test || true
+          $STRIP_BIN gxav_probe_csky || true
           
           echo "SUCESSO: Binarios C-SKY gerados com sucesso pelo toolchain oficial NationalChip!"
           file alencarsoft_tvbox_csky mini_test
@@ -59,6 +64,12 @@ jobs:
           path: |
             AlencarSoftTVBOX-Clang/alencarsoft_tvbox_csky
             AlencarSoftTVBOX-Clang/mini_test
+
+      - name: Upload GXAV ABI probe
+        uses: actions/upload-artifact@v4
+        with:
+          name: gxav-probe-csky
+          path: AlencarSoftTVBOX-Clang/gxav_probe_csky
 
   build-mips:
     name: Build para Availink AVL2569D (Cinebox, Duosat, Tuning / MIPS)
