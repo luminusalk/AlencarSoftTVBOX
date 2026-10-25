@@ -22,8 +22,9 @@ flowchart LR
 - `main.c`: ciclo de vida, catálogo, seleção, OSD transparente durante
   reprodução. No backend DLNA não mata `dvbapp`, não desmonta `/app` e não
   inicia outra instância na saída.
-- `input.c`: `/dev/gxirr0` e teclado. Ainda falta verificar concorrência com
-  o IR do `dvbapp` na TV.
+- `input.c`: abre somente nós IR existentes do tipo caractere e aceita
+  teclado. Não substitui `/dev/gxirr0`; a concorrência com o IR do `dvbapp`
+  ainda precisa de teste na TV.
 - `hls_bridge.c` + `hls_playlist.c`: obtêm segmentos MPEG-TS de HLS compatível
   em C, usam ring buffer e FIFO `/tmp/live_stream.ts`.
 - `hls_tls.c`: Mbed TLS, hostname/certificado obrigatórios, CA Mozilla
@@ -35,8 +36,9 @@ flowchart LR
   `showcartoon`, sem confirmação audiovisual nesta pesquisa.
 
 O teste de 25 segundos de ponte C + HTTP CGI de diagnóstico + DLNA produziu
-imagem e som na TV. A integração de `firmware_dlna.c` passou em teste simulado
-e build C-SKY; **ainda falta teste audiovisual do aplicativo integrado**.
+imagem e som na TV. Uma versão integrada recebeu Play/GET, mas deu tela preta.
+O teste de transporte integrado simulado passou no CI `40221253923`;
+**ainda falta teste audiovisual do aplicativo integrado**.
 Não interpretar `Play` aceito, bytes transmitidos ou processo vivo como
 confirmação de imagem e áudio.
 

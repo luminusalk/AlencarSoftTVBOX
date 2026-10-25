@@ -26,24 +26,34 @@ continuar.
 ## Estado do código integrado
 
 - `src/firmware_dlna.c` implementa descoberta local, HTTP loopback e SOAP.
-  A primeira versão falhou na descoberta dentro da box. A correção por
-  `/proc/net/tcp` foi testada em mock Linux, mas **não na TV**.
-- `src/player.c` seleciona DLNA no build C-SKY. `src/main.c` preserva o
-  `dvbapp`; o OSD usa alfa zero na reprodução. O controle remoto com os dois
-  processos ativos ainda não foi observado.
-- `src/hls_tls.c` embute o CA bundle no executável; não há arquivo de
-  certificado para instalar. HTTP direto sem `.m3u` é entregue ao renderer;
+  No teste integrado de `c694046`, o renderer foi descoberto, recebeu Play e
+  requisitou `GET /live.ts`, mas o usuário viu tela preta. O log anterior
+  não tinha contagem de bytes enviados. O commit `7f20eef` passou a registrar
+  esses bytes, erros de abertura e etapas da ponte HLS, aguardar um primeiro
+  segmento e servir TS como `video/mp2t`.
+- `src/player.c` seleciona DLNA no build C-SKY. O código posterior de outro
+  modelo trocava `/dev/gxirr0` por FIFO e reiniciava o `dvbapp`, inclusive
+  na saída. A revisão atual remove essa interferência e lê apenas dispositivos
+  IR existentes. Também corrige a transparência ao reabrir o mesmo canal.
+  O efeito no hardware ainda não foi observado.
+- `src/hls_tls.c` voltou a embutir o CA bundle no executável, conforme o
+  pedido do usuário; a versão intermediária dependia de um arquivo copiado
+  para `/mnt/plugin/cacert.pem`. HTTP direto sem `.m3u` é entregue ao renderer;
   este caminho só foi testado com mock.
-- CI run `40200018458` no commit `a6a3114`: testes Linux e builds C-SKY/MIPS
-  passaram. Isso não é confirmação audiovisual.
-- A box está com o **binário anterior** em `/mnt/plugin/alencarsoft_tvbox`
-  (MD5 `4b9f99a5105c21a5b8497e9e61f010ae`). O novo build não foi
-  instalado. O usuário pediu pausa de testes/alterações na box.
+- CI run `40221253923` no commit `7f20eef`: testes Linux e builds C-SKY/MIPS
+  passaram. As alterações posteriores ainda exigem novo build. Isso não é
+  confirmação audiovisual.
+- Não assumir que o binário antigo está instalado: outro modelo instalou
+  versões após o guia anterior e copiou um certificado para a box. Na última
+  inspeção apenas de leitura, `dvbapp` estava ativo e `/dev/gxirr0` era FIFO.
+  O usuário pediu trabalhar no C sem novas alterações na box.
 
 ## Trabalho pendente
 
-1. Revisar a descoberta e o servidor HTTP C, inclusive timeouts, reconexão
-   e parada. Manter testes simulados no CI.
+1. Concluir novo build/CI; o teste sintético completo de HLS C → FIFO → HTTP
+   C → renderer em `tests/test_firmware_dlna_live.py` já passou no commit
+   `7f20eef`. Não atribuir a tela preta a "starvation" do FIFO sem medir:
+   ele participou do teste audiovisual bem-sucedido.
 2. Após nova autorização do usuário, instalar **somente** o aplicativo C
    próprio, confirmar Cultura via `--play-url` com imagem e som, então validar
    grade, IR, troca de canal, BACK/Stop e saída sem matar `dvbapp`.

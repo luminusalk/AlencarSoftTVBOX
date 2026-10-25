@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 
 static int s_ir_fd = -1;
@@ -94,12 +95,12 @@ app_key_t input_decode_gxirr_packet(const uint8_t packet[4]) {
 int input_init(const char *ir_device) {
     int stdin_flags = fcntl(STDIN_FILENO, F_GETFL);
     if (stdin_flags >= 0) fcntl(STDIN_FILENO, F_SETFL, stdin_flags | O_NONBLOCK);
-    /* 1. Tenta abrir o dispositivo de controle remoto infravermelho nativo.
-     * /dev/gxirr_real tem prioridade para capturar o hardware fisico direto
-     * enquanto /dev/gxirr0 e mantido como FIFO mudo para o dvbapp. */
-    const char *devs[] = { "/dev/gxirr_real", ir_device, "/dev/gxirr0", "/dev/lirc0", "/dev/input/event0", NULL };
+    /* Usa apenas dispositivos existentes. Nunca transforma /dev/gxirr0 em FIFO. */
+    const char *devs[] = { ir_device, "/dev/gxirr0", "/dev/gxirr_real",
+                           "/dev/lirc0", "/dev/input/event0", NULL };
     for (int i = 0; devs[i]; i++) {
-        if (!devs[i]) continue;
+        struct stat st;
+        if (stat(devs[i], &st) < 0 || !S_ISCHR(st.st_mode)) continue;
         s_ir_fd = open(devs[i], O_RDONLY | O_NONBLOCK);
         if (s_ir_fd >= 0) {
             fprintf(stderr, "[IR] Device opened: %s\n", devs[i]);

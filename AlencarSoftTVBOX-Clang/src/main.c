@@ -10,11 +10,8 @@
 #include <unistd.h>
 #include <time.h>
 #include <signal.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 static app_context_t s_app;
-static int s_dummy_ir_writer = -1;
 
 static void sig_handler(int sig) {
     (void)sig;
@@ -35,34 +32,12 @@ int app_init(app_context_t *app) {
     signal(SIGTTOU, SIG_IGN);
     signal(SIGTTIN, SIG_IGN);
 
-    /* O player DLNA do S1009+ pertence ao dvbapp: mantê-lo vivo é essencial.
-     * Isolamos o hardware de infravermelho para que dvbapp nunca receba teclas:
-     * 1. Criamos /dev/gxirr_real (c 10 62) para uso exclusivo do AlencarSoftTVBOX.
-     * 2. Se /dev/gxirr0 ainda for char device, substituimos por FIFO mudo e reiniciamos dvbapp. */
-#ifdef RECEIVER_DLNA_BACKEND
-    system("mknod /dev/gxirr_real c 10 62 2>/dev/null || true");
-    struct stat st;
-    if (stat("/dev/gxirr0", &st) == 0 && S_ISCHR(st.st_mode)) {
-        system("rm -f /dev/gxirr0; mkfifo /dev/gxirr0; killall -9 dvbapp 2>/dev/null");
-        if (s_dummy_ir_writer >= 0) close(s_dummy_ir_writer);
-        s_dummy_ir_writer = open("/dev/gxirr0", O_RDWR | O_NONBLOCK);
-        system("/app/dvbapp >/dev/null 2>&1 &");
-        sleep(3);
-    } else {
-        if (s_dummy_ir_writer < 0) {
-            s_dummy_ir_writer = open("/dev/gxirr0", O_RDWR | O_NONBLOCK);
-        }
-    }
-    system("killall -CONT dvbapp 2>/dev/null || true");
-#else
+    /* O backend DLNA depende da instancia original do dvbapp. Nao substituir
+     * nos de /dev nem reiniciar o firmware para obter o controle remoto. */
+#ifndef RECEIVER_DLNA_BACKEND
     system("echo PAUSING_DVBAPP >> /tmp/alencar_status.txt");
     system("killall -9 dvbapp 2>/dev/null; umount -l /app 2>/dev/null;");
 #endif
-
-    /* Configura CA bundle padrao a partir de /mnt/plugin/cacert.pem se disponivel */
-    if (!getenv("HLS_CA_BUNDLE") && access("/mnt/plugin/cacert.pem", R_OK) == 0) {
-        setenv("HLS_CA_BUNDLE", "/mnt/plugin/cacert.pem", 1);
-    }
 
     /* 2. Deteccao automatica de hardware */
     system("echo DETECTING_PLATFORM >> /tmp/alencar_status.txt");
@@ -125,12 +100,12 @@ int app_init(app_context_t *app) {
 
 void app_render(app_context_t *app) {
     player_state_t playback_state;
+    static player_state_t last_rendered = PLAYER_STATE_STOPPED;
+    static int last_channel = -2;
     if (!app->fb.back_buffer) return;
 
     playback_state = player_get_state();
     if (playback_state == PLAYER_STATE_PLAYING || playback_state == PLAYER_STATE_BUFFERING) {
-        static player_state_t last_rendered = PLAYER_STATE_STOPPED;
-        static int last_channel = -2;
         if (last_rendered == playback_state && last_channel == app->active_playing_idx) {
             return;
         }
@@ -154,6 +129,11 @@ void app_render(app_context_t *app) {
         fb_flip(&app->fb);
         return;
     }
+
+    /* A grade foi desenhada sobre o mesmo framebuffer. A proxima abertura,
+     * inclusive do mesmo canal, precisa limpar esse plano novamente. */
+    last_rendered = PLAYER_STATE_STOPPED;
+    last_channel = -2;
 
     /* Fundo escuro elegante para o Menu / Grade de Canais */
     fb_clear(&app->fb, COLOR_DARK_BG);
@@ -411,15 +391,6 @@ void app_cleanup(app_context_t *app) {
     fb_clear(&app->fb, 0x00000000);
     fb_flip(&app->fb);
     fb_close(&app->fb);
-    
-#ifdef RECEIVER_DLNA_BACKEND
-    if (s_dummy_ir_writer >= 0) {
-        close(s_dummy_ir_writer);
-        s_dummy_ir_writer = -1;
-    }
-    /* Restaura o controle remoto fisico para o dvbapp ao sair do aplicativo */
-    system("rm -f /dev/gxirr0; mknod /dev/gxirr0 c 10 62 2>/dev/null; killall -9 dvbapp 2>/dev/null; /app/dvbapp >/dev/null 2>&1 &");
-#endif
     
     printf("[%s] Aplicativo finalizado com sucesso.\n", APP_NAME);
 }

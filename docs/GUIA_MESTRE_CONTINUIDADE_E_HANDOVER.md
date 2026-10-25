@@ -1,6 +1,6 @@
 # Guia mestre de continuidade — IPTV C no Azamerica S1009+
 
-Atualizado em 25/10/2026 para a próxima sessão com Luna em esforço alto. Leia
+Atualizado em 25/10/2026 após a análise do teste integrado. Leia
 antes de agir e confira o Git e o CI atualizados. O objetivo é abrir o
 aplicativo **em C**, escolher um canal e obter **imagem e som**. O AZ IPTV em
 Python funciona como referência, mas não é o produto a implementar. Este guia
@@ -9,19 +9,21 @@ substitui o texto antigo, que continha afirmações não comprovadas.
 ## Estado ao interromper o trabalho
 
 - Repositório: `D:\EMULADORES\Git\AlencarSoftTVBOX`.
-- Branch: `codex/native-iptv-repair`; último commit de código: `a6a3114`.
-- GitHub Actions `build_tvbox.yml`, run `40200018458`: testes Linux, builds
-  C-SKY/MIPS e job de release terminaram com **success**. A publicação real
-  de release só ocorre em `main`; esta branch não foi publicada como release.
-- A instalação anterior na box foi **restaurada**. O binário
-  `/mnt/plugin/alencarsoft_tvbox` tem MD5
-  `4b9f99a5105c21a5b8497e9e61f010ae`; a cópia local exata está em
-  `bin/alencarsoft_tvbox_csky`. O certificado copiado durante esta sessão em
-  `/mnt/plugin/iptv/cacert.pem` foi removido após conferir o MD5. O novo
-  binário **não está instalado** na box.
-- O usuário mandou **parar os testes e alterações no aparelho** e preparar a
-  documentação. Não instalar nem executar builds no receptor até ele retomar
-  essa autorização. Revisão de código, documentação e CI não tocam a box.
+- Branch: `codex/native-iptv-repair`. Conferir `git log -1` e a execução
+  mais recente do workflow antes de instalar qualquer artefato; os números
+  antigos abaixo são históricos.
+- GitHub Actions run `40221253923` passou no commit `7f20eef`, incluindo o
+  novo teste HLS C → FIFO → HTTP C → renderizador simulado e build C-SKY.
+  Alterações posteriores em `main.c`, `input.c` e `hls_tls.c` precisam de
+  novo build. A publicação de release só ocorre em `main`.
+- Após o guia original, outro modelo instalou um aplicativo e copiou
+  `/mnt/plugin/cacert.pem` para a box. **Não assumir** o MD5 antigo ou que
+  a instalação tenha sido restaurada. Na última inspeção apenas de leitura,
+  `dvbapp` estava ativo e `/dev/gxirr0` era um FIFO criado pelo aplicativo
+  anterior, enquanto `/dev/gxirr_real` era o dispositivo de caracteres.
+- O usuário pediu trabalhar no **C sem alterar a box agora**. Não instalar,
+  reiniciar ou executar testes no receptor até combinar a validação na TV.
+  Revisão de código, documentação e CI não tocam a box.
 - Preserve todos os arquivos não rastreados em `bin/`, `build-artifacts/` e
   `tools/`; muitos são pesquisas e scripts de diagnóstico anteriores.
 
@@ -47,11 +49,21 @@ o caminho ponte C + player do firmware por 25 segundos, **não** a interface
 integrada, o controle remoto ou estabilidade prolongada.
 
 O primeiro teste do **aplicativo C integrado** (commit `686cdd8`) falhou antes
-do canal: `Renderizador local nao encontrado`. SSDP unicast não respondeu de
-dentro da própria box. O commit `212cf5a` passou a enumerar portas `LISTEN`
-em `/proc/net/tcp`, ler `/description.xml` e localizar `AVTransport`, com
-SSDP como fallback. A correção passou em mock Linux e compilou para C-SKY,
-mas **ainda não foi testada na TV**. Não declarar o aplicativo concluído.
+do canal: `Renderizador local nao encontrado`. A descoberta por
+`/proc/net/tcp` passou a localizar o renderer. No teste posterior com o
+aplicativo instalado (`c694046`), o log comprovou `SetAVTransportURI`/`Play`
+aceitos e `GET /live.ts` pelo `Lavf/58.7`, mas o usuário viu **tela preta**.
+Esse log **não comprovou que bytes TS saíram pelo socket**. Não declarar o
+aplicativo concluído. O palpite de "starvation pelo FIFO" não é diagnóstico:
+o FIFO fez parte do teste que deu imagem e som.
+
+O código de `c694046` substituía `/dev/gxirr0` por FIFO e matava/reiniciava
+`dvbapp` na entrada e saída. Isso interferia justamente no player do teste
+bem-sucedido e contrariava a preservação do firmware. A revisão atual remove
+esse manejo para o backend DLNA. A tela também pulava a limpeza transparente
+ao reabrir o mesmo canal depois de voltar à grade; o cache do render foi
+corrigido. **O impacto audiovisual dessas correções ainda depende de teste na
+TV.**
 
 ## Arquitetura atual do produto
 
@@ -65,20 +77,22 @@ mas **ainda não foi testada na TV**. Não declarar o aplicativo concluído.
   `http-get:*:video/mpeg:*`; metadados vazios causaram timeout no diagnóstico.
 - Para HLS `.m3u8`, `src/hls_bridge.c` baixa playlists e segmentos por
   HTTP(S) em C, alimenta `/tmp/live_stream.ts`, e o HTTP interno serve o TS
-  como `video/mpeg`.
+  como `video/mp2t` no cabeçalho HTTP; o DIDL-Lite conserva `video/mpeg`,
+  como no teste bem-sucedido.
 - Para URL HTTP direta sem `.m3u`, o commit `a6a3114` passa a URL original ao
   renderizador. Foi testado com renderizador simulado, **não** na TV. A lista
   local de exemplo é majoritariamente composta desse tipo de URL.
-- `src/hls_tls.c` embute `certs/cacert.pem` **no executável** via `.incbin`.
+- `src/hls_tls.c` volta a embutir `certs/cacert.pem` **no executável** via `.incbin`.
   Não instalar certificado separado. O TLS verifica cadeia e hostname.
   `HLS_CA_BUNDLE` permanece apenas como override de teste. O uso de
   `/dev/urandom` evita a espera sem fim que ocorreu com `/dev/random` no
   Linux 3.0.8 da box.
 - `src/main.c` **não mata `dvbapp` nem desmonta `/app` no backend DLNA** e não
-  inicia outra instância ao sair. Limpa o framebuffer com alfa zero durante
-  reprodução. `--play-url URL` permite diagnóstico sem controle remoto.
-- `src/input.c` lê `/dev/gxirr0` e teclado. A competição com o `dvbapp`
-  ativo ainda precisa ser observada na TV.
+  inicia outra instância ao sair. Limpa o framebuffer com alfa zero em cada
+  nova abertura. `--play-url URL` permite diagnóstico sem controle remoto.
+- `src/input.c` abre somente dispositivos de caracteres já existentes; não
+  modifica `/dev/gxirr0`. A competição de leitura IR com o `dvbapp` ativo
+  ainda precisa ser observada na TV.
 
 Na rede do teste, a descrição do renderer era
 `http://192.168.18.23:49152/description.xml`, o serviço
@@ -98,7 +112,8 @@ descrição via BusyBox `wget` no próprio IP.
 | Ponte C-SKY HTTPS | 188000 bytes MPEG-TS, MD5 igual ao servidor | Transporte funciona; não comprova imagem/som. |
 | Ponte C + CGI + DLNA, 25 s | **Imagem e som**, observados | Caminho audiovisual válido em teste curto. |
 | Aplicativo C integrado no commit `686cdd8` | Falha na descoberta DLNA | Sem teste audiovisual do aplicativo integrado. |
-| CI `40200018458` no commit `a6a3114` | Build e testes simulados passaram | Não confirma TV, IR ou estabilidade longa. |
+| Aplicativo C integrado no commit `c694046` | Play aceito e GET recebido; usuário viu tela preta | Faltava comprovar bytes TS e revisar interferência do reinício de `dvbapp`. |
+| CI `40221253923` no commit `7f20eef` | Build e teste completo de transporte simulados passaram | Não confirma TV, IR ou estabilidade longa. |
 
 Não ressuscitar a alegação de que a varredura `GXAV_IOCTL_FIFO_UNLINK`
 resolve o áudio: a rotina antiga passava ponteiro de canal nulo, incompatível
@@ -116,8 +131,8 @@ legítima, ainda não reproduzida nesta investigação.
   formato da mídia, HTTPS direto e canais reais ainda precisam ser medidos.
 - Servidor HTTP C atende um cliente de cada vez. Testar reconexão, troca de
   canal, desconexão do leitor e Stop repetido.
-- `Play` aceito, processo vivo ou `hls_bridge_has_data()` não comprovam
-  imagem nem som. Só a observação na TV confirma.
+- `Play` aceito, `GET` recebido, bytes TS enviados ou `hls_bridge_has_data()`
+  não comprovam imagem nem som. Só a observação na TV confirma.
 - Framebuffer e IR podem competir com `dvbapp`. Verificar seleção, OK, alfa
   transparente, BACK, Stop, volta à grade e saída.
 - MIPS compila, mas o backend correspondente não foi validado em aparelhos.
@@ -128,7 +143,7 @@ legítima, ainda não reproduzida nesta investigação.
    configuração satelital nem `plugin.video.az_iptv`. Não matar `dvbapp` no
    backend DLNA: ele foi o decodificador que deu imagem e som.
 2. Não instalar/executar builds na box até o usuário retomar os testes. A
-   ordem atual é documentar e deixar o código preparado.
+   ordem atual é corrigir o C, documentar e validar no CI.
 3. Não executar scripts antigos de `tools/` ou `build-artifacts/` sem revisar:
    alguns fixam IP, alteram plugin ou pressupõem certificado separado.
    Preserve os arquivos não rastreados.
@@ -140,19 +155,19 @@ legítima, ainda não reproduzida nesta investigação.
 
 ## Próximos passos para Luna em esforço alto
 
-1. Ler os commits `686cdd8..a6a3114`, conferir Git/CI e revisar descoberta
-   via `/proc/net/tcp`, SOAP, HTTP local e tratamento de Stop. Os testes
-   estão em `AlencarSoftTVBOX-Clang/tests/`.
+1. Conferir o diff após `7f20eef`, Git/CI e logs reais. O teste completo de
+   transporte está em `AlencarSoftTVBOX-Clang/tests/test_firmware_dlna_live.py`.
 2. Usar Linux/CI para testar DIDL-Lite, URLs HLS e HTTP direto, HEAD/GET,
    interrupções e Stop limitado. O workflow é `.github/workflows/build_tvbox.yml`;
    `push` nesta branch não o dispara, usar `workflow_dispatch` manual.
 3. Preparar um único binário C-SKY com CA embutida e atualização reversível
-   do aplicativo próprio. Artefato de Actions não é release publicada.
-4. **Só quando o usuário autorizar testes na TV:** executar brevemente
-   `--play-url` com TV Cultura e `dvbapp` ativo; verificar log de descoberta,
-   SOAP, HTTP local e **imagem e som com o usuário**. Parar normalmente e
-   confirmar que o sistema original permanece ativo. Nunca usar
-   `killall -9 dvbapp` para esse backend.
+   do aplicativo próprio. Não depender de `/mnt/plugin/cacert.pem`.
+4. **Só quando o usuário autorizar testes na TV:** primeiro confirmar estado
+   de `/dev/gxirr0` e `dvbapp`; o FIFO deixado pelo aplicativo anterior pode
+   exigir reboot para recuperar o nó original. Executar brevemente
+   `--play-url` com TV Cultura e `dvbapp` ativo; verificar log de playlist,
+   segmento, `GET`, contagem de bytes TS e **imagem e som com o usuário**.
+   Parar normalmente e confirmar que o sistema original permanece ativo.
 5. Testar grade/controle remoto: OK, vídeo e áudio, BACK, outro canal,
    abrir/parar repetidamente, saída e retorno ao firmware. Testar uma URL
    HTTP direta real e sessão longa. Investigar IR/OSD só se houver conflito.

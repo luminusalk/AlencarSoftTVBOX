@@ -1,9 +1,9 @@
 # Preparação de instalação do aplicativo C no S1009+
 
-**Não executar esta instalação agora.** Em 25/10/2026, o usuário pediu para
-parar testes e alterações no receptor e documentar o estado. O binário novo
-está apenas na branch `codex/native-iptv-repair`; a box permanece com a
-versão anterior, MD5 `4b9f99a5105c21a5b8497e9e61f010ae`. Consulte o
+**Não executar esta instalação agora.** O usuário pediu trabalhar no C sem
+novas alterações no receptor. Houve instalações por outro modelo depois do
+guia inicial; **não presumir** qual binário está na box nem usar o MD5 antigo
+como estado atual. O trabalho novo está na branch `codex/native-iptv-repair`. Consulte o
 [guia mestre](GUIA_MESTRE_CONTINUIDADE_E_HANDOVER.md) ao retomar.
 
 ## O que será instalado quando o usuário autorizar
@@ -21,11 +21,13 @@ versão anterior, MD5 `4b9f99a5105c21a5b8497e9e61f010ae`. Consulte o
 ## Procedimento reversível para a sessão futura
 
 1. Confirmar autorização para atualizar/testar, descobrir o IP atual da box
-   (não assumir `192.168.18.23`) e verificar que `dvbapp` está ativo. O script
+   (não assumir `192.168.18.23`) e verificar que `dvbapp` está ativo. Checar
+   `/dev/gxirr0`: outro modelo deixou um FIFO no lugar do nó de caracteres;
+   talvez seja preciso reiniciar para recuperar o estado original. O script
    `tools/receiver_command.py` descobre o receptor em duas sub-redes.
-2. Baixar o artefato C-SKY do CI aprovado e calcular hash no PC. Manter a
-   versão anterior no PC: `bin/alencarsoft_tvbox_csky` corresponde ao MD5
-   anterior acima. Não usar scripts de `build-artifacts/` sem revisão:
+2. Baixar o artefato C-SKY do CI aprovado e calcular hash no PC. Fazer backup
+   e registrar hash do binário **atualmente instalado** antes de substituí-lo.
+   Não usar scripts de `build-artifacts/` sem revisão:
    alguns fixam IP e copiam certificado separado.
 3. Transferir o novo executável pela rede para um arquivo temporário dentro
    de `/mnt/plugin`, comparar hash no receptor, ajustar `chmod 755` e fazer

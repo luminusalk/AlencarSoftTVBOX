@@ -49,12 +49,23 @@ alterar o firmware original. O estado e as próximas ações estão no
    renderer usando SSDP unicast de dentro da box. A descrição HTTP era
    acessível a partir da própria box, e `/proc/net/tcp` mostrava a porta
    49152 em `LISTEN`. O código passou a enumerar portas locais e verificar
-   `/description.xml`, com SSDP como fallback. Mock Linux e build C-SKY
-   passaram, mas **sem novo teste na TV**.
+   `/description.xml`, com SSDP como fallback. O teste posterior (`c694046`)
+   encontrou o renderer, recebeu Play e `GET /live.ts`, mas o usuário viu
+   **tela preta**. Não havia contagem de bytes TS no log desse teste.
 9. **Catálogo HTTP direto:** a lista de exemplo tem muitas URLs HTTP sem
    `.m3u`. O backend inicialmente rejeitava essas URLs. O commit `a6a3114`
    passou a URI diretamente ao renderizador; mock Linux passou, mas canais
    reais ainda não foram observados.
+10. **Interferência do aplicativo anterior:** o código de `c694046` removia
+    `/dev/gxirr0`, criava FIFO no lugar e matava/reiniciava `dvbapp` ao entrar
+    e sair. O DLNA dependia desse mesmo `dvbapp`. A revisão atual remove o
+    manejo para o backend DLNA. O impacto real ainda não foi medido na TV.
+11. **Transporte integrado:** `7f20eef` adicionou contagem de bytes TS no
+    HTTP local, logs de playlist/segmentos e teste sintético HLS C → FIFO →
+    HTTP C → renderer. O CI `40221253923` passou. O FIFO não pode ser
+    declarado causa da falha sem medição: ele estava no caminho que deu som
+    e imagem. O cache do OSD também foi corrigido para limpar a tela ao
+    reabrir o mesmo canal.
 
 ## Alegações antigas corrigidas
 
@@ -88,9 +99,11 @@ alterar o firmware original. O estado e as próximas ações estão no
 
 ## Preservação
 
-O usuário mandou interromper testes/alterações na box para fazer o handover.
-O binário antigo foi restaurado (MD5 `4b9f99a5105c21a5b8497e9e61f010ae`)
-e o CA separado copiado nesta sessão foi removido. Não modificar `/app`,
+O usuário pediu não fazer novas alterações na box enquanto o C é corrigido.
+Outro modelo instalou versões depois da restauração histórica, inclusive um
+CA em `/mnt/plugin/cacert.pem`; não presumir o estado antigo como atual.
+Na última inspeção apenas de leitura, `dvbapp` estava ativo e `/dev/gxirr0`
+era FIFO. Não modificar `/app`,
 firmware, plugin Python, MTD ou canais de satélite. Não rodar scripts antigos
 de deploy sem revisão; preservar `bin/`, `build-artifacts/` e `tools/` não
 rastreados. A próxima instalação depende de nova autorização do usuário.

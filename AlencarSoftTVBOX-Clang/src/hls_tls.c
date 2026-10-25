@@ -23,6 +23,18 @@ struct hls_tls {
 
 static pthread_once_t s_entropy_source_once = PTHREAD_ONCE_INIT;
 
+/* O certificado viaja no executavel. O NUL final e exigido pelo parser PEM. */
+__asm__(".section .rodata\n"
+        ".global hls_embedded_ca_start\n"
+        "hls_embedded_ca_start:\n"
+        ".incbin \"certs/cacert.pem\"\n"
+        ".byte 0\n"
+        ".global hls_embedded_ca_end\n"
+        "hls_embedded_ca_end:\n"
+        ".previous\n");
+extern const unsigned char hls_embedded_ca_start[];
+extern const unsigned char hls_embedded_ca_end[];
+
 static void use_nonblocking_entropy_source(void) {
     /* GX6622 runs Linux 3.0, where /dev/random may wait indefinitely even
      * hours after boot. Mbed TLS supports selecting /dev/urandom at runtime. */
@@ -47,17 +59,10 @@ void hls_tls_close(hls_tls_t *tls) {
 }
 
 hls_tls_t *hls_tls_open(int fd, const char *hostname) {
-    static const char *const ca_paths[] = {
-        "/mnt/plugin/iptv/cacert.pem",
-        "/etc/ssl/certs/ca-certificates.crt",
-        "/etc/ssl/cert.pem",
-        "/mnt/plugin/cacert.pem"
-    };
     const char personalization[] = "AlencarSoftTVBOX HLS";
     const char *override_ca = getenv("HLS_CA_BUNDLE");
     hls_tls_t *tls = (hls_tls_t *)calloc(1, sizeof(*tls));
     int rc = -1;
-    size_t i;
     if (!tls || fd < 0 || !hostname || !*hostname) {
         free(tls);
         return NULL;
@@ -73,17 +78,12 @@ hls_tls_t *hls_tls_open(int fd, const char *hostname) {
 
     if (override_ca && *override_ca) {
         rc = mbedtls_x509_crt_parse_file(&tls->ca, override_ca);
-        i = rc == 0 ? 0 : sizeof(ca_paths) / sizeof(ca_paths[0]);
     } else {
-        for (i = 0; i < sizeof(ca_paths) / sizeof(ca_paths[0]); i++) {
-            rc = mbedtls_x509_crt_parse_file(&tls->ca, ca_paths[i]);
-            if (rc == 0) break;
-            mbedtls_x509_crt_free(&tls->ca);
-            mbedtls_x509_crt_init(&tls->ca);
-        }
+        rc = mbedtls_x509_crt_parse(&tls->ca, hls_embedded_ca_start,
+                                   (size_t)(hls_embedded_ca_end - hls_embedded_ca_start));
     }
-    if (i == sizeof(ca_paths) / sizeof(ca_paths[0])) {
-        fprintf(stderr, "[HLS TLS] CA bundle ausente ou invalido.\n");
+    if (rc != 0) {
+        fprintf(stderr, "[HLS TLS] CA bundle invalido (%d).\n", rc);
         goto failed;
     }
     tls_trace("ca-parsed", rc);
