@@ -1,5 +1,30 @@
 # Guia mestre de continuidade — IPTV C no Azamerica S1009+
 
+## Atualização prioritária: controle exclusivo integrado
+
+Em 25/10/2026 o usuário confirmou Cultura com imagem/som no teste de isolamento
+de `key_task`, e controle agindo somente no C. Também confirmou GloboNews com
+imagem/som no teste isolado `--headless-fb`. A partir dessa evidência foi
+integrado `src/ir_guard.c`: processo filho mantém apenas a thread de teclas do
+firmware em ptrace-stop, libera na saída normal ou morte do app, sem modificar
+firmware/dispositivos. Não usar SIGSTOP no processo inteiro.
+
+Commit instalado: `ca9979b`; CI **40258211797**, testes Linux e builds C-SKY/MIPS
+aprovados. Teste automatizado cobre progresso das outras threads, liberação
+normal e após SIGKILL do aplicativo simulado. MD5 instalado:
+`1c0bbc188de7d0e4c8f92f242b1a0078`. Backup anterior:
+`/mnt/plugin/alencarsoft_tvbox.before-ir-guard-ca9979b`.
+
+App aberto em `--interactive`, log `/tmp/alencar-integrated-ir.log`.
+**Validação integrada de troca Cultura → GloboNews → Cultura e flicker pendente
+da resposta do usuário.** Não confundir os testes isolados com essa validação.
+O usuário autorizou instalação/testes; restrições antigas abaixo de não instalar
+foram superadas por autorização explícita. Preservar firmware, Python e drivers.
+Wi-Fi foi explicitamente deixado por último e não foi alterado nesta rodada.
+
+Leia também [o diagnóstico atual](DIAGNOSTICO_CONTROLE_E_CANAIS_2026-10-25.md).
+As seções seguintes preservam histórico e podem descrever estados antigos.
+
 Atualizado em 25/10/2026 após a análise do teste integrado. Leia
 antes de agir e confira o Git e o CI atualizados. O objetivo é abrir o
 aplicativo **em C**, escolher um canal e obter **imagem e som**. O AZ IPTV em
