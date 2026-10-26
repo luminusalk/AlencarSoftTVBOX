@@ -497,6 +497,14 @@ int main(int argc, char **argv) {
     /* Modo C isolado (headless): testa o transporte DLNA e player C, com flags para isolar componentes */
     /* Modo Daemon SAT / EXIT 3x: escuta controle remoto e dispara o app ao apertar SAT ou EXIT 3 vezes */
     if (argc >= 2 && (strcmp(argv[1], "--exit3-daemon") == 0 || strcmp(argv[1], "--sat-daemon") == 0)) {
+#ifdef RECEIVER_DLNA_BACKEND
+        /* O gxirr entrega cada tecla a apenas um leitor. Sem o guard, o
+         * key_task do firmware pode consumir SAT antes deste processo. */
+        if (ir_guard_start() < 0) {
+            fprintf(stderr, "[Daemon] Nao foi possivel reservar o controle remoto.\n");
+            return 1;
+        }
+#endif
         input_init(DEFAULT_IR_DEV);
         printf("[%s] Daemon SAT / EXIT 3x ativo em segundo plano (PID %d).\n", APP_NAME, getpid());
         fflush(stdout);
@@ -513,6 +521,12 @@ int main(int argc, char **argv) {
                     printf("[%s] [Daemon] App IPTV encerrado. Reativando escuta do controle...\n", APP_NAME);
                     fflush(stdout);
                     app_child_pid = -1;
+#ifdef RECEIVER_DLNA_BACKEND
+                    if (ir_guard_start() < 0) {
+                        fprintf(stderr, "[Daemon] Nao foi possivel retomar o controle remoto.\n");
+                        return 1;
+                    }
+#endif
                     input_init(DEFAULT_IR_DEV);
                 } else {
                     /* Enquanto o app estiver ativo na tela, o daemon dorme para nao disputar /dev/gxirr0 */
@@ -521,6 +535,12 @@ int main(int argc, char **argv) {
                 }
             }
 
+#ifdef RECEIVER_DLNA_BACKEND
+            if (!ir_guard_active()) {
+                fprintf(stderr, "[Daemon] Protecao do controle remoto perdida.\n");
+                return 1;
+            }
+#endif
             app_key_t key = input_poll();
             int should_launch = 0;
 
@@ -528,7 +548,7 @@ int main(int argc, char **argv) {
                 printf("[%s] [Daemon] BOTAO SAT PRESSIONADO! Abrindo AlencarSoft TVBOX...\n", APP_NAME);
                 fflush(stdout);
                 should_launch = 1;
-            } else if (key == KEY_EXIT_APP) {
+            } else if (key == KEY_EXIT_APP && strcmp(argv[1], "--exit3-daemon") == 0) {
                 time_t now = time(NULL);
                 if (now - last_exit_time <= 2) {
                     exit_count++;
@@ -548,8 +568,11 @@ int main(int argc, char **argv) {
             }
 
             if (should_launch) {
-                /* Fecha o dispositivo IR no daemon para que o processo filho tenha acesso exclusivo */
+                /* Entrega o IR ao app; o filho assume seu proprio guard. */
                 input_close();
+#ifdef RECEIVER_DLNA_BACKEND
+                ir_guard_stop();
+#endif
 
                 pid_t pid = fork();
                 if (pid == 0) {
@@ -579,6 +602,9 @@ int main(int argc, char **argv) {
                     fflush(stdout);
                 } else {
                     fprintf(stderr, "[%s] [Daemon] Erro no fork: %s\n", APP_NAME, strerror(errno));
+#ifdef RECEIVER_DLNA_BACKEND
+                    if (ir_guard_start() < 0) return 1;
+#endif
                     input_init(DEFAULT_IR_DEV);
                 }
             }
