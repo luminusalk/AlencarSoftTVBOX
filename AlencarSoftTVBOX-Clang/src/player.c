@@ -163,7 +163,13 @@ player_state_t player_get_state(void) {
                     s_player_state = PLAYER_STATE_PLAYING;
             } else if (transport == 0) {
                 s_playing_checks = 0;
-                if (++s_stopped_checks >= 2) {
+                /* O dvbapp anuncia STOPPED durante alguns segundos antes de
+                 * sincronizar o MPEG-TS. So uma reproducao JA confirmada pode
+                 * ser considerada perdida apos duas leituras STOPPED. */
+                if (s_player_state == PLAYER_STATE_BUFFERING &&
+                    now - s_start_time < 12) {
+                    s_stopped_checks = 0;
+                } else if (++s_stopped_checks >= 2) {
                     fprintf(stderr, "[Player] DLNA parou a reproducao do canal.\n");
                     s_player_state = PLAYER_STATE_ERROR;
                 }
