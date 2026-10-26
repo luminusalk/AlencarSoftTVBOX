@@ -81,8 +81,11 @@ static pid_t guard_pid = -1;
 static int guard_life = -1;
 
 int ir_guard_active(void) {
+    pid_t result;
     if (guard_pid <= 0) return 0;
-    if (waitpid(guard_pid, NULL, WNOHANG) != 0) {
+    result = waitpid(guard_pid, NULL, WNOHANG);
+    if (result < 0 && errno == EINTR) return 1;
+    if (result != 0) {
         guard_pid = -1;
         if (guard_life >= 0) close(guard_life);
         guard_life = -1;

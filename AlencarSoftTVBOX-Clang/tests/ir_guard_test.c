@@ -41,7 +41,7 @@ int main(void) {
     if (app == 0) {
         close(ready[0]);
         c = ir_guard_start() == 0 ? 'Y' : 'N';
-        write(ready[1], &c, 1);
+        if (write(ready[1], &c, 1) != 1) _exit(10);
         for (;;) pause();
     }
     close(ready[1]);

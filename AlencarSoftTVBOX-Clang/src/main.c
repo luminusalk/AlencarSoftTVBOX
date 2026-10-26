@@ -768,6 +768,12 @@ int main(int argc, char **argv) {
     system("echo MAIN_LOOP_RUNNING >> /tmp/alencar_status.txt");
     int frame_cnt = 0;
     while (s_app.running) {
+#ifdef RECEIVER_DLNA_BACKEND
+        if (!ir_guard_active()) {
+            fprintf(stderr, "[IR] Protecao perdida; encerrando interface.\n");
+            break;
+        }
+#endif
         if (++frame_cnt % 30 == 0) {
             system("echo 1 > /dev/watchdog 2>/dev/null || true");
         }
