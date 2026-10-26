@@ -22,7 +22,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if self.path == "/valid.ts":
             body = (b"\x47" + bytes(187)) * 32
         elif self.path == "/valid.m3u8":
-            body = b"#EXTM3U\n#EXTINF:2,\nvalid.ts\n"
+            body = b"#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:0\n#EXTINF:2,\nvalid.ts\n"
         elif self.path == "/html.ts":
             body = b"<html>Service unavailable</html>"
         elif self.path == "/redirect":
