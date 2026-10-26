@@ -55,15 +55,13 @@ $conflicts = @($connections | Where-Object {
 if ($conflicts.Count) {
     throw "Outro compartilhamento está ativo: $(($conflicts | ForEach-Object Name) -join ', '). Ajuste-o manualmente."
 }
-if ($source.Configuration.SharingEnabled -and $source.Configuration.SharingConnectionType -ne 0) {
-    throw "'$InternetAdapter' está como conexão privada; ajuste-o manualmente."
-}
-if ($target.Configuration.SharingEnabled -and $target.Configuration.SharingConnectionType -ne 1) {
-    throw "'$ReceiverAdapter' está como conexão pública; ajuste-o manualmente."
-}
-
-if (-not $source.Configuration.SharingEnabled) { $source.Configuration.EnableSharing(0) }
-if (-not $target.Configuration.SharingEnabled) { $target.Configuration.EnableSharing(1) }
+# O Windows pode exibir o ICS como ativo enquanto DHCP/NAT pararam de atender
+# na Ethernet. Reassociar ambos os lados restaura os servicos de compartilhamento.
+if ($target.Configuration.SharingEnabled) { $target.Configuration.DisableSharing() }
+if ($source.Configuration.SharingEnabled) { $source.Configuration.DisableSharing() }
+Start-Sleep -Seconds 2
+$source.Configuration.EnableSharing(0)
+$target.Configuration.EnableSharing(1)
 Start-Sleep -Seconds 3
 if (-not $source.Configuration.SharingEnabled -or $source.Configuration.SharingConnectionType -ne 0 -or
     -not $target.Configuration.SharingEnabled -or $target.Configuration.SharingConnectionType -ne 1) {
@@ -72,4 +70,5 @@ if (-not $source.Configuration.SharingEnabled -or $source.Configuration.SharingC
 $addresses = @((Get-NetIPAddress -InterfaceAlias $ReceiverAdapter -AddressFamily IPv4).IPAddress)
 Write-Host "Compartilhamento ativo: $InternetAdapter → $ReceiverAdapter" -ForegroundColor Green
 Write-Host "Endereço Ethernet do notebook: $($addresses -join ', ')"
-Write-Host 'Deixe a rede do receptor em DHCP/Automático. Ele costuma receber 192.168.137.x.'
+Write-Host 'Deixe a rede do receptor em DHCP/Automático. Ele deve receber 192.168.137.x.'
+Write-Host 'Se ja havia um endereco antigo na box, renove DHCP na tela de rede ou reconecte o cabo.'

@@ -75,10 +75,22 @@ sem desligar compartilhamentos de terceiros. O usuário confirmou a saída:
 `Compartilhamento ativo: Wi-Fi → Ethernet`, Ethernet `192.168.137.1`.
 
 Uso: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\configure_ics.ps1`.
-O script passou no parser do Windows PowerShell 5.1; a execução elevada foi
-confirmada pelo usuário. A box ainda não apareceu em `192.168.137.0/24` após
-ativar ICS; foi solicitado conferir/mudar Ethernet da box para DHCP/Automático.
-Não presumir que o compartilhamento já foi validado fim a fim por IPTV.
+Atualização de 26/10: o ICS aparecia ativo, mas não respondia ao DHCP da box
+nem encaminhava pacotes. Captura na Ethernet mostrou DHCP Discover saindo do
+MAC `06:0d:44:7c:a6:3b`, sem Offer do Windows. Um DHCP provisório entregou
+`192.168.137.2`, o que isolou a falha inicial no notebook. Reassociar o
+compartilhamento Wi-Fi (público) → Ethernet (privado) restaurou o NAT.
+Depois, uma renovação DHCP no receptor recebeu `192.168.137.77` diretamente
+do serviço nativo do Windows, sem DHCP provisório. A box resolveu
+`www.google.com` e recebeu resposta de ping pela internet. O script
+`configure_ics.ps1` agora faz essa reassociação a cada execução, inclusive
+quando a interface do Windows diz que o ICS já está ativo. O IP da box é
+dinâmico: não fixar `.2`, `.77` ou o antigo `192.168.18.23`.
+
+O teste confirma DHCP, DNS e roteamento; não confirma, por si só, qualidade
+de streaming prolongado. Na box, manter Ethernet em DHCP/Automático. Se o
+endereço antigo permanecer após executar o script, renovar DHCP no menu da
+box ou reconectar o cabo.
 
 O diagnóstico não escreve memória/registros do firmware, não altera dispositivos
 e não envia SIGSTOP ao grupo. Ainda assim, suspender uma thread pode reter
