@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #define HLS_SEGMENT_URL_SIZE 1024
+int hls_resolve_url(const char *base, const char *reference, char *out, size_t size);
 
 typedef struct {
     uint64_t sequence;

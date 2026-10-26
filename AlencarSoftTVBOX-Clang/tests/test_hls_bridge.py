@@ -19,7 +19,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
         pass
 
     def do_GET(self):
-        if self.path == "/live.m3u8":
+        if self.path == "/valid.ts":
+            body = (b"\x47" + bytes(187)) * 32
+        elif self.path == "/valid.m3u8":
+            body = b"#EXTM3U\n#EXTINF:2,\nvalid.ts\n"
+        elif self.path == "/html.ts":
+            body = b"<html>Service unavailable</html>"
+        elif self.path == "/redirect":
+            self.send_response(302)
+            self.send_header("Location", "/valid.ts")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        elif self.path == "/live.m3u8":
             body = b"#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:42\n#EXTINF:2,\nsegment.ts\n"
         elif self.path == "/segment.ts":
             body = SEGMENT
@@ -45,6 +57,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
 
 class BridgeTests(unittest.TestCase):
+    def test_probe_accepts_media_without_starting_bridge(self):
+        for path in ("/valid.ts", "/valid.m3u8", "/redirect"):
+            result = self.run_bridge("probe", path)
+            self.assertEqual(result.returncode, 0, (path, result.stderr))
+
+    def test_probe_rejects_errors_and_html(self):
+        for path in ("/missing", "/html.ts", "/partial.m3u8"):
+            result = self.run_bridge("probe", path)
+            self.assertEqual(result.returncode, 10, (path, result.stderr))
+
     @classmethod
     def setUpClass(cls):
         cls.server = socketserver.TCPServer(("127.0.0.1", 0), Handler)

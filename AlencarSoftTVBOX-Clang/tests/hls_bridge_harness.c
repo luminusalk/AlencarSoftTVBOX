@@ -15,6 +15,8 @@ int main(int argc, char **argv) {
     unsigned char bytes[16384];
     if (argc != 4) return 2;
     expected = atoi(argv[3]);
+    if (strcmp(argv[1], "probe") == 0)
+        return hls_source_probe(argv[2]) == 0 ? 0 : 10;
     if (hls_bridge_start(argv[2]) < 0) return 3;
     if (strcmp(argv[1], "stop") == 0) {
         usleep(500000);

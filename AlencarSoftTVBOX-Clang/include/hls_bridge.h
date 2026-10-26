@@ -16,6 +16,7 @@ extern "C" {
  * @return 0 em caso de sucesso, negativo em caso de falha.
  */
 int hls_bridge_start(const char *m3u8_url);
+int hls_source_probe(const char *url);
 
 /**
  * @brief Encerra a ponte HLS e libera recursos de rede e threads.

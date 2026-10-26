@@ -5,6 +5,7 @@
 
 #include "app.h"
 #include "channel_history.h"
+#include "hls_bridge.h"
 #ifdef RECEIVER_DLNA_BACKEND
 #include "ir_guard.h"
 #endif
@@ -19,6 +20,37 @@
 #include <errno.h>
 
 static app_context_t s_app;
+static int s_last_working_idx = -1;
+static int s_recovery_attempted = 0;
+static time_t s_input_resume_at = 0;
+
+/* Run network validation in a separate executable so slow DNS/TLS cannot
+ * stall the UI indefinitely or disturb the currently running HLS threads. */
+static int app_probe_source(const char *url) {
+    int status = 0;
+    pid_t child;
+    if (url[0] == '/') return access(url, R_OK);
+    child = fork();
+    if (child < 0) return -1;
+    if (child == 0) {
+        execl("/proc/self/exe", "alencarsoft_tvbox", "--probe-source", url, (char *)NULL);
+        _exit(127);
+    }
+    for (int i = 0; i < 100; i++) {
+        pid_t result = waitpid(child, &status, WNOHANG);
+        if (result == child) return WIFEXITED(status) && WEXITSTATUS(status) == 0 ? 0 : -1;
+        if (result < 0 && errno != EINTR) return -1;
+        usleep(100000);
+    }
+    kill(child, SIGKILL);
+    while (waitpid(child, &status, 0) < 0 && errno == EINTR) {}
+    return -1;
+}
+
+static void app_discard_transition_keys(void) {
+    (void)input_poll();
+    s_input_resume_at = time(NULL) + 1;
+}
 
 static int app_select_channel(app_context_t *app, int index) {
     if (index < 0 || index >= app->catalog.total_channels) return -1;
@@ -38,7 +70,7 @@ static int app_select_channel(app_context_t *app, int index) {
 }
 
 static void app_recover_failed_channel(app_context_t *app, int failed_index) {
-    int cultura = -1;
+    int recovery = s_last_working_idx;
     const char *failed_name = "canal";
     if (failed_index >= 0 && failed_index < app->catalog.total_channels)
         failed_name = app->catalog.channels[failed_index].name;
@@ -51,20 +83,28 @@ static void app_recover_failed_channel(app_context_t *app, int failed_index) {
     app->fb.front_valid = 0;
     app_render(app);
 
-    for (int i = 0; i < app->catalog.total_channels; i++) {
-        if (strstr(app->catalog.channels[i].name, "TV Cultura")) {
-            cultura = i;
-            break;
+    if (recovery < 0 || recovery >= app->catalog.total_channels) {
+        recovery = -1;
+        for (int i = 0; i < app->catalog.total_channels; i++) {
+            if (strstr(app->catalog.channels[i].name, "TV Cultura")) {
+                recovery = i;
+                break;
+            }
         }
     }
-    if (cultura >= 0 && cultura != failed_index &&
-        player_play(app->catalog.channels[cultura].url,
-                    app->catalog.channels[cultura].name) == 0) {
-        app->active_playing_idx = cultura;
+    if (!s_recovery_attempted && recovery >= 0 && recovery != failed_index) {
+        s_recovery_attempted = 1;
+        if (player_play(app->catalog.channels[recovery].url,
+                        app->catalog.channels[recovery].name) == 0) {
+        app->active_playing_idx = recovery;
+        app->view = VIEW_PLAYING;
+        app_select_channel(app, recovery);
         snprintf(app->status_message, sizeof(app->status_message),
-                 "%.60s indisponivel. TV Cultura em segundo plano.", failed_name);
-        fprintf(stderr, "[Player] Recuperacao com TV Cultura em segundo plano.\n");
+                 "%.65s indisponivel. Retornando ao canal anterior.", failed_name);
+        fprintf(stderr, "[Player] Recuperacao do ultimo canal valido, indice=%d.\n", recovery);
+        }
     }
+    app_discard_transition_keys();
     app->fb.front_valid = 0;
     app_render(app);
 }
@@ -72,6 +112,25 @@ static void app_recover_failed_channel(app_context_t *app, int failed_index) {
 static int app_start_channel(app_context_t *app, int index) {
     if (index < 0 || index >= app->catalog.total_channels) return -1;
     iptv_channel_t *ch = &app->catalog.channels[index];
+    if (app->active_playing_idx >= 0 && player_get_state() == PLAYER_STATE_PLAYING)
+        s_last_working_idx = app->active_playing_idx;
+    snprintf(app->status_message, sizeof(app->status_message), "Verificando %.95s...", ch->name);
+    app->fb.front_valid = 0;
+    app_render(app);
+    if (app_probe_source(ch->url) < 0) {
+        if (app->active_playing_idx < 0) {
+            app_recover_failed_channel(app, index);
+            return -1;
+        }
+        snprintf(app->status_message, sizeof(app->status_message),
+                 "Canal indisponivel: %.85s. Reproducao mantida.", ch->name);
+        app->view = VIEW_CATEGORIES;
+        app->fb.front_valid = 0;
+        app_discard_transition_keys();
+        app_render(app);
+        return -1;
+    }
+    s_recovery_attempted = 0;
     if (player_play(ch->url, ch->name) < 0) {
         app_recover_failed_channel(app, index);
         return -1;
@@ -81,8 +140,7 @@ static int app_start_channel(app_context_t *app, int index) {
     app->status_message[0] = '\0';
     app_select_channel(app, index);
     vfd_set_text(ch->name);
-    if (channel_history_save(ch, CHANNEL_HISTORY_PATH) < 0)
-        fprintf(stderr, "[Historico] Nao foi possivel salvar ultimo canal.\n");
+    app_discard_transition_keys();
     return 0;
 }
 
@@ -265,6 +323,9 @@ void app_render(app_context_t *app) {
                 fb_draw_rect(&app->fb, safe_x, bar_y, 6, bar_h, COLOR_ACCENT);
                 fb_draw_text_fit(&app->fb, safe_x + 20, bar_y + (bar_h - 16) / 2, clean_title,
                                  bar_w - 40, COLOR_WHITE, 1);
+                if (app->status_message[0])
+                    fb_draw_text_fit(&app->fb, safe_x + 20, bar_y - 24,
+                                     app->status_message, bar_w - 40, COLOR_WHITE, 1);
             }
         }
 
@@ -464,6 +525,7 @@ void app_render(app_context_t *app) {
 
 void app_handle_input(app_context_t *app, app_key_t key) {
     if (key == KEY_NONE) return;
+    if (time(NULL) < s_input_resume_at) return;
 
     /* 1. Tratamento durante a reproducao de video em tela cheia */
     if (app->view == VIEW_PLAYING) {
@@ -614,6 +676,10 @@ void app_cleanup(app_context_t *app) {
 }
 
 int main(int argc, char **argv) {
+    if (argc == 3 && strcmp(argv[1], "--probe-source") == 0) {
+        signal(SIGPIPE, SIG_IGN);
+        return hls_source_probe(argv[2]) == 0 ? 0 : 1;
+    }
 #ifdef RECEIVER_DLNA_BACKEND
     atexit(ir_guard_stop);
 #endif
@@ -886,7 +952,15 @@ int main(int argc, char **argv) {
                         app_recover_failed_channel(&s_app, s_app.active_playing_idx);
                         cur_st = player_get_state();
                     }
-                    if (cur_st != last_player_state) needs_render = 1;
+                    if (cur_st != last_player_state) {
+                        s_app.fb.front_valid = 0;
+                        needs_render = 1;
+                        if (cur_st == PLAYER_STATE_PLAYING && s_app.active_playing_idx >= 0) {
+                            s_last_working_idx = s_app.active_playing_idx;
+                            channel_history_save(&s_app.catalog.channels[s_last_working_idx], CHANNEL_HISTORY_PATH);
+                            play_banner_timeout = time(NULL) + 5;
+                        }
+                    }
                     last_player_state = cur_st;
                     if (loop_cnt % 200 == 0) {
                         printf("[%s] [OSD+IR] t=%ds/%ds, estado player=%d\n", APP_NAME,

@@ -12,7 +12,7 @@ static int copy_url(char *out, size_t size, const char *src, size_t length) {
     return 0;
 }
 
-static int resolve_url(const char *base, const char *reference,
+int hls_resolve_url(const char *base, const char *reference,
                        char *out, size_t size) {
     const char *scheme_end = strstr(base, "://");
     const char *authority_end;
@@ -118,7 +118,7 @@ int hls_parse_media_playlist(const char *body, const char *playlist_url,
         if (!has_sequence || first_sequence > UINT64_MAX - seen) return -1;
         if (first_sequence + seen >= *next_sequence) {
             if (fresh >= capacity) return -1;
-            if (resolve_url(playlist_url, line, segments[fresh].url,
+            if (hls_resolve_url(playlist_url, line, segments[fresh].url,
                             sizeof(segments[fresh].url)) < 0 ||
                 !is_ts_url(segments[fresh].url)) return -1;
             segments[fresh].sequence = first_sequence + seen;

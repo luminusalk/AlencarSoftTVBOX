@@ -176,7 +176,9 @@ static int parse_http_url(const char *url, char *host, size_t host_size,
 }
 
 /* Cliente HTTP basico para baixar dados */
-static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t *out_size) {
+static int http_fetch_mode(const char *url, uint8_t *out_buf, size_t max_size,
+                           size_t *out_size, int mode, int redirects, char *effective_url) {
+    char redirect_url[1024] = {0};
     char host[256];
     int port = 80;
     char path[1024];
@@ -268,7 +270,7 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
         sent += (size_t)n;
     }
 
-    while (s_bridge_running) {
+    while (mode || s_bridge_running) {
         uint8_t chunk[2048];
         ssize_t r;
 #ifdef HLS_WITH_MBEDTLS
@@ -290,7 +292,23 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
             split = strstr(header_buf, "\r\n\r\n");
             if (!split) continue;
             header_len = (size_t)(split + 4 - header_buf);
-            if (sscanf(header_buf, "HTTP/%*d.%*d %d", &status) != 1 || status != 200) break;
+            if (sscanf(header_buf, "HTTP/%*d.%*d %d", &status) != 1) break;
+            if (mode && status >= 300 && status < 400 && redirects < 4) {
+                char *location = strcasestr(header_buf, "\r\nLocation:");
+                if (location && location < split) {
+                    char *end;
+                    location += 11;
+                    while (*location == ' ' || *location == '\t') location++;
+                    end = strstr(location, "\r\n");
+                    if (end && end <= split) {
+                        *end = '\0';
+                        if (hls_resolve_url(url, location, redirect_url, sizeof(redirect_url)) < 0)
+                            redirect_url[0] = '\0';
+                    }
+                }
+                goto done;
+            }
+            if (status != 200) break;
             *split = '\0';
             line = strstr(header_buf, "\r\n");
             if (!line) break;
@@ -306,7 +324,9 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
                     errno = 0;
                     parsed = strtoull(value, &endptr, 10);
                     while (*endptr == ' ' || *endptr == '\t') endptr++;
-                    if (errno || endptr == value || *endptr || parsed > max_size || has_length) goto done;
+                    if (errno || endptr == value || *endptr ||
+                        (mode != 1 && parsed > max_size) ||
+                        (unsigned long long)(size_t)parsed != parsed || has_length) goto done;
                     content_length = (size_t)parsed;
                     has_length = 1;
                 }
@@ -320,16 +340,19 @@ static int http_fetch(const char *url, uint8_t *out_buf, size_t max_size, size_t
             }
             in_body = 1;
             body_bytes = header_pos - header_len;
+            if (mode == 1 && body_bytes > max_size) body_bytes = max_size;
             if (body_bytes > max_size) break;
             if (body_bytes) {
                 memcpy(out_buf, header_buf + header_len, body_bytes);
                 total = body_bytes;
             }
         } else {
+            if (mode == 1 && (size_t)r > max_size - total) r = (ssize_t)(max_size - total);
             if ((size_t)r > max_size - total) break;
             memcpy(out_buf + total, chunk, (size_t)r);
             total += (size_t)r;
         }
+        if (mode == 1 && total >= 564) { complete = 1; break; }
         if (has_length && total > content_length) break;
         if (has_length && total == content_length) {
             complete = 1;
@@ -341,10 +364,47 @@ done:
     hls_tls_close(tls);
 #endif
     close(fd);
-    if (!s_bridge_running || !complete || !in_body || !total ||
-        (has_length && total != content_length)) return -1;
+    if (redirect_url[0])
+        return http_fetch_mode(redirect_url, out_buf, max_size, out_size, mode, redirects + 1, effective_url);
+    if ((!mode && !s_bridge_running) || !complete || !in_body || !total ||
+        (mode != 1 && has_length && total != content_length)) return -1;
     *out_size = total;
+    if (effective_url) snprintf(effective_url, 1024, "%s", url);
     return 0;
+}
+
+static int http_fetch(const char *url, uint8_t *buf, size_t cap, size_t *size) {
+    return http_fetch_mode(url, buf, cap, size, 0, 0, NULL);
+}
+
+/* Independent probe. It never changes the active FIFO, producer or renderer. */
+int hls_source_probe(const char *url) {
+    uint8_t prefix[4096];
+    size_t size = 0;
+    char media_url[1024];
+    if (!url || strlen(url) >= sizeof(media_url)) return -1;
+    strcpy(media_url, url);
+    if (strstr(url, ".m3u")) {
+        uint8_t *playlist = malloc(128 * 1024);
+        hls_segment_t segments[32];
+        uint64_t sequence = 0;
+        size_t count = 0;
+        int rc;
+        if (!playlist) return -1;
+        rc = http_fetch_mode(url, playlist, 128 * 1024 - 1, &size, 2, 0, media_url);
+        playlist[size] = 0;
+        if (rc == 0) rc = hls_parse_media_playlist((char *)playlist, media_url,
+                                      &sequence, segments, 32, &count);
+        free(playlist);
+        if (rc < 0 || !count) return -1;
+        strcpy(media_url, segments[count - 1].url);
+    }
+    if (http_fetch_mode(media_url, prefix, sizeof(prefix), &size, 1, 0, NULL) < 0) return -1;
+    for (size_t i = 0; i + 376 < size && i < 188; i++)
+        if (prefix[i] == 0x47 && prefix[i + 188] == 0x47 && prefix[i + 376] == 0x47)
+            return 0;
+    if (size >= 12 && memcmp(prefix + 4, "ftyp", 4) == 0) return 0;
+    return -1;
 }
 
 /* Produtor HLS: baixa a playlist periodicamente e alimenta os segmentos TS no ring buffer */
