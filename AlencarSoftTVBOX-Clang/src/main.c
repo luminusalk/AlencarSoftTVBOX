@@ -48,6 +48,7 @@ static void app_recover_failed_channel(app_context_t *app, int failed_index) {
              "Canal indisponivel: %.90s", failed_name);
     vfd_set_text("FALHA");
     /* Cobrir imediatamente o plano de video antes de parar/trocar o DLNA. */
+    app->fb.front_valid = 0;
     app_render(app);
 
     for (int i = 0; i < app->catalog.total_channels; i++) {
@@ -64,6 +65,7 @@ static void app_recover_failed_channel(app_context_t *app, int failed_index) {
                  "%.60s indisponivel. TV Cultura em segundo plano.", failed_name);
         fprintf(stderr, "[Player] Recuperacao com TV Cultura em segundo plano.\n");
     }
+    app->fb.front_valid = 0;
     app_render(app);
 }
 
@@ -216,6 +218,24 @@ void app_render(app_context_t *app) {
     if (!app->fb.back_buffer) return;
 
     playback_state = player_get_state();
+    if (app->view == VIEW_PLAYING && playback_state == PLAYER_STATE_BUFFERING) {
+        const char *name = "Canal IPTV";
+        int panel_w = app->fb.width * 3 / 5;
+        int panel_x = (app->fb.width - panel_w) / 2;
+        int panel_y = app->fb.height / 2 - 60;
+        if (app->active_playing_idx >= 0 &&
+            app->active_playing_idx < app->catalog.total_channels)
+            name = app->catalog.channels[app->active_playing_idx].name;
+        fb_clear(&app->fb, COLOR_DARK_BG);
+        fb_draw_rect(&app->fb, panel_x, panel_y, panel_w, 120, COLOR_PANEL_BG);
+        fb_draw_rect(&app->fb, panel_x, panel_y, 6, 120, COLOR_ACCENT);
+        fb_draw_text_fit(&app->fb, panel_x + 24, panel_y + 25,
+                         name, panel_w - 48, COLOR_WHITE, 1);
+        fb_draw_text(&app->fb, panel_x + 24, panel_y + 68,
+                     "Conectando ao canal...", COLOR_TEXT_MUTED, 1);
+        fb_flip(&app->fb);
+        return;
+    }
     if (app->view == VIEW_PLAYING && playback_state == PLAYER_STATE_PLAYING) {
         if (last_channel != app->active_playing_idx || last_view != app->view) {
             play_start_time = time(NULL);
@@ -403,9 +423,6 @@ void app_render(app_context_t *app) {
     if (app->status_message[0] && app->view == VIEW_CATEGORIES)
         fb_draw_text_fit(&app->fb, list_x, safe_y + content_h - footer_h - 22,
                          app->status_message, list_w, COLOR_WHITE, 1);
-    if (playback_state == PLAYER_STATE_BUFFERING && app->view == VIEW_PLAYING)
-        fb_draw_text_fit(&app->fb, list_x, safe_y + content_h - footer_h - 22,
-                         "Conectando ao canal...", list_w, COLOR_WHITE, 1);
 
     /* 6. Dialogo Modal de Confirmacao de Saida */
     if (app->view == VIEW_CONFIRM_EXIT) {
