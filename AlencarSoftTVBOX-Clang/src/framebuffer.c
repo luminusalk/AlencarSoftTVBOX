@@ -39,9 +39,20 @@ int fb_init(fb_context_t *ctx, const char *device) {
     ctx->height = vinfo.yres;
     ctx->bpp = vinfo.bits_per_pixel;
     ctx->line_len = finfo.line_length;
-    ctx->screensize = vinfo.yres * finfo.line_length;
+    if ((ctx->bpp != 16 && ctx->bpp != 32) || !ctx->width || !ctx->height ||
+        finfo.line_length < (unsigned int)((vinfo.xoffset + ctx->width) * (ctx->bpp / 8)) ||
+        (size_t)finfo.smem_len < (size_t)finfo.line_length * (vinfo.yoffset + vinfo.yres)) {
+        fprintf(stderr, "fb_init: Geometria de framebuffer invalida\n");
+        close(ctx->fd);
+        ctx->fd = -1;
+        return -1;
+    }
+    ctx->xoffset = (int)vinfo.xoffset;
+    ctx->yoffset = (int)vinfo.yoffset;
+    ctx->map_len = (int)finfo.smem_len;
+    ctx->screensize = ctx->width * ctx->height * (ctx->bpp / 8);
 
-    ctx->fbp = (uint8_t *)mmap(0, ctx->screensize, PROT_READ | PROT_WRITE, MAP_SHARED, ctx->fd, 0);
+    ctx->fbp = (uint8_t *)mmap(0, ctx->map_len, PROT_READ | PROT_WRITE, MAP_SHARED, ctx->fd, 0);
     if (ctx->fbp == MAP_FAILED) {
         perror("fb_init: Erro ao mapear memoria do framebuffer");
         close(ctx->fd);
@@ -51,7 +62,7 @@ int fb_init(fb_context_t *ctx, const char *device) {
     /* Aloca back-buffer para desenho sem flicker */
     ctx->back_buffer = (uint8_t *)malloc(ctx->screensize);
     if (!ctx->back_buffer) {
-        munmap(ctx->fbp, ctx->screensize);
+        munmap(ctx->fbp, ctx->map_len);
         close(ctx->fd);
         return -1;
     }
@@ -67,7 +78,7 @@ void fb_close(fb_context_t *ctx) {
         ctx->back_buffer = NULL;
     }
     if (ctx->fbp && ctx->fbp != MAP_FAILED) {
-        munmap(ctx->fbp, ctx->screensize);
+        munmap(ctx->fbp, ctx->map_len);
         ctx->fbp = NULL;
     }
     if (ctx->fd >= 0) {
@@ -78,14 +89,20 @@ void fb_close(fb_context_t *ctx) {
 
 void fb_flip(fb_context_t *ctx) {
     if (!ctx || !ctx->fbp || !ctx->back_buffer) return;
-    memcpy(ctx->fbp, ctx->back_buffer, ctx->screensize);
+    size_t row = (size_t)ctx->width * (ctx->bpp / 8);
+    for (int y = 0; y < ctx->height; y++) {
+        size_t dest = ((size_t)y + ctx->yoffset) * ctx->line_len +
+                      (size_t)ctx->xoffset * (ctx->bpp / 8);
+        if (dest + row > (size_t)ctx->map_len) return;
+        memcpy(ctx->fbp + dest, ctx->back_buffer + (size_t)y * row, row);
+    }
 }
 
 static inline void put_pixel(fb_context_t *ctx, int x, int y, uint32_t color) {
     if (x < 0 || x >= ctx->width || y < 0 || y >= ctx->height) return;
 
     if (ctx->bpp == 32) {
-        uint32_t *dest = (uint32_t *)(ctx->back_buffer + (y * ctx->line_len) + (x * 4));
+        uint32_t *dest = (uint32_t *)(ctx->back_buffer + ((size_t)y * ctx->width + x) * 4);
         *dest = color;
     } else if (ctx->bpp == 16) {
         /* Converte ARGB32 para RGB565 */
@@ -93,7 +110,7 @@ static inline void put_pixel(fb_context_t *ctx, int x, int y, uint32_t color) {
         uint16_t g = (color >> 10) & 0x3F;
         uint16_t b = (color >> 3)  & 0x1F;
         uint16_t rgb565 = (r << 11) | (g << 5) | b;
-        uint16_t *dest = (uint16_t *)(ctx->back_buffer + (y * ctx->line_len) + (x * 2));
+        uint16_t *dest = (uint16_t *)(ctx->back_buffer + ((size_t)y * ctx->width + x) * 2);
         *dest = rgb565;
     }
 }
@@ -173,5 +190,36 @@ void fb_draw_text(fb_context_t *ctx, int x, int y, const char *str, uint32_t col
             cur_x += char_width;
         }
         str++;
+    }
+}
+
+void fb_draw_text_fit(fb_context_t *ctx, int x, int y, const char *str,
+                      int max_width, uint32_t color, int scale) {
+    if (!ctx || !str || scale < 1 || max_width < FONT_WIDTH * scale) return;
+    int max_chars = max_width / (FONT_WIDTH * scale);
+    int count = 0;
+    const unsigned char *p = (const unsigned char *)str;
+    while (*p && count < max_chars) {
+        char glyph = '?';
+        if (*p < 0x80) glyph = (char)*p++;
+        else if (*p == 0xc3 && p[1]) {
+            unsigned char accent = p[1];
+            if (accent == 0xa7 || accent == 0x87) glyph = 'c';
+            else if (accent == 0xa3 || accent == 0xa1 || accent == 0xa0 || accent == 0xa2) glyph = 'a';
+            else if (accent == 0xa9 || accent == 0xaa) glyph = 'e';
+            else if (accent == 0xad) glyph = 'i';
+            else if (accent == 0xb3 || accent == 0xb4 || accent == 0xb5) glyph = 'o';
+            else if (accent == 0xba || accent == 0xbc) glyph = 'u';
+            p += 2;
+        } else if (*p == 0xe2 && p[1] == 0x80 &&
+                   (p[2] == 0x93 || p[2] == 0x94)) { glyph = '-'; p += 3; }
+        else { p++; while ((*p & 0xc0) == 0x80) p++; }
+        fb_draw_char(ctx, x + count * FONT_WIDTH * scale, y, glyph, color, scale);
+        count++;
+    }
+    if (*p && max_chars >= 3) {
+        for (int i = 0; i < 3; i++)
+            fb_draw_char(ctx, x + (max_chars - 3 + i) * FONT_WIDTH * scale,
+                         y, '.', color, scale);
     }
 }

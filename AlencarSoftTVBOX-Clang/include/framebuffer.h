@@ -28,6 +28,9 @@ typedef struct {
     int      bpp;
     int      line_len;
     int      screensize;
+    int      map_len;
+    int      xoffset;
+    int      yoffset;
 } fb_context_t;
 
 /* Inicializacao e encerramento */
@@ -43,5 +46,7 @@ void fb_draw_rect_outline(fb_context_t *ctx, int x, int y, int w, int h, int thi
 /* Renderizacao de texto */
 void fb_draw_char(fb_context_t *ctx, int x, int y, char c, uint32_t color, int scale);
 void fb_draw_text(fb_context_t *ctx, int x, int y, const char *str, uint32_t color, int scale);
+void fb_draw_text_fit(fb_context_t *ctx, int x, int y, const char *str,
+                      int max_width, uint32_t color, int scale);
 
 #endif /* ALENCARSOFT_FRAMEBUFFER_H */

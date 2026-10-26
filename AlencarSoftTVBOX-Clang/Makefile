@@ -15,6 +15,7 @@ SRCS = src/main.c \
        src/display_vfd.c \
        src/input.c \
        src/iptv_catalog.c \
+       src/channel_history.c \
        src/player.c \
        src/hls_bridge.c \
        src/hls_playlist.c

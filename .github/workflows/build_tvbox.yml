@@ -17,6 +17,14 @@ jobs:
           gcc -std=gnu99 -O1 -g -Wall -Wextra -Werror -D_GNU_SOURCE -Iinclude \
             tests/ir_guard_test.c src/ir_guard.c -lpthread -o ir_guard_test
           timeout 15 ./ir_guard_test
+          gcc -std=gnu99 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined \
+            -D_GNU_SOURCE -Iinclude tests/framebuffer_stride_test.c src/framebuffer.c \
+            -o framebuffer_stride_test
+          ./framebuffer_stride_test
+          gcc -std=gnu99 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined \
+            -D_GNU_SOURCE -Iinclude tests/channel_history_test.c src/channel_history.c \
+            -o channel_history_test
+          ./channel_history_test
           gcc -std=c99 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined \
             -Iinclude tests/hls_playlist_test.c src/hls_playlist.c -o hls_playlist_test
           ./hls_playlist_test
@@ -92,7 +100,7 @@ jobs:
           $CC_BIN -static -std=gnu99 -O2 -Wall -Wextra -Iinclude -D_GNU_SOURCE \
             -DHLS_WITH_MBEDTLS -DRECEIVER_DLNA_BACKEND -I/tmp/mbedtls-3.6.7/include \
             src/main.c src/framebuffer.c src/font.c src/platform.c src/display_vfd.c \
-            src/input.c src/iptv_catalog.c src/player.c src/firmware_dlna.c src/ir_guard.c \
+            src/input.c src/iptv_catalog.c src/channel_history.c src/player.c src/firmware_dlna.c src/ir_guard.c \
             src/hls_bridge.c src/hls_playlist.c src/hls_tls.c \
             /tmp/mbedtls-3.6.7/library/libmbedtls.a \
             /tmp/mbedtls-3.6.7/library/libmbedx509.a \
@@ -181,6 +189,7 @@ jobs:
             src/display_vfd.c \
             src/input.c \
             src/iptv_catalog.c \
+            src/channel_history.c \
             src/player.c \
             src/hls_bridge.c \
             src/hls_playlist.c \
@@ -197,6 +206,7 @@ jobs:
             src/display_vfd.c \
             src/input.c \
             src/iptv_catalog.c \
+            src/channel_history.c \
             src/player.c \
             src/hls_bridge.c \
             src/hls_playlist.c \

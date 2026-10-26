@@ -4,6 +4,7 @@
  */
 
 #include "app.h"
+#include "channel_history.h"
 #ifdef RECEIVER_DLNA_BACKEND
 #include "ir_guard.h"
 #endif
@@ -19,6 +20,53 @@
 
 static app_context_t s_app;
 
+static int app_select_channel(app_context_t *app, int index) {
+    if (index < 0 || index >= app->catalog.total_channels) return -1;
+    for (int c = 0; c < app->catalog.total_categories; c++) {
+        iptv_category_t *cat = &app->catalog.categories[c];
+        if (strcmp(cat->name, "Todos os Canais") == 0) continue;
+        for (int row = 0; row < cat->count; row++) {
+            if (cat->channel_indices[row] == index) {
+                app->current_category_idx = c;
+                app->current_channel_idx = row;
+                app->scroll_offset = row >= app->channels_per_page ? row - app->channels_per_page + 1 : 0;
+                return 0;
+            }
+        }
+    }
+    return -1;
+}
+
+static int app_start_channel(app_context_t *app, int index) {
+    if (index < 0 || index >= app->catalog.total_channels) return -1;
+    iptv_channel_t *ch = &app->catalog.channels[index];
+    if (player_play(ch->url, ch->name) < 0) {
+        app->active_playing_idx = -1;
+        app->view = VIEW_CATEGORIES;
+        snprintf(app->status_message, sizeof(app->status_message), "Canal indisponivel: %.90s", ch->name);
+        vfd_set_text("FALHA");
+        return -1;
+    }
+    app->active_playing_idx = index;
+    app->view = VIEW_PLAYING;
+    app_select_channel(app, index);
+    vfd_set_text(ch->name);
+    if (channel_history_save(ch, CHANNEL_HISTORY_PATH) < 0)
+        fprintf(stderr, "[Historico] Nao foi possivel salvar ultimo canal.\n");
+    return 0;
+}
+
+static int app_start_last_channel(app_context_t *app) {
+    int index = channel_history_find(&app->catalog, CHANNEL_HISTORY_PATH);
+    if (index < 0) {
+        for (int i = 0; i < app->catalog.total_channels; i++) {
+            if (strstr(app->catalog.channels[i].name, "TV Cultura")) { index = i; break; }
+        }
+    }
+    if (index < 0 && app->catalog.total_channels > 0) index = 0;
+    return app_start_channel(app, index);
+}
+
 static void sig_handler(int sig) {
     (void)sig;
     s_app.running = 0;
@@ -29,6 +77,7 @@ int app_init(app_context_t *app) {
     memset(app, 0, sizeof(*app));
     app->running = 1;
     app->view = VIEW_CATEGORIES;
+    app->active_playing_idx = -1;
     app->channels_per_page = OSD_MAX_CHANNELS_PER_PAGE;
     
     /* Configura tratamento de sinais para encerramento seguro */
@@ -112,11 +161,9 @@ int app_init(app_context_t *app) {
 
 void app_render(app_context_t *app) {
     player_state_t playback_state;
-    static player_state_t last_rendered = PLAYER_STATE_STOPPED;
     static int last_channel = -2;
     static app_view_t last_view = (app_view_t)-1;
     static time_t play_start_time = 0;
-    static int play_frame = 0;
     if (!app->fb.back_buffer) return;
 
     playback_state = player_get_state();
@@ -124,9 +171,7 @@ void app_render(app_context_t *app) {
         if (last_channel != app->active_playing_idx || last_view != app->view) {
             play_start_time = time(NULL);
             last_channel = app->active_playing_idx;
-            last_rendered = playback_state;
             last_view = app->view;
-            play_frame = 0;
         }
 
         /* Modo Reproducao: Framebuffer 100% transparente para permitir que o
@@ -138,9 +183,11 @@ void app_render(app_context_t *app) {
         if (now - play_start_time <= 5 || playback_state == PLAYER_STATE_BUFFERING) {
             if (app->active_playing_idx >= 0 && app->active_playing_idx < app->catalog.total_channels) {
                 iptv_channel_t *ch = &app->catalog.channels[app->active_playing_idx];
-                fb_draw_rect(&app->fb, 40, app->fb.height - 80, app->fb.width - 80, 50, COLOR_PANEL_BG);
-                fb_draw_text(&app->fb, 60, app->fb.height - 65, ch->name, COLOR_WHITE, 1);
-                fb_draw_text(&app->fb, app->fb.width - 280, app->fb.height - 65, "[BACK] Voltar a Grade", COLOR_ACCENT, 1);
+                int inset = app->fb.width / 32;
+                fb_draw_rect(&app->fb, inset, app->fb.height - 76, app->fb.width - 2 * inset, 52, COLOR_PANEL_BG);
+                fb_draw_rect(&app->fb, inset, app->fb.height - 76, 5, 52, COLOR_ACCENT);
+                fb_draw_text_fit(&app->fb, inset + 18, app->fb.height - 59, ch->name,
+                                 app->fb.width - 2 * inset - 36, COLOR_WHITE, 1);
                 if (playback_state == PLAYER_STATE_BUFFERING)
                     fb_draw_text(&app->fb, 60, app->fb.height - 105, "Aguardando dados do canal...", COLOR_WHITE, 1);
             }
@@ -150,119 +197,136 @@ void app_render(app_context_t *app) {
         return;
     }
 
-    last_rendered = PLAYER_STATE_STOPPED;
     last_channel = -2;
     last_view = app->view;
 
-    /* Fundo escuro elegante para o Menu / Grade de Canais */
+    int width = app->fb.width, height = app->fb.height;
+    int margin = width / 40;
+    int header_h = height >= 720 ? 76 : 58;
+    int footer_h = height >= 720 ? 54 : 42;
+    int sidebar_w = width / 4;
+    if (sidebar_w < 145) sidebar_w = 145;
+    if (sidebar_w > 280) sidebar_w = 280;
+    if (sidebar_w > width / 2) sidebar_w = width / 2;
+    int list_x = sidebar_w + margin;
+    int list_w = width - list_x - margin;
+    int list_y = header_h + 58;
+    int row_h = height >= 720 ? 54 : 43;
+    int visible = (height - footer_h - list_y - 16) / row_h;
+    if (visible < 1) visible = 1;
+    if (visible > OSD_MAX_CHANNELS_PER_PAGE) visible = OSD_MAX_CHANNELS_PER_PAGE;
+    app->channels_per_page = visible;
+    if (app->current_channel_idx < app->scroll_offset) app->scroll_offset = app->current_channel_idx;
+    if (app->current_channel_idx >= app->scroll_offset + visible)
+        app->scroll_offset = app->current_channel_idx - visible + 1;
+
     fb_clear(&app->fb, COLOR_DARK_BG);
+    fb_draw_rect(&app->fb, 0, 0, width, header_h, COLOR_PANEL_BG);
+    fb_draw_rect(&app->fb, 0, header_h - 3, width, 3, COLOR_ACCENT);
+    fb_draw_text_fit(&app->fb, margin, header_h / 2 - 14, "ALENCARSOFT TVBOX",
+                     width - 115 - 2 * margin, COLOR_WHITE, 2);
+    time_t rawtime = time(NULL);
+    struct tm *timeinfo = localtime(&rawtime);
+    char clock_str[16] = "--:--";
+    if (timeinfo) snprintf(clock_str, sizeof(clock_str), "%02d:%02d", timeinfo->tm_hour, timeinfo->tm_min);
+    fb_draw_text(&app->fb, width - 100, header_h / 2 - 10, clock_str, COLOR_ACCENT, 1);
 
-    /* --- CABECALHO (Header) --- */
-    fb_draw_rect(&app->fb, 0, 0, app->fb.width, 70, COLOR_PANEL_BG);
-    fb_draw_text(&app->fb, 40, 24, APP_NAME, COLOR_ACCENT, 2);
-
-    char model_tag[64];
-    snprintf(model_tag, sizeof(model_tag), "[%s]", app->platform.model_name);
-    fb_draw_text(&app->fb, 360, 28, model_tag, COLOR_TEXT_MUTED, 1);
-
-    /* Relogio no canto direito */
-    time_t rawtime;
-    struct tm *timeinfo;
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    char clock_str[16];
-    snprintf(clock_str, sizeof(clock_str), "%02d:%02d", timeinfo->tm_hour, timeinfo->tm_min);
-    fb_draw_text(&app->fb, app->fb.width - 120, 24, clock_str, COLOR_WHITE, 2);
-
-    /* --- BARRA DE CATEGORIAS (Tabs horizontais) --- */
-    fb_draw_rect(&app->fb, 0, 72, app->fb.width, 50, COLOR_PANEL_BG);
-    int cat_x = 40;
-    for (int i = 0; i < app->catalog.total_categories && i < 6; i++) {
-        uint32_t tab_color = (i == app->current_category_idx) ? COLOR_ACCENT : COLOR_TEXT_MUTED;
-        if (i == app->current_category_idx) {
-            fb_draw_rect(&app->fb, cat_x - 10, 76, 180, 42, COLOR_HIGHLIGHT);
-            fb_draw_text(&app->fb, cat_x, 88, app->catalog.categories[i].name, COLOR_WHITE, 1);
-        } else {
-            fb_draw_text(&app->fb, cat_x, 88, app->catalog.categories[i].name, tab_color, 1);
+    /* Categorias em coluna: todas acessiveis, inclusive quando a tela e 576p. */
+    fb_draw_rect(&app->fb, 0, header_h, sidebar_w, height - header_h - footer_h, COLOR_PANEL_BG);
+    fb_draw_text_fit(&app->fb, margin, header_h + 20, "CATEGORIAS",
+                     sidebar_w - 2 * margin, COLOR_ACCENT, 1);
+    int cat_y = header_h + 55;
+    int cat_row_h = height >= 720 ? 43 : 34;
+    int cat_visible = (height - footer_h - cat_y - 8) / cat_row_h;
+    if (cat_visible < 1) cat_visible = 1;
+    int cat_start = 0;
+    if (app->current_category_idx >= cat_visible)
+        cat_start = app->current_category_idx - cat_visible + 1;
+    for (int i = cat_start; i < app->catalog.total_categories && i < cat_start + cat_visible; i++) {
+        int y = cat_y + (i - cat_start) * cat_row_h;
+        int selected = i == app->current_category_idx;
+        if (selected) {
+            fb_draw_rect(&app->fb, 0, y, sidebar_w, cat_row_h - 2, COLOR_HIGHLIGHT);
+            fb_draw_rect(&app->fb, 0, y, 5, cat_row_h - 2, COLOR_ACCENT);
         }
-        cat_x += 200;
+        fb_draw_text_fit(&app->fb, margin, y + (cat_row_h - 16) / 2,
+                         app->catalog.categories[i].name, sidebar_w - 2 * margin,
+                         selected ? COLOR_WHITE : COLOR_TEXT_MUTED, 1);
     }
 
-    /* --- GRADE DE CANAIS (Centro) --- */
     if (app->current_category_idx < app->catalog.total_categories) {
         iptv_category_t *cat = &app->catalog.categories[app->current_category_idx];
-        int start_idx = app->scroll_offset;
-        int y_pos = 140;
-
-        for (int i = 0; i < app->channels_per_page && (start_idx + i) < cat->count; i++) {
-            int ch_idx = cat->channel_indices[start_idx + i];
+        char subtitle[72];
+        snprintf(subtitle, sizeof(subtitle), "%d canais", cat->count);
+        fb_draw_text_fit(&app->fb, list_x, header_h + 16, cat->name,
+                         list_w - 100, COLOR_WHITE, 1);
+        fb_draw_text_fit(&app->fb, list_x, header_h + 34, subtitle,
+                         list_w, COLOR_TEXT_MUTED, 1);
+        for (int i = 0; i < visible && app->scroll_offset + i < cat->count; i++) {
+            int row = app->scroll_offset + i;
+            int ch_idx = cat->channel_indices[row];
             iptv_channel_t *ch = &app->catalog.channels[ch_idx];
-            int is_selected = (start_idx + i) == app->current_channel_idx;
-
-            /* Item da grade */
-            uint32_t item_bg = is_selected ? COLOR_HIGHLIGHT : COLOR_PANEL_BG;
-            fb_draw_rect(&app->fb, 40, y_pos, app->fb.width - 80, 50, item_bg);
-
-            if (is_selected) {
-                fb_draw_rect_outline(&app->fb, 40, y_pos, app->fb.width - 80, 50, 2, COLOR_ACCENT);
+            int y = list_y + i * row_h;
+            int selected = row == app->current_channel_idx;
+            fb_draw_rect(&app->fb, list_x, y, list_w, row_h - 5,
+                         selected ? COLOR_HIGHLIGHT : COLOR_PANEL_BG);
+            if (selected) fb_draw_rect(&app->fb, list_x, y, 5, row_h - 5, COLOR_ACCENT);
+            char number[12];
+            snprintf(number, sizeof(number), "%03d", row + 1);
+            fb_draw_text(&app->fb, list_x + 14, y + (row_h - 16) / 2, number, COLOR_ACCENT, 1);
+            int badge_w = ch->is_fullhd ? 62 : (ch->is_hd ? 42 : 0);
+            int name_x = list_x + 52;
+            int name_w = list_w - 62 - badge_w - 10;
+            fb_draw_text_fit(&app->fb, name_x, y + (row_h - 16) / 2, ch->name,
+                             name_w, COLOR_WHITE, 1);
+            if (badge_w > 0) {
+                int badge_x = list_x + list_w - badge_w - 12;
+                fb_draw_rect(&app->fb, badge_x, y + (row_h - 24) / 2,
+                             badge_w, 24, ch->is_fullhd ? COLOR_RED_BADGE : COLOR_GREEN_LIVE);
+                fb_draw_text(&app->fb, badge_x + 6, y + (row_h - 16) / 2,
+                             ch->is_fullhd ? "1080p" : "HD", COLOR_BLACK, 1);
             }
-
-            /* Numero */
-            char num_str[16];
-            snprintf(num_str, sizeof(num_str), "%03d", start_idx + i + 1);
-            fb_draw_text(&app->fb, 60, y_pos + 16, num_str, COLOR_ACCENT, 1);
-
-            /* Nome do Canal */
-            fb_draw_text(&app->fb, 120, y_pos + 16, ch->name, COLOR_WHITE, 1);
-
-            /* Badges de Qualidade */
-            if (ch->is_fullhd) {
-                fb_draw_rect(&app->fb, app->fb.width - 240, y_pos + 12, 140, 26, COLOR_RED_BADGE);
-                fb_draw_text(&app->fb, app->fb.width - 225, y_pos + 17, "FULL HD", COLOR_WHITE, 1);
-            } else if (ch->is_hd) {
-                fb_draw_rect(&app->fb, app->fb.width - 200, y_pos + 12, 100, 26, COLOR_GREEN_LIVE);
-                fb_draw_text(&app->fb, app->fb.width - 180, y_pos + 17, "HD 720p", COLOR_BLACK, 1);
-            }
-
-            y_pos += 56;
         }
     }
 
-    /* --- RODAPE (Footer informativo e controle remoto) --- */
-    fb_draw_rect(&app->fb, 0, app->fb.height - 60, app->fb.width, 60, COLOR_PANEL_BG);
-    fb_draw_text(&app->fb, 40, app->fb.height - 40, 
-                 "[OK] Assistir   [SETAS] Navegar Grade   [MENU] Atualizar Grade   [EXIT/BACK] Sair", 
-                 COLOR_TEXT_MUTED, 1);
-    if (playback_state == PLAYER_STATE_ERROR)
-        fb_draw_text(&app->fb, 40, app->fb.height - 95,
-                     "Falha ao iniciar canal. Consulte o log do aplicativo.", COLOR_WHITE, 1);
+    fb_draw_rect(&app->fb, 0, height - footer_h, width, footer_h, COLOR_PANEL_BG);
+    fb_draw_text_fit(&app->fb, margin, height - footer_h + (footer_h - 16) / 2,
+                     "OK Assistir    ESQ/DIR Categoria    CIMA/BAIXO Canal    EXIT Voltar",
+                     width - 2 * margin, COLOR_TEXT_MUTED, 1);
+    if (app->status_message[0] && playback_state == PLAYER_STATE_ERROR)
+        fb_draw_text_fit(&app->fb, list_x, height - footer_h - 18,
+                         app->status_message, list_w, COLOR_WHITE, 1);
 
     /* Dialogo modal de confirmacao de saida para a TV Box original */
     if (app->view == VIEW_CONFIRM_EXIT) {
-        int dw = 520;
-        int dh = 200;
+        int dw = width * 3 / 5;
+        if (dw > 520) dw = 520;
+        int dh = height / 3;
+        if (dh > 200) dh = 200;
         int dx = (app->fb.width - dw) / 2;
         int dy = (app->fb.height - dh) / 2;
 
         fb_draw_rect(&app->fb, dx - 4, dy - 4, dw + 8, dh + 8, COLOR_HIGHLIGHT);
         fb_draw_rect(&app->fb, dx, dy, dw, dh, COLOR_PANEL_BG);
 
-        fb_draw_text(&app->fb, dx + 40, dy + 45, "Deseja sair para o sistema original?", COLOR_WHITE, 1);
+        fb_draw_text_fit(&app->fb, dx + 20, dy + 28,
+                         "Sair para o sistema original?", dw - 40, COLOR_WHITE, 1);
 
         int btn_w = 140;
         int btn_h = 45;
-        int btn_y = dy + 115;
-        int sim_x = dx + 80;
-        int nao_x = dx + 300;
+        int btn_y = dy + dh - btn_h - 20;
+        if (btn_w * 2 + 40 > dw) btn_w = (dw - 60) / 2;
+        int sim_x = dx + 20;
+        int nao_x = dx + dw - btn_w - 20;
 
         uint32_t sim_bg = (app->exit_dialog_choice == 0) ? COLOR_HIGHLIGHT : COLOR_DARK_BG;
         uint32_t nao_bg = (app->exit_dialog_choice == 1) ? COLOR_HIGHLIGHT : COLOR_DARK_BG;
 
         fb_draw_rect(&app->fb, sim_x, btn_y, btn_w, btn_h, sim_bg);
-        fb_draw_text(&app->fb, sim_x + 45, btn_y + 14, "SIM", COLOR_WHITE, 1);
+        fb_draw_text(&app->fb, sim_x + 18, btn_y + 14, "SIM", COLOR_WHITE, 1);
 
         fb_draw_rect(&app->fb, nao_x, btn_y, btn_w, btn_h, nao_bg);
-        fb_draw_text(&app->fb, nao_x + 45, btn_y + 14, "NAO", COLOR_WHITE, 1);
+        fb_draw_text(&app->fb, nao_x + 18, btn_y + 14, "NAO", COLOR_WHITE, 1);
     }
 
     /* Envia o buffer pronto para a tela */
@@ -370,19 +434,7 @@ void app_handle_input(app_context_t *app, app_key_t key) {
                     return;
                 }
 
-                /* Atualiza o visor frontal fisico imediatamente */
-                vfd_set_text(ch->name);
-
-                /* Inicia player para o novo canal */
-                if (player_play(ch->url, ch->name) == 0) {
-                    app->active_playing_idx = ch_idx;
-                    app->view = VIEW_PLAYING;
-                } else {
-                    snprintf(app->status_message, sizeof(app->status_message),
-                             "Falha ao abrir canal: %.90s", ch->name);
-                    fprintf(stderr, "[%s] %s\n", APP_NAME, app->status_message);
-                    vfd_set_text("FALHA");
-                }
+                app_start_channel(app, ch_idx);
             }
             break;
 
@@ -515,8 +567,8 @@ int main(int argc, char **argv) {
                     char *args[] = {
                         "/mnt/plugin/alencarsoft_tvbox",
                         "--headless-osd-ir",
-                        "https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8?vhost=player-tvcultura.stream.uol.com.br",
-                        "86400",
+                        NULL,
+                        NULL,
                         NULL
                     };
                     execv(args[0], args);
@@ -559,7 +611,7 @@ int main(int argc, char **argv) {
             signal(SIGINT, sig_handler);
             signal(SIGTERM, sig_handler);
             signal(SIGHUP, SIG_IGN);
-            if (argc < 4) duration = 300;
+            if (argc < 4) duration = 0;
             printf("[%s] [OSD+IR] Modo Interativo: duracao=%ds\n", APP_NAME, duration);
             fflush(stdout);
 
@@ -599,6 +651,8 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "[%s] Falha ao abrir framebuffer para OSD+IR\n", APP_NAME);
                 return 1;
             }
+            fb_clear(&s_app.fb, 0);
+            fb_flip(&s_app.fb);
 
 #ifdef RECEIVER_DLNA_BACKEND
             if (ir_guard_start() < 0) {
@@ -610,20 +664,14 @@ int main(int argc, char **argv) {
             input_init(DEFAULT_IR_DEV);
             player_init();
 
-            /* Bloqueia o modo satelite do dvbapp iniciando imediatamente o DLNA em background */
-            if (s_app.catalog.total_channels > 0) {
-                iptv_channel_t *ch0 = &s_app.catalog.channels[0];
-                printf("[%s] [OSD+IR] Enganando dvbapp: ativando modo DLNA continuo (%s)...\n",
-                       APP_NAME, ch0->name);
-                if (player_play(ch0->url, ch0->name) == 0) {
-                    s_app.active_playing_idx = 0;
-                }
-            }
-            s_app.view = VIEW_CATEGORIES; /* Garante que a grade de canais esta visivel sobreposta */
+            /* A primeira imagem do OSD e o canal, sem mostrar a grade durante
+             * a transicao do firmware para DLNA. A grade so abre por MENU/EXIT. */
+            app_start_last_channel(&s_app);
 
             printf("[%s] [OSD+IR] Grade carregada: %d canais, %d categorias.\n",
                    APP_NAME, s_app.catalog.total_channels, s_app.catalog.total_categories);
-            printf("[%s] [OSD+IR] Categoria ativa: '%s'\n", APP_NAME, s_app.catalog.categories[0].name);
+            if (s_app.catalog.total_categories > 0)
+                printf("[%s] [OSD+IR] Categoria ativa: '%s'\n", APP_NAME, s_app.catalog.categories[s_app.current_category_idx].name);
             printf("[%s] [OSD+IR] Use as SETAS (CIMA/BAIXO) para navegar na lista de noticias.\n", APP_NAME);
             printf("[%s] [OSD+IR] Pressione [OK] para abrir o canal selecionado.\n", APP_NAME);
             printf("[%s] [OSD+IR] Pressione [BACK/EXIT] durante o video para voltar a grade.\n", APP_NAME);
@@ -816,7 +864,9 @@ int main(int argc, char **argv) {
     }
 
     /* Diagnostico temporario: abre uma URL sem depender do controle remoto. */
-    if (argc == 3 && strcmp(argv[1], "--play-url") == 0) {
+    if (argc == 1) {
+        app_start_last_channel(&s_app);
+    } else if (argc == 3 && strcmp(argv[1], "--play-url") == 0) {
         if (player_play(argv[2], "Teste IPTV") < 0) {
             app_cleanup(&s_app);
             return 1;
@@ -831,6 +881,8 @@ int main(int argc, char **argv) {
     printf("[%s] Iniciando loop de eventos nativo...\n", APP_NAME);
     system("echo MAIN_LOOP_RUNNING >> /tmp/alencar_status.txt");
     int frame_cnt = 0;
+    time_t last_render_sec = 0;
+    int needs_render = 1;
     while (s_app.running) {
 #ifdef RECEIVER_DLNA_BACKEND
         if (!ir_guard_active()) {
@@ -844,9 +896,19 @@ int main(int argc, char **argv) {
         app_key_t key = input_poll();
         if (key != KEY_NONE) {
             app_handle_input(&s_app, key);
+            needs_render = 1;
         }
-        app_render(&s_app);
-        usleep(30000); /* ~33 FPS para suavidade maxima com CPU baixa */
+        time_t now = time(NULL);
+        if (now != last_render_sec) {
+            last_render_sec = now;
+            if (s_app.view == VIEW_CATEGORIES || s_app.view == VIEW_PLAYING)
+                needs_render = 1;
+        }
+        if (needs_render) {
+            app_render(&s_app);
+            needs_render = 0;
+        }
+        usleep(30000);
     }
 
     app_cleanup(&s_app);
