@@ -30,3 +30,8 @@ dvbapp_*
 *.o
 alencarsoft_tvbox_*
 
+
+# Artifacts and binaries
+build-artifacts/
+bin/
+tools/ghidra/
