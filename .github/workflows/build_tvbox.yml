@@ -113,6 +113,7 @@ jobs:
             -lpthread -o hls_bridge_probe_csky
           
           # Compila mini_test de diagnostico
+          $CC_BIN -static -std=gnu99 -O2 -Wall -Wextra tools/ir_guard_probe.c -o ir_guard_probe_csky
           $CC_BIN -static -std=gnu99 -O2 mini_test.c -o mini_test
           
           # Strip para reduzir tamanho
@@ -133,6 +134,7 @@ jobs:
           path: |
             AlencarSoftTVBOX-Clang/alencarsoft_tvbox_csky
             AlencarSoftTVBOX-Clang/mini_test
+            AlencarSoftTVBOX-Clang/ir_guard_probe_csky
 
       - name: Upload GXAV ABI probe
         uses: actions/upload-artifact@v4
