@@ -12,7 +12,21 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-static void add_to_category(iptv_catalog_t *cat, const char *cat_name, int channel_idx) {
+static int compare_categories(const void *a, const void *b) {
+    const iptv_category_t *ca = (const iptv_category_t *)a;
+    const iptv_category_t *cb = (const iptv_category_t *)b;
+    if (strcmp(ca->name, "Todos os Canais") == 0) return 1;
+    if (strcmp(cb->name, "Todos os Canais") == 0) return -1;
+    return strcasecmp(ca->name, cb->name);
+}
+
+static void add_to_category(iptv_catalog_t *cat, const char *raw_name, int channel_idx) {
+    const char *cat_name = raw_name;
+    /* Unifica qualquer categoria de noticia para apenas "Notícias" */
+    if (strstr(raw_name, "Not") || strstr(raw_name, "not") || strstr(raw_name, "Apur")) {
+        cat_name = "Notícias";
+    }
+
     int cat_idx = -1;
     for (int i = 0; i < cat->total_categories; i++) {
         if (strcmp(cat->categories[i].name, cat_name) == 0) {
@@ -124,6 +138,12 @@ int catalog_load_m3u(iptv_catalog_t *cat, const char *path) {
         }
     }
     fclose(f);
+
+    /* Ordena as categorias em ordem alfabetica */
+    if (cat->total_categories > 1) {
+        qsort(cat->categories, (size_t)cat->total_categories, sizeof(iptv_category_t), compare_categories);
+    }
+
     return cat->total_channels;
 }
 

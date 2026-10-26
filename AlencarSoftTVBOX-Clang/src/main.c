@@ -23,6 +23,7 @@ static app_context_t s_app;
 static int s_last_working_idx = -1;
 static int s_recovery_attempted = 0;
 static time_t s_input_resume_at = 0;
+static void app_update_vfd_channel(app_context_t *app, int ch_idx);
 
 /* Run network validation in a separate executable so slow DNS/TLS cannot
  * stall the UI indefinitely or disturb the currently running HLS threads. */
@@ -139,7 +140,7 @@ static int app_start_channel(app_context_t *app, int index) {
     app->view = VIEW_PLAYING;
     app->status_message[0] = '\0';
     app_select_channel(app, index);
-    vfd_set_text(ch->name);
+    app_update_vfd_channel(app, index);
     app_discard_transition_keys();
     return 0;
 }
@@ -266,6 +267,63 @@ static void format_clean_channel_name(const char *raw, char *out, size_t max_len
     while (j > 0 && (out[j - 1] == ' ' || out[j - 1] == '\t' || out[j - 1] == '-')) {
         out[--j] = '\0';
     }
+}
+
+static void app_update_vfd_channel(app_context_t *app, int ch_idx) {
+    if (!app || ch_idx < 0 || ch_idx >= app->catalog.total_channels) return;
+    iptv_channel_t *ch = &app->catalog.channels[ch_idx];
+
+    char cat_initial = 'G';
+    int channel_num = ch_idx + 1;
+
+    /* Procura na categoria atualmente selecionada */
+    if (app->current_category_idx >= 0 && app->current_category_idx < app->catalog.total_categories) {
+        iptv_category_t *cat = &app->catalog.categories[app->current_category_idx];
+        for (int r = 0; r < cat->count; r++) {
+            if (cat->channel_indices[r] == ch_idx) {
+                for (const char *p = cat->name; *p; p++) {
+                    if ((*p >= 'A' && *p <= 'Z') || (*p >= 'a' && *p <= 'z')) {
+                        cat_initial = (char)toupper((unsigned char)*p);
+                        break;
+                    }
+                }
+                channel_num = r + 1;
+                goto cat_done;
+            }
+        }
+    }
+
+    /* Fallback na lista de categorias */
+    for (int c = 0; c < app->catalog.total_categories; c++) {
+        iptv_category_t *cat = &app->catalog.categories[c];
+        if (strcmp(cat->name, "Todos os Canais") == 0) continue;
+        for (int r = 0; r < cat->count; r++) {
+            if (cat->channel_indices[r] == ch_idx) {
+                for (const char *p = cat->name; *p; p++) {
+                    if ((*p >= 'A' && *p <= 'Z') || (*p >= 'a' && *p <= 'z')) {
+                        cat_initial = (char)toupper((unsigned char)*p);
+                        break;
+                    }
+                }
+                channel_num = r + 1;
+                goto cat_done;
+            }
+        }
+    }
+cat_done:
+
+    char clean_name[64];
+    format_clean_channel_name(ch->name, clean_name, sizeof(clean_name));
+    for (char *p = clean_name; *p; p++) {
+        *p = (char)toupper((unsigned char)*p);
+    }
+
+    /* Formato exato do visor: Exemplo "N01 TV CULTURA" */
+    char vfd_buf[64];
+    snprintf(vfd_buf, sizeof(vfd_buf), "%c%02d %s", cat_initial, channel_num, clean_name);
+    vfd_set_text(vfd_buf);
+    printf("[%s] [VFD] '%s'\n", APP_NAME, vfd_buf);
+    fflush(stdout);
 }
 
 void app_render(app_context_t *app) {
@@ -578,6 +636,9 @@ void app_handle_input(app_context_t *app, app_key_t key) {
                 if (app->current_channel_idx < app->scroll_offset) {
                     app->scroll_offset = app->current_channel_idx;
                 }
+                if (cat && app->current_channel_idx < cat->count) {
+                    app_update_vfd_channel(app, cat->channel_indices[app->current_channel_idx]);
+                }
             }
             break;
 
@@ -587,6 +648,7 @@ void app_handle_input(app_context_t *app, app_key_t key) {
                 if (app->current_channel_idx >= app->scroll_offset + app->channels_per_page) {
                     app->scroll_offset = app->current_channel_idx - app->channels_per_page + 1;
                 }
+                app_update_vfd_channel(app, cat->channel_indices[app->current_channel_idx]);
             }
             break;
 
@@ -595,6 +657,8 @@ void app_handle_input(app_context_t *app, app_key_t key) {
                 app->current_category_idx--;
                 app->current_channel_idx = 0;
                 app->scroll_offset = 0;
+                cat = &app->catalog.categories[app->current_category_idx];
+                if (cat && cat->count > 0) app_update_vfd_channel(app, cat->channel_indices[0]);
             }
             break;
 
@@ -603,6 +667,8 @@ void app_handle_input(app_context_t *app, app_key_t key) {
                 app->current_category_idx++;
                 app->current_channel_idx = 0;
                 app->scroll_offset = 0;
+                cat = &app->catalog.categories[app->current_category_idx];
+                if (cat && cat->count > 0) app_update_vfd_channel(app, cat->channel_indices[0]);
             }
             break;
 
@@ -619,7 +685,7 @@ void app_handle_input(app_context_t *app, app_key_t key) {
                     printf("[%s] Canal '%s' ja esta tocando em background! Ocultando grade imediatamente...\n",
                            APP_NAME, ch->name);
                     app->view = VIEW_PLAYING;
-                    vfd_set_text(ch->name);
+                    app_update_vfd_channel(app, ch_idx);
                     fb_clear(&app->fb, 0x00000000);
                     fb_flip(&app->fb);
                     return;

@@ -40,18 +40,11 @@ int vfd_set_text(const char *text) {
     (void)s_panel_type;
     if (!text || s_vfd_fd < 0) return -1;
 
-    char buffer[32];
-    memset(buffer, ' ', sizeof(buffer));
-
-    /* Limita o texto para o visor (max 12 caracteres alfanumericos) */
-    int len = strlen(text);
-    if (len > 12) len = 12;
-    memcpy(buffer, text, len);
-    buffer[12] = '\r';
-    buffer[13] = '\n';
-
-    /* Envia comando ASCII/UART para o controlador do painel */
-    write(s_vfd_fd, buffer, 14);
+    char buffer[64];
+    int len = snprintf(buffer, sizeof(buffer), "%s\r\n", text);
+    if (len > 0) {
+        write(s_vfd_fd, buffer, (size_t)len);
+    }
     return 0;
 }
 
