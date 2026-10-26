@@ -275,6 +275,8 @@ static void app_update_vfd_channel(app_context_t *app, int ch_idx) {
 
     char cat_initial = 'G';
     int channel_num = ch_idx + 1;
+    char clean_name[64];
+    char vfd_buf[64];
 
     /* Procura na categoria atualmente selecionada */
     if (app->current_category_idx >= 0 && app->current_category_idx < app->catalog.total_categories) {
@@ -310,16 +312,14 @@ static void app_update_vfd_channel(app_context_t *app, int ch_idx) {
             }
         }
     }
-cat_done:
+cat_done:;
 
-    char clean_name[64];
     format_clean_channel_name(ch->name, clean_name, sizeof(clean_name));
     for (char *p = clean_name; *p; p++) {
         *p = (char)toupper((unsigned char)*p);
     }
 
     /* Formato exato do visor: Exemplo "N01 TV CULTURA" */
-    char vfd_buf[64];
     snprintf(vfd_buf, sizeof(vfd_buf), "%c%02d %s", cat_initial, channel_num, clean_name);
     vfd_set_text(vfd_buf);
     printf("[%s] [VFD] '%s'\n", APP_NAME, vfd_buf);
