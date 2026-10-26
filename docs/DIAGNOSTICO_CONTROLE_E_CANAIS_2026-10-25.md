@@ -66,6 +66,20 @@ Solicitada reconexão física em outra porta, diretamente, sem hub/extensão.
 Isso precisa ser resolvido antes de ajustar busca de redes. Não atribuir
 defeito físico definitivo sem o teste. Nenhum parâmetro de rede foi alterado.
 
+## Notebook compartilhando a internet por cabo
+
+O usuário conectou o receptor ao notebook e pediu script PowerShell para
+compartilhar Wi-Fi com Ethernet. `tools/configure_ics.ps1` foi atualizado:
+ele eleva via UAC, verifica adaptadores e configura ICS via `HNetCfg.HNetShare`
+sem desligar compartilhamentos de terceiros. O usuário confirmou a saída:
+`Compartilhamento ativo: Wi-Fi → Ethernet`, Ethernet `192.168.137.1`.
+
+Uso: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\configure_ics.ps1`.
+O script passou no parser do Windows PowerShell 5.1; a execução elevada foi
+confirmada pelo usuário. A box ainda não apareceu em `192.168.137.0/24` após
+ativar ICS; foi solicitado conferir/mudar Ethernet da box para DHCP/Automático.
+Não presumir que o compartilhamento já foi validado fim a fim por IPTV.
+
 O diagnóstico não escreve memória/registros do firmware, não altera dispositivos
 e não envia SIGSTOP ao grupo. Ainda assim, suspender uma thread pode reter
 locks: validar ações DLNA, navegação, parada e recuperação antes de integrar.

@@ -1,71 +1,75 @@
+﻿<#
+.SYNOPSIS
+Compartilha a internet do notebook com o receptor conectado por cabo Ethernet.
+.EXAMPLE
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\configure_ics.ps1
+#>
+param(
+    [ValidateNotNullOrEmpty()][string]$InternetAdapter = 'Wi-Fi',
+    [ValidateNotNullOrEmpty()][string]$ReceiverAdapter = 'Ethernet',
+    [switch]$Elevated
+)
 $ErrorActionPreference = 'Stop'
-$resultPath = 'D:\EMULADORES\Git\REA\research\azamerica_probe\ics_result.json'
-$result = [ordered]@{
-    time = (Get-Date).ToString('o')
-    success = $false
-    message = ''
-    sharing = @()
-    ethernetIPv4 = @()
+if ($InternetAdapter -eq $ReceiverAdapter) { throw 'Escolha dois adaptadores diferentes.' }
+
+$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+$principal = [Security.Principal.WindowsPrincipal]::new($identity)
+if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    if ($Elevated) { throw 'Este PowerShell não recebeu permissão de administrador.' }
+    $scriptPath = $PSCommandPath.Replace("'", "''")
+    $internetName = $InternetAdapter.Replace("'", "''")
+    $receiverName = $ReceiverAdapter.Replace("'", "''")
+    $invocation = "& '$scriptPath' -InternetAdapter '$internetName' -ReceiverAdapter '$receiverName' -Elevated"
+    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($invocation))
+    Write-Host 'Solicitando permissão de administrador ao Windows...'
+    Start-Process -FilePath "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" `
+        -Verb RunAs -ArgumentList @('-NoProfile', '-NoExit', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encoded)
+    return
 }
 
-try {
-    $wifiAdapter = Get-NetAdapter -Name 'Wi-Fi'
-    $ethernetAdapter = Get-NetAdapter -Name 'Ethernet'
-    if ($wifiAdapter.Status -ne 'Up' -or $ethernetAdapter.Status -ne 'Up') {
-        throw 'Wi-Fi e Ethernet precisam estar conectados antes de ativar o compartilhamento.'
-    }
-    $wifiConfig = Get-NetIPConfiguration -InterfaceAlias 'Wi-Fi'
-    if (-not $wifiConfig.IPv4DefaultGateway) {
-        throw 'O Wi-Fi não tem gateway IPv4; verifique a conexão com a internet.'
-    }
-
-    $manager = New-Object -ComObject HNetCfg.HNetShare
-    $connections = @($manager.EnumEveryConnection() | ForEach-Object {
-        $properties = $manager.NetConnectionProps($_)
-        [pscustomobject]@{
-            Name = $properties.Name
-            Configuration = $manager.INetSharingConfigurationForINetConnection($_)
-        }
-    })
-    $wifi = $connections | Where-Object Name -eq 'Wi-Fi' | Select-Object -First 1
-    $ethernet = $connections | Where-Object Name -eq 'Ethernet' | Select-Object -First 1
-    if (-not $wifi -or -not $ethernet) {
-        throw 'Não encontrei as conexões Wi-Fi e Ethernet no serviço de compartilhamento.'
-    }
-
-    $otherSharing = @($connections | Where-Object {
-        $_.Name -notin @('Wi-Fi', 'Ethernet') -and $_.Configuration.SharingEnabled
-    })
-    if ($otherSharing.Count -gt 0) {
-        throw ('Outra conexão já compartilha a rede: ' + (($otherSharing | ForEach-Object Name) -join ', '))
-    }
-
-    if (-not $wifi.Configuration.SharingEnabled -or $wifi.Configuration.SharingConnectionType -ne 0) {
-        $wifi.Configuration.EnableSharing(0)
-    }
-    if (-not $ethernet.Configuration.SharingEnabled -or $ethernet.Configuration.SharingConnectionType -ne 1) {
-        $ethernet.Configuration.EnableSharing(1)
-    }
-
-    Start-Sleep -Seconds 4
-    $result.sharing = @($connections | Where-Object Name -in @('Wi-Fi', 'Ethernet') | ForEach-Object {
-        [ordered]@{
-            name = $_.Name
-            enabled = [bool]$_.Configuration.SharingEnabled
-            type = [int]$_.Configuration.SharingConnectionType
-        }
-    })
-    $result.ethernetIPv4 = @(Get-NetIPAddress -InterfaceAlias 'Ethernet' -AddressFamily IPv4 | ForEach-Object IPAddress)
-    if (-not ($result.sharing | Where-Object { $_.name -eq 'Wi-Fi' -and $_.enabled -and $_.type -eq 0 })) {
-        throw 'O compartilhamento de Wi-Fi não ficou ativo.'
-    }
-    if (-not ($result.sharing | Where-Object { $_.name -eq 'Ethernet' -and $_.enabled -and $_.type -eq 1 })) {
-        throw 'O compartilhamento de Ethernet não ficou ativo.'
-    }
-    $result.success = $true
-    $result.message = 'Wi-Fi compartilhado com Ethernet.'
-} catch {
-    $result.message = $_.Exception.Message
-} finally {
-    $result | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $resultPath -Encoding UTF8
+$internet = Get-NetAdapter -Name $InternetAdapter -ErrorAction Stop
+$receiver = Get-NetAdapter -Name $ReceiverAdapter -ErrorAction Stop
+if ($internet.Status -ne 'Up' -or $receiver.Status -ne 'Up') {
+    throw "Conecte os adaptadores primeiro. $InternetAdapter=$($internet.Status); $ReceiverAdapter=$($receiver.Status)."
 }
+if (-not (Get-NetIPConfiguration -InterfaceAlias $InternetAdapter).IPv4DefaultGateway) {
+    throw "'$InternetAdapter' não possui gateway IPv4; confira sua conexão à internet."
+}
+
+$manager = New-Object -ComObject HNetCfg.HNetShare
+$connections = @($manager.EnumEveryConnection() | ForEach-Object {
+    $properties = $manager.NetConnectionProps($_)
+    [pscustomobject]@{
+        Name = [string]$properties.Name
+        Configuration = $manager.INetSharingConfigurationForINetConnection($_)
+    }
+})
+$source = $connections | Where-Object { $_.Name -eq $InternetAdapter } | Select-Object -First 1
+$target = $connections | Where-Object { $_.Name -eq $ReceiverAdapter } | Select-Object -First 1
+if (-not $source -or -not $target) {
+    throw 'Os adaptadores não apareceram no compartilhamento do Windows.'
+}
+$conflicts = @($connections | Where-Object {
+    $_.Name -notin @($InternetAdapter, $ReceiverAdapter) -and $_.Configuration.SharingEnabled
+})
+if ($conflicts.Count) {
+    throw "Outro compartilhamento está ativo: $(($conflicts | ForEach-Object Name) -join ', '). Ajuste-o manualmente."
+}
+if ($source.Configuration.SharingEnabled -and $source.Configuration.SharingConnectionType -ne 0) {
+    throw "'$InternetAdapter' está como conexão privada; ajuste-o manualmente."
+}
+if ($target.Configuration.SharingEnabled -and $target.Configuration.SharingConnectionType -ne 1) {
+    throw "'$ReceiverAdapter' está como conexão pública; ajuste-o manualmente."
+}
+
+if (-not $source.Configuration.SharingEnabled) { $source.Configuration.EnableSharing(0) }
+if (-not $target.Configuration.SharingEnabled) { $target.Configuration.EnableSharing(1) }
+Start-Sleep -Seconds 3
+if (-not $source.Configuration.SharingEnabled -or $source.Configuration.SharingConnectionType -ne 0 -or
+    -not $target.Configuration.SharingEnabled -or $target.Configuration.SharingConnectionType -ne 1) {
+    throw 'O Windows não confirmou o compartilhamento Wi-Fi → Ethernet.'
+}
+$addresses = @((Get-NetIPAddress -InterfaceAlias $ReceiverAdapter -AddressFamily IPv4).IPAddress)
+Write-Host "Compartilhamento ativo: $InternetAdapter → $ReceiverAdapter" -ForegroundColor Green
+Write-Host "Endereço Ethernet do notebook: $($addresses -join ', ')"
+Write-Host 'Deixe a rede do receptor em DHCP/Automático. Ele costuma receber 192.168.137.x.'
