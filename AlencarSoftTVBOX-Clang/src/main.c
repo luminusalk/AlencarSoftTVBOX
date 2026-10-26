@@ -316,7 +316,7 @@ void app_render(app_context_t *app) {
     if (app->current_category_idx < app->catalog.total_categories) {
         iptv_category_t *cat = &app->catalog.categories[app->current_category_idx];
         char subtitle[72];
-        snprintf(subtitle, sizeof(subtitle), "%d canais  [ ▲▼ Selecionar   OK Assistir ]", cat->count);
+        snprintf(subtitle, sizeof(subtitle), "%d canais  [ CIMA/BAIXO Selecionar   OK Assistir ]", cat->count);
         fb_draw_text_fit(&app->fb, list_x + 16, body_y + 12, cat->name,
                          list_w / 2, COLOR_WHITE, 1);
         fb_draw_text_fit(&app->fb, list_x + list_w - 360, body_y + 12, subtitle,
@@ -371,7 +371,7 @@ void app_render(app_context_t *app) {
     fb_draw_rect(&app->fb, safe_x, safe_y + content_h - footer_h, content_w, footer_h, COLOR_PANEL_BG);
     fb_draw_rect(&app->fb, safe_x, safe_y + content_h - footer_h, content_w, 1, 0xFF2A3448);
     fb_draw_text_fit(&app->fb, safe_x + 18, safe_y + content_h - footer_h + (footer_h - 16) / 2,
-                     "[OK] Assistir     [◄ ►] Categorias     [▲ ▼] Canais     [SAT / EXIT] Sair",
+                     "[OK] Assistir     [ESQ/DIR] Categorias     [CIMA/BAIXO] Canais     [SAT / EXIT] Sair",
                      content_w - 36, COLOR_TEXT_MUTED, 1);
 
     if (app->status_message[0] && playback_state == PLAYER_STATE_ERROR)
