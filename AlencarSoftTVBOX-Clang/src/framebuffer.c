@@ -102,14 +102,17 @@ void fb_flip(fb_context_t *ctx) {
         if (dest + row > (size_t)ctx->map_len) return;
 
         /* No NationalChip GX6622, a controladora de video HDMI efetua a varredura
-         * do OSD com inicio fixo em +2048 bytes (512 pixels @ 32bpp) de cada linha.
-         * Mapeando os primeiros 768 pixels para +2048 e os ultimos 512 pixels para +0,
-         * o enquadramento na TV fica 100% matematicamente perfeito em todas as colunas. */
+         * de cada linha iniciando em +3072 bytes (offset exato de 768 pixels @ 32bpp).
+         * Mapeando os primeiros 512 pixels para +3072 (ate o fim da linha 5120) e os
+         * 768 pixels restantes para +0 (inicio da linha fisica), o enquadramento na TV
+         * fica 100% matematicamente perfeito e continuo em todas as colunas:
+         * - Colunas 0..511 da TV: exibem back_buffer[0..511]
+         * - Colunas 512..1279 da TV: exibem back_buffer[512..1279] */
         if (ctx->width == 1280 && ctx->line_len == 5120) {
-            const size_t hw_offset = 512 * 4;       /* 2048 bytes */
-            const size_t first_part = (1280 - 512) * 4; /* 3072 bytes */
-            memcpy(ctx->fbp + dest + hw_offset, ctx->back_buffer + (size_t)y * row, first_part);
-            memcpy(ctx->fbp + dest, ctx->back_buffer + (size_t)y * row + first_part, hw_offset);
+            const size_t part1 = 512 * 4;       /* 2048 bytes (pixels 0..511) */
+            const size_t part2 = 768 * 4;       /* 3072 bytes (pixels 512..1279) */
+            memcpy(ctx->fbp + dest + part2, ctx->back_buffer + (size_t)y * row, part1);
+            memcpy(ctx->fbp + dest, ctx->back_buffer + (size_t)y * row + part1, part2);
         } else {
             memcpy(ctx->fbp + dest, ctx->back_buffer + (size_t)y * row, row);
         }
