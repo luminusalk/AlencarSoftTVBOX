@@ -54,7 +54,17 @@ passou no CI **40258211797** (commit `ca9979b`), incluindo builds C-SKY/MIPS e
 todos os testes Linux. Foi instalada com backup preservado, MD5
 `1c0bbc188de7d0e4c8f92f242b1a0078`, e aberta em `--interactive`.
 Log: `/tmp/alencar-integrated-ir.log`. A proteção foi confirmada ativa em
-`/proc`. Falta a observação do usuário para a troca de canais e flicker.
+`/proc`. O usuário respondeu que **ainda há flicker, mas menos**, pediu
+commit/push e mudou a prioridade para Wi-Fi. Não afirmar correção completa.
+
+## Wi-Fi: nova prioridade solicitada
+
+`lsusb` mostrou apenas os três root hubs. Não há adaptador enumerado nem
+interface ra0/wlan0. Logs USB: falha de descritor `-71` em EHCI e `-62` em
+OHCI, terminando em `unable to enumerate USB device on port 1`.
+Solicitada reconexão física em outra porta, diretamente, sem hub/extensão.
+Isso precisa ser resolvido antes de ajustar busca de redes. Não atribuir
+defeito físico definitivo sem o teste. Nenhum parâmetro de rede foi alterado.
 
 O diagnóstico não escreve memória/registros do firmware, não altera dispositivos
 e não envia SIGSTOP ao grupo. Ainda assim, suspender uma thread pode reter

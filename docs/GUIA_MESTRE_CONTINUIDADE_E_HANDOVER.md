@@ -16,8 +16,10 @@ normal e após SIGKILL do aplicativo simulado. MD5 instalado:
 `/mnt/plugin/alencarsoft_tvbox.before-ir-guard-ca9979b`.
 
 App aberto em `--interactive`, log `/tmp/alencar-integrated-ir.log`.
-**Validação integrada de troca Cultura → GloboNews → Cultura e flicker pendente
-da resposta do usuário.** Não confundir os testes isolados com essa validação.
+**Retorno do usuário sobre a integração: ainda há flicker, porém menor.**
+Não declarar o problema visual resolvido. O usuário pediu commit/push e mudou
+a prioridade para corrigir Wi-Fi. A troca integrada com AV em todos os canais
+ainda não recebeu confirmação explícita.
 O usuário autorizou instalação/testes; restrições antigas abaixo de não instalar
 foram superadas por autorização explícita. Preservar firmware, Python e drivers.
 Wi-Fi foi explicitamente deixado por último e não foi alterado nesta rodada.
