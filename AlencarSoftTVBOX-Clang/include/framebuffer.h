@@ -23,6 +23,8 @@ typedef struct {
     int      fd;
     uint8_t *fbp;
     uint8_t *back_buffer;
+    uint8_t *front_buffer;
+    int      front_valid;
     int      width;
     int      height;
     int      bpp;

@@ -529,10 +529,11 @@ void app_handle_input(app_context_t *app, app_key_t key) {
             break;
 
         case KEY_ACTION_MENU:
-            printf("[%s] Atualizando grade de canais a partir do GitHub...\n", APP_NAME);
-            vfd_set_text("ATUALIZANDO");
-            app_update_catalog_from_web(app);
-            vfd_set_text("GRADE");
+            if (app->active_playing_idx >= 0 &&
+                player_get_state() == PLAYER_STATE_PLAYING) {
+                app->view = VIEW_PLAYING;
+                vfd_set_text(app->catalog.channels[app->active_playing_idx].name);
+            }
             break;
 
         case KEY_ACTION_SAT:
@@ -816,10 +817,8 @@ int main(int argc, char **argv) {
                 time_t now = time(NULL);
                 if (now != last_sec) {
                     last_sec = now;
-                    /* Na grade, atualiza o relogio a cada segundo */
-                    if (s_app.view == VIEW_CATEGORIES) {
-                        needs_render = 1;
-                    }
+                    /* A grade so muda por acao do usuario. Uma copia integral
+                     * de /dev/fb0 a cada segundo provoca tearing no GX6622. */
                     /* Em reproducao, limpa o banner quando expirar os 5 segundos */
                     if (s_app.view == VIEW_PLAYING && play_banner_timeout > 0 && now >= play_banner_timeout) {
                         play_banner_timeout = 0;

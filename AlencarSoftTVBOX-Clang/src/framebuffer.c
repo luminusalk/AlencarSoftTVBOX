@@ -71,6 +71,16 @@ int fb_init(fb_context_t *ctx, const char *device) {
         close(ctx->fd);
         return -1;
     }
+    /* Compara os quadros em RAM para escrever no framebuffer lento somente
+     * as linhas que mudaram. A primeira apresentacao sempre copia tudo. */
+    ctx->front_buffer = (uint8_t *)malloc(ctx->screensize);
+    if (!ctx->front_buffer) {
+        free(ctx->back_buffer);
+        ctx->back_buffer = NULL;
+        munmap(ctx->fbp, ctx->map_len);
+        close(ctx->fd);
+        return -1;
+    }
 
     memset(ctx->back_buffer, 0, ctx->screensize);
     return 0;
@@ -78,6 +88,10 @@ int fb_init(fb_context_t *ctx, const char *device) {
 
 void fb_close(fb_context_t *ctx) {
     if (!ctx) return;
+    if (ctx->front_buffer) {
+        free(ctx->front_buffer);
+        ctx->front_buffer = NULL;
+    }
     if (ctx->back_buffer) {
         free(ctx->back_buffer);
         ctx->back_buffer = NULL;
@@ -97,6 +111,9 @@ void fb_flip(fb_context_t *ctx) {
     size_t row = (size_t)ctx->width * (ctx->bpp / 8);
 
     for (int y = 0; y < ctx->height; y++) {
+        const uint8_t *source = ctx->back_buffer + (size_t)y * row;
+        uint8_t *previous = ctx->front_buffer ? ctx->front_buffer + (size_t)y * row : NULL;
+        if (ctx->front_valid && previous && memcmp(source, previous, row) == 0) continue;
         size_t dest = ((size_t)y + ctx->yoffset) * ctx->line_len +
                       (size_t)ctx->xoffset * (ctx->bpp / 8);
         if (dest + row > (size_t)ctx->map_len) return;
@@ -111,12 +128,14 @@ void fb_flip(fb_context_t *ctx) {
         if (ctx->width == 1280 && ctx->line_len == 5120) {
             const size_t part1 = 512 * 4;       /* 2048 bytes (pixels 0..511) */
             const size_t part2 = 768 * 4;       /* 3072 bytes (pixels 512..1279) */
-            memcpy(ctx->fbp + dest + part2, ctx->back_buffer + (size_t)y * row, part1);
-            memcpy(ctx->fbp + dest, ctx->back_buffer + (size_t)y * row + part1, part2);
+            memcpy(ctx->fbp + dest + part2, source, part1);
+            memcpy(ctx->fbp + dest, source + part1, part2);
         } else {
-            memcpy(ctx->fbp + dest, ctx->back_buffer + (size_t)y * row, row);
+            memcpy(ctx->fbp + dest, source, row);
         }
+        if (previous) memcpy(previous, source, row);
     }
+    ctx->front_valid = 1;
 }
 
 static inline void put_pixel(fb_context_t *ctx, int x, int y, uint32_t color) {
