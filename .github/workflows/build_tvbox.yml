@@ -17,6 +17,10 @@ jobs:
           gcc -std=gnu99 -O1 -g -Wall -Wextra -Werror -D_GNU_SOURCE -Iinclude \
             tests/ir_guard_test.c src/ir_guard.c -lpthread -o ir_guard_test
           timeout 15 ./ir_guard_test
+          gcc -std=gnu99 -O1 -g -Wall -Wextra -Werror -D_GNU_SOURCE \
+            -DRECEIVER_DLNA_BACKEND -Iinclude \
+            tests/player_dlna_state_test.c src/player.c -o player_dlna_state_test
+          ./player_dlna_state_test
           gcc -std=gnu99 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined \
             -D_GNU_SOURCE -Iinclude tests/framebuffer_stride_test.c src/framebuffer.c src/font.c \
             -o framebuffer_stride_test

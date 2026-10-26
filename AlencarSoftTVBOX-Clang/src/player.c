@@ -25,6 +25,11 @@ static pid_t s_player_pid = -1;
 #endif
 static int s_uses_bridge = 0;
 static time_t s_start_time = 0;
+#ifdef RECEIVER_DLNA_BACKEND
+static time_t s_last_transport_check = 0;
+static int s_playing_checks = 0;
+static int s_stopped_checks = 0;
+#endif
 
 int player_init(void) {
     s_player_state = PLAYER_STATE_STOPPED;
@@ -32,6 +37,11 @@ int player_init(void) {
     s_player_pid = -1;
 #endif
     s_uses_bridge = 0;
+#ifdef RECEIVER_DLNA_BACKEND
+    s_last_transport_check = 0;
+    s_playing_checks = 0;
+    s_stopped_checks = 0;
+#endif
     return 0;
 }
 
@@ -46,7 +56,10 @@ int player_play(const char *url, const char *channel_name) {
     }
     s_uses_bridge = strstr(url, ".m3u") != NULL;
     s_start_time = time(NULL);
-    s_player_state = PLAYER_STATE_PLAYING;
+    s_last_transport_check = 0;
+    s_playing_checks = 0;
+    s_stopped_checks = 0;
+    s_player_state = PLAYER_STATE_BUFFERING;
     return 0;
 #else
     const char *play_url = url;
@@ -126,12 +139,40 @@ void player_stop(void) {
 #endif
     s_uses_bridge = 0;
     s_player_state = PLAYER_STATE_STOPPED;
+#ifdef RECEIVER_DLNA_BACKEND
+    s_last_transport_check = 0;
+    s_playing_checks = 0;
+    s_stopped_checks = 0;
+#endif
 }
 
 player_state_t player_get_state(void) {
 #ifdef RECEIVER_DLNA_BACKEND
-    if (firmware_dlna_active()) {
-        return PLAYER_STATE_PLAYING;
+    if (s_player_state == PLAYER_STATE_BUFFERING ||
+        s_player_state == PLAYER_STATE_PLAYING) {
+        time_t now = time(NULL);
+        if (!firmware_dlna_active()) {
+            s_player_state = PLAYER_STATE_ERROR;
+        } else if (now - s_start_time >= 2 &&
+                   now != s_last_transport_check) {
+            int transport = firmware_dlna_transport_playing();
+            s_last_transport_check = now;
+            if (transport == 1) {
+                s_stopped_checks = 0;
+                if (++s_playing_checks >= 2)
+                    s_player_state = PLAYER_STATE_PLAYING;
+            } else if (transport == 0) {
+                s_playing_checks = 0;
+                if (++s_stopped_checks >= 2) {
+                    fprintf(stderr, "[Player] DLNA parou a reproducao do canal.\n");
+                    s_player_state = PLAYER_STATE_ERROR;
+                }
+            } else if (s_player_state == PLAYER_STATE_BUFFERING &&
+                       now - s_start_time >= 12) {
+                fprintf(stderr, "[Player] DLNA nao confirmou a reproducao.\n");
+                s_player_state = PLAYER_STATE_ERROR;
+            }
+        }
     }
     return s_player_state;
 #else

@@ -25,6 +25,10 @@ int main(int argc, char **argv) {
     }
     if (firmware_dlna_start(argv[1], "Canal & teste") < 0) return 3;
     if (!firmware_dlna_active()) return 4;
+    if (argc >= 3 && strcmp(argv[2], "state-stopped") == 0 &&
+        firmware_dlna_transport_playing() != 0) return 9;
+    if (argc >= 3 && strcmp(argv[2], "state-playing") == 0 &&
+        firmware_dlna_transport_playing() != 1) return 10;
     usleep(100000);
     firmware_dlna_stop();
     return firmware_dlna_active() ? 5 : 0;

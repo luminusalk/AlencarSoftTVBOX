@@ -503,3 +503,30 @@ void firmware_dlna_stop(void) {
 }
 
 int firmware_dlna_active(void) { return s_running != 0; }
+
+int firmware_dlna_transport_playing(void) {
+    char body[512], reply[4096], action[160];
+    const char *state, *end;
+    size_t length;
+    int n;
+    if (!s_running || !s_transport_owned || !s_renderer_ip[0]) return 0;
+    n = snprintf(body, sizeof(body),
+        "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">"
+        "<s:Body><u:GetTransportInfo xmlns:u=\"" AV_SERVICE "\">"
+        "<InstanceID>0</InstanceID></u:GetTransportInfo></s:Body></s:Envelope>");
+    if (n < 0 || (size_t)n >= sizeof(body)) return -1;
+    snprintf(action, sizeof(action), AV_SERVICE "#GetTransportInfo");
+    if (http_request(s_renderer_ip, s_renderer_port, s_control_path,
+                     "POST", action, body, reply, sizeof(reply), 2) < 0)
+        return -1;
+    state = strstr(reply, "<CurrentTransportState>");
+    if (!state) return -1;
+    state += strlen("<CurrentTransportState>");
+    end = strstr(state, "</CurrentTransportState>");
+    if (!end) return -1;
+    length = (size_t)(end - state);
+    if (length == 7 && memcmp(state, "PLAYING", 7) == 0) return 1;
+    if ((length == 7 && memcmp(state, "STOPPED", 7) == 0) ||
+        (length == 16 && memcmp(state, "NO_MEDIA_PRESENT", 16) == 0)) return 0;
+    return -1;
+}

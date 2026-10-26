@@ -72,6 +72,12 @@ class Renderer(http.server.BaseHTTPRequestHandler):
             with urllib.request.urlopen(self.server.stream_uri, timeout=5) as response:
                 assert response.headers["Content-Type"] in ("video/mp2t", "video/mpeg", "video/mp4")
                 assert response.read() == sample
+        elif action == "GetTransportInfo":
+            state = self.server.transport_state
+            body = (f"<s:Envelope><s:Body><u:GetTransportInfoResponse>"
+                    f"<CurrentTransportState>{state}</CurrentTransportState>"
+                    f"</u:GetTransportInfoResponse></s:Body></s:Envelope>").encode()
+            return self.respond(200, body)
         elif action != "Stop":
             return self.respond(500)
         events.append(action)
@@ -82,6 +88,7 @@ with tempfile.TemporaryDirectory() as directory:
     path = Path(directory) / "sample.ts"
     path.write_bytes(sample)
     renderer = http.server.ThreadingHTTPServer(("0.0.0.0", 0), Renderer)
+    renderer.transport_state = "PLAYING"
     thread = threading.Thread(target=renderer.serve_forever, daemon=True)
     thread.start()
     try:
@@ -106,6 +113,13 @@ with tempfile.TemporaryDirectory() as directory:
         print(result.stdout, result.stderr)
         assert result.returncode == 0, result.returncode
         assert events == ["SetAVTransportURI", "Play", "Stop"] * 4, events
+        for state, mode in (("PLAYING", "state-playing"),
+                            ("STOPPED", "state-stopped"),
+                            ("NO_MEDIA_PRESENT", "state-stopped")):
+            renderer.transport_state = state
+            result = subprocess.run([sys.argv[1], str(path), mode], timeout=35,
+                                    capture_output=True, text=True)
+            assert result.returncode == 0, (state, result.stdout, result.stderr)
     finally:
         renderer.shutdown()
         renderer.server_close()

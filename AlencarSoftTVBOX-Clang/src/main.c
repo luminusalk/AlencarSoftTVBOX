@@ -37,18 +37,46 @@ static int app_select_channel(app_context_t *app, int index) {
     return -1;
 }
 
+static void app_recover_failed_channel(app_context_t *app, int failed_index) {
+    int cultura = -1;
+    const char *failed_name = "canal";
+    if (failed_index >= 0 && failed_index < app->catalog.total_channels)
+        failed_name = app->catalog.channels[failed_index].name;
+    app->active_playing_idx = -1;
+    app->view = VIEW_CATEGORIES;
+    snprintf(app->status_message, sizeof(app->status_message),
+             "Canal indisponivel: %.90s", failed_name);
+    vfd_set_text("FALHA");
+    /* Cobrir imediatamente o plano de video antes de parar/trocar o DLNA. */
+    app_render(app);
+
+    for (int i = 0; i < app->catalog.total_channels; i++) {
+        if (strstr(app->catalog.channels[i].name, "TV Cultura")) {
+            cultura = i;
+            break;
+        }
+    }
+    if (cultura >= 0 && cultura != failed_index &&
+        player_play(app->catalog.channels[cultura].url,
+                    app->catalog.channels[cultura].name) == 0) {
+        app->active_playing_idx = cultura;
+        snprintf(app->status_message, sizeof(app->status_message),
+                 "%.60s indisponivel. TV Cultura em segundo plano.", failed_name);
+        fprintf(stderr, "[Player] Recuperacao com TV Cultura em segundo plano.\n");
+    }
+    app_render(app);
+}
+
 static int app_start_channel(app_context_t *app, int index) {
     if (index < 0 || index >= app->catalog.total_channels) return -1;
     iptv_channel_t *ch = &app->catalog.channels[index];
     if (player_play(ch->url, ch->name) < 0) {
-        app->active_playing_idx = -1;
-        app->view = VIEW_CATEGORIES;
-        snprintf(app->status_message, sizeof(app->status_message), "Canal indisponivel: %.90s", ch->name);
-        vfd_set_text("FALHA");
+        app_recover_failed_channel(app, index);
         return -1;
     }
     app->active_playing_idx = index;
     app->view = VIEW_PLAYING;
+    app->status_message[0] = '\0';
     app_select_channel(app, index);
     vfd_set_text(ch->name);
     if (channel_history_save(ch, CHANNEL_HISTORY_PATH) < 0)
@@ -188,7 +216,7 @@ void app_render(app_context_t *app) {
     if (!app->fb.back_buffer) return;
 
     playback_state = player_get_state();
-    if (app->view == VIEW_PLAYING && (playback_state == PLAYER_STATE_PLAYING || playback_state == PLAYER_STATE_BUFFERING)) {
+    if (app->view == VIEW_PLAYING && playback_state == PLAYER_STATE_PLAYING) {
         if (last_channel != app->active_playing_idx || last_view != app->view) {
             play_start_time = time(NULL);
             last_channel = app->active_playing_idx;
@@ -201,7 +229,7 @@ void app_render(app_context_t *app) {
 
         /* Barra de informacoes inferior sobreposta com identificacao do canal por 5s */
         time_t now = time(NULL);
-        if (now - play_start_time <= 5 || playback_state == PLAYER_STATE_BUFFERING) {
+        if (now - play_start_time <= 5) {
             if (app->active_playing_idx >= 0 && app->active_playing_idx < app->catalog.total_channels) {
                 iptv_channel_t *ch = &app->catalog.channels[app->active_playing_idx];
                 char clean_title[128];
@@ -217,8 +245,6 @@ void app_render(app_context_t *app) {
                 fb_draw_rect(&app->fb, safe_x, bar_y, 6, bar_h, COLOR_ACCENT);
                 fb_draw_text_fit(&app->fb, safe_x + 20, bar_y + (bar_h - 16) / 2, clean_title,
                                  bar_w - 40, COLOR_WHITE, 1);
-                if (playback_state == PLAYER_STATE_BUFFERING)
-                    fb_draw_text(&app->fb, safe_x + 20, bar_y - 24, "Conectando ao canal...", COLOR_WHITE, 1);
             }
         }
 
@@ -374,9 +400,12 @@ void app_render(app_context_t *app) {
                      "[OK] Assistir     [ESQ/DIR] Categorias     [CIMA/BAIXO] Canais     [SAT / EXIT] Sair",
                      content_w - 36, COLOR_TEXT_MUTED, 1);
 
-    if (app->status_message[0] && playback_state == PLAYER_STATE_ERROR)
+    if (app->status_message[0] && app->view == VIEW_CATEGORIES)
         fb_draw_text_fit(&app->fb, list_x, safe_y + content_h - footer_h - 22,
                          app->status_message, list_w, COLOR_WHITE, 1);
+    if (playback_state == PLAYER_STATE_BUFFERING && app->view == VIEW_PLAYING)
+        fb_draw_text_fit(&app->fb, list_x, safe_y + content_h - footer_h - 22,
+                         "Conectando ao canal...", list_w, COLOR_WHITE, 1);
 
     /* 6. Dialogo Modal de Confirmacao de Saida */
     if (app->view == VIEW_CONFIRM_EXIT) {
@@ -794,6 +823,7 @@ int main(int argc, char **argv) {
             time_t play_banner_timeout = 0;
             int needs_render = 0;
             int loop_cnt = 0;
+            player_state_t last_player_state = player_get_state();
             while (s_app.running) {
 #ifdef RECEIVER_DLNA_BACKEND
                 if (!ir_guard_active()) {
@@ -833,11 +863,19 @@ int main(int argc, char **argv) {
 
                 usleep(15000); /* 15ms de intervalo = ~66Hz de polling instantaneo com quase 0% CPU */
 
-                if (++loop_cnt % 200 == 0) {
+                if (++loop_cnt % 50 == 0) {
                     player_state_t cur_st = player_get_state();
-                    printf("[%s] [OSD+IR] t=%ds/%ds, estado player=%d\n", APP_NAME,
-                           (int)(time(NULL) - start_time), duration, cur_st);
-                    fflush(stdout);
+                    if (cur_st == PLAYER_STATE_ERROR && s_app.active_playing_idx >= 0) {
+                        app_recover_failed_channel(&s_app, s_app.active_playing_idx);
+                        cur_st = player_get_state();
+                    }
+                    if (cur_st != last_player_state) needs_render = 1;
+                    last_player_state = cur_st;
+                    if (loop_cnt % 200 == 0) {
+                        printf("[%s] [OSD+IR] t=%ds/%ds, estado player=%d\n", APP_NAME,
+                               (int)(time(NULL) - start_time), duration, cur_st);
+                        fflush(stdout);
+                    }
                 }
 
                 if (duration > 0 && (time(NULL) - start_time) > duration) {

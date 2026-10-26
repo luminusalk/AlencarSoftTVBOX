@@ -5,5 +5,7 @@
 int firmware_dlna_start(const char *source, const char *title);
 void firmware_dlna_stop(void);
 int firmware_dlna_active(void);
+/* 1 = PLAYING, 0 = stopped/no media, -1 = unavailable/transitioning. */
+int firmware_dlna_transport_playing(void);
 
 #endif
