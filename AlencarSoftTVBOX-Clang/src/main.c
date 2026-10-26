@@ -4,6 +4,9 @@
  */
 
 #include "app.h"
+#ifdef RECEIVER_DLNA_BACKEND
+#include "ir_guard.h"
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -61,6 +64,12 @@ int app_init(app_context_t *app) {
 
     /* 5. Inicializacao do leitor de controle remoto */
     system("echo INIT_INPUT >> /tmp/alencar_status.txt");
+#ifdef RECEIVER_DLNA_BACKEND
+    if (ir_guard_start() < 0) {
+        fprintf(stderr, "[IR] Nao foi possivel obter controle exclusivo.\n");
+        return -1;
+    }
+#endif
     input_init(DEFAULT_IR_DEV);
 
     /* 6. Inicializacao do Player de video */
@@ -418,6 +427,9 @@ void app_cleanup(app_context_t *app) {
 }
 
 int main(int argc, char **argv) {
+#ifdef RECEIVER_DLNA_BACKEND
+    atexit(ir_guard_stop);
+#endif
 
     system("echo MAIN_ENTERED > /tmp/alencar_status.txt");
     printf("\n=========================================\n");
@@ -480,6 +492,9 @@ int main(int argc, char **argv) {
         memset(&test_fb, 0, sizeof(test_fb));
 
         if (with_osd_ir) {
+            signal(SIGINT, sig_handler);
+            signal(SIGTERM, sig_handler);
+            signal(SIGHUP, SIG_IGN);
             if (argc < 4) duration = 300;
             printf("[%s] [OSD+IR] Modo Interativo: duracao=%ds\n", APP_NAME, duration);
             fflush(stdout);
@@ -521,6 +536,13 @@ int main(int argc, char **argv) {
                 return 1;
             }
 
+#ifdef RECEIVER_DLNA_BACKEND
+            if (ir_guard_start() < 0) {
+                fprintf(stderr, "[IR] Falha no controle exclusivo; retornando ao firmware.\n");
+                fb_clear(&s_app.fb, 0); fb_flip(&s_app.fb); fb_close(&s_app.fb);
+                return 1;
+            }
+#endif
             input_init(DEFAULT_IR_DEV);
             player_init();
 
@@ -551,6 +573,12 @@ int main(int argc, char **argv) {
             int needs_render = 0;
             int loop_cnt = 0;
             while (s_app.running) {
+#ifdef RECEIVER_DLNA_BACKEND
+                if (!ir_guard_active()) {
+                    fprintf(stderr, "[IR] Protecao perdida; encerrando interface.\n");
+                    break;
+                }
+#endif
                 app_key_t key = input_poll();
                 if (key != KEY_NONE) {
                     player_state_t cur_st = player_get_state();
