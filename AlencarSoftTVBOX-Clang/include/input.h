@@ -29,7 +29,8 @@ typedef enum {
     KEY_NUM_7,
     KEY_NUM_8,
     KEY_NUM_9,
-    KEY_EXIT_APP
+    KEY_EXIT_APP,
+    KEY_ACTION_SAT
 } app_key_t;
 
 int       input_init(const char *ir_device);

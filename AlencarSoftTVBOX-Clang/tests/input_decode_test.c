@@ -14,6 +14,7 @@ int main(void) {
         {0x88, KEY_NAV_LEFT},
         {0x08, KEY_NAV_RIGHT},
         {0xb0, KEY_ACTION_OK},
+        {0x6a, KEY_ACTION_SAT},
         {0x68, KEY_ACTION_BACK}
     };
     unsigned int i;

@@ -53,7 +53,8 @@ static app_key_t filter_key_debounce(app_key_t raw_key) {
 
     /* 1. Teclas de acao NUNCA repetem sozinhas (evita duplo clique e fechamentos involuntarios) */
     if (raw_key == KEY_ACTION_OK || raw_key == KEY_ACTION_BACK ||
-        raw_key == KEY_ACTION_MENU || raw_key == KEY_EXIT_APP) {
+        raw_key == KEY_ACTION_MENU || raw_key == KEY_EXIT_APP ||
+        raw_key == KEY_ACTION_SAT) {
         return KEY_NONE;
     }
 
@@ -81,6 +82,7 @@ app_key_t input_decode_gxirr_packet(const uint8_t packet[4]) {
         case 0x88: return KEY_NAV_LEFT;
         case 0x08: return KEY_NAV_RIGHT;
         case 0xb0: return KEY_ACTION_OK;
+        case 0x6a: return KEY_ACTION_SAT;    /* Botao SAT fisico Azamerica S1009+ */
         case 0xf8: return KEY_EXIT_APP;     /* Botao EXIT fisico Azamerica S1009+ */
         case 0x68: return KEY_ACTION_BACK;  /* Botao MENU / BACK */
         case 0x58: return KEY_EXIT_APP;     /* EXIT alternativo */
@@ -184,7 +186,8 @@ app_key_t input_poll(void) {
     /* 3. Filtro de debounce e controle de repeticao */
     app_key_t filtered_key = filter_key_debounce(raw_key);
     if (filtered_key == KEY_ACTION_OK || filtered_key == KEY_ACTION_BACK ||
-        filtered_key == KEY_ACTION_MENU || filtered_key == KEY_EXIT_APP) {
+        filtered_key == KEY_ACTION_MENU || filtered_key == KEY_EXIT_APP ||
+        filtered_key == KEY_ACTION_SAT) {
         if (s_ir_fd >= 0) {
             uint8_t dummy[64];
             while (read(s_ir_fd, dummy, sizeof(dummy)) > 0) {}

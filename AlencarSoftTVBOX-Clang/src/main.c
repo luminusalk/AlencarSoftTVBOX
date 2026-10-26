@@ -272,7 +272,7 @@ void app_handle_input(app_context_t *app, app_key_t key) {
 
     /* 1. Tratamento durante a reproducao de video em tela cheia */
     if (app->view == VIEW_PLAYING) {
-        if (key == KEY_ACTION_BACK || key == KEY_EXIT_APP || key == KEY_ACTION_MENU) {
+        if (key == KEY_ACTION_BACK || key == KEY_EXIT_APP || key == KEY_ACTION_MENU || key == KEY_ACTION_SAT) {
             /* NAO encerra o player DLNA! Apenas traz a grade para a frente.
              * Manter o DLNA ativo engana o firmware para nunca voltar ao satelite! */
             app->view = VIEW_CATEGORIES;
@@ -398,6 +398,9 @@ void app_handle_input(app_context_t *app, app_key_t key) {
             vfd_set_text("GRADE");
             break;
 
+        case KEY_ACTION_SAT:
+            break;
+
         default:
             break;
     }
@@ -438,10 +441,10 @@ int main(int argc, char **argv) {
     fflush(stdout);
 
     /* Modo C isolado (headless): testa o transporte DLNA e player C, com flags para isolar componentes */
-    /* Modo Daemon EXIT 3x: escuta controle remoto e dispara o app se apertar EXIT 3 vezes */
-    if (argc >= 2 && strcmp(argv[1], "--exit3-daemon") == 0) {
+    /* Modo Daemon SAT / EXIT 3x: escuta controle remoto e dispara o app ao apertar SAT ou EXIT 3 vezes */
+    if (argc >= 2 && (strcmp(argv[1], "--exit3-daemon") == 0 || strcmp(argv[1], "--sat-daemon") == 0)) {
         input_init(DEFAULT_IR_DEV);
-        printf("[%s] Daemon EXIT 3x ativo em segundo plano (PID %d).\n", APP_NAME, getpid());
+        printf("[%s] Daemon SAT / EXIT 3x ativo em segundo plano (PID %d).\n", APP_NAME, getpid());
         fflush(stdout);
 
         int exit_count = 0;
@@ -449,7 +452,11 @@ int main(int argc, char **argv) {
 
         while (1) {
             app_key_t key = input_poll();
-            if (key == KEY_EXIT_APP) {
+            if (key == KEY_ACTION_SAT) {
+                printf("[%s] [Daemon] BOTAO SAT PRESSIONADO! Abrindo AlencarSoft TVBOX...\n", APP_NAME);
+                fflush(stdout);
+                system("pgrep -f headless-osd-ir > /dev/null || /mnt/plugin/alencarsoft_tvbox --headless-osd-ir 'https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8?vhost=player-tvcultura.stream.uol.com.br' 86400 &");
+            } else if (key == KEY_EXIT_APP) {
                 time_t now = time(NULL);
                 if (now - last_exit_time <= 2) {
                     exit_count++;
@@ -464,7 +471,7 @@ int main(int argc, char **argv) {
                     printf("[%s] [Daemon] ATALHO EXIT 3x ACIONADO! Abrindo AlencarSoft TVBOX...\n", APP_NAME);
                     fflush(stdout);
                     exit_count = 0;
-                    system("/mnt/plugin/alencarsoft_tvbox --headless-osd-ir 'https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8?vhost=player-tvcultura.stream.uol.com.br' 86400 &");
+                    system("pgrep -f headless-osd-ir > /dev/null || /mnt/plugin/alencarsoft_tvbox --headless-osd-ir 'https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8?vhost=player-tvcultura.stream.uol.com.br' 86400 &");
                 }
             }
             usleep(25000);
