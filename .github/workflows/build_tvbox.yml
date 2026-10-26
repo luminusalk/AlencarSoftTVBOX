@@ -18,7 +18,7 @@ jobs:
             tests/ir_guard_test.c src/ir_guard.c -lpthread -o ir_guard_test
           timeout 15 ./ir_guard_test
           gcc -std=gnu99 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined \
-            -D_GNU_SOURCE -Iinclude tests/framebuffer_stride_test.c src/framebuffer.c \
+            -D_GNU_SOURCE -Iinclude tests/framebuffer_stride_test.c src/framebuffer.c src/font.c \
             -o framebuffer_stride_test
           ./framebuffer_stride_test
           gcc -std=gnu99 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined \
