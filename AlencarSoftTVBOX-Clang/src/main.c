@@ -14,6 +14,8 @@
 #include <time.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <sys/wait.h>
+#include <errno.h>
 
 static app_context_t s_app;
 
@@ -447,15 +449,33 @@ int main(int argc, char **argv) {
         printf("[%s] Daemon SAT / EXIT 3x ativo em segundo plano (PID %d).\n", APP_NAME, getpid());
         fflush(stdout);
 
+        pid_t app_child_pid = -1;
         int exit_count = 0;
         time_t last_exit_time = 0;
 
         while (1) {
+            if (app_child_pid > 0) {
+                int status = 0;
+                pid_t res = waitpid(app_child_pid, &status, WNOHANG);
+                if (res == app_child_pid || (res == -1 && errno == ECHILD)) {
+                    printf("[%s] [Daemon] App IPTV encerrado. Reativando escuta do controle...\n", APP_NAME);
+                    fflush(stdout);
+                    app_child_pid = -1;
+                    input_init(DEFAULT_IR_DEV);
+                } else {
+                    /* Enquanto o app estiver ativo na tela, o daemon dorme para nao disputar /dev/gxirr0 */
+                    usleep(200000);
+                    continue;
+                }
+            }
+
             app_key_t key = input_poll();
+            int should_launch = 0;
+
             if (key == KEY_ACTION_SAT) {
                 printf("[%s] [Daemon] BOTAO SAT PRESSIONADO! Abrindo AlencarSoft TVBOX...\n", APP_NAME);
                 fflush(stdout);
-                system("pgrep -f headless-osd-ir > /dev/null || /mnt/plugin/alencarsoft_tvbox --headless-osd-ir 'https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8?vhost=player-tvcultura.stream.uol.com.br' 86400 &");
+                should_launch = 1;
             } else if (key == KEY_EXIT_APP) {
                 time_t now = time(NULL);
                 if (now - last_exit_time <= 2) {
@@ -471,9 +491,46 @@ int main(int argc, char **argv) {
                     printf("[%s] [Daemon] ATALHO EXIT 3x ACIONADO! Abrindo AlencarSoft TVBOX...\n", APP_NAME);
                     fflush(stdout);
                     exit_count = 0;
-                    system("pgrep -f headless-osd-ir > /dev/null || /mnt/plugin/alencarsoft_tvbox --headless-osd-ir 'https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8?vhost=player-tvcultura.stream.uol.com.br' 86400 &");
+                    should_launch = 1;
                 }
             }
+
+            if (should_launch) {
+                /* Fecha o dispositivo IR no daemon para que o processo filho tenha acesso exclusivo */
+                input_close();
+
+                pid_t pid = fork();
+                if (pid == 0) {
+                    int log_fd = open("/tmp/alencar_app.log", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                    if (log_fd >= 0) {
+                        dup2(log_fd, STDOUT_FILENO);
+                        dup2(log_fd, STDERR_FILENO);
+                        close(log_fd);
+                    }
+                    int devnull = open("/dev/null", O_RDONLY);
+                    if (devnull >= 0) {
+                        dup2(devnull, STDIN_FILENO);
+                        close(devnull);
+                    }
+                    char *args[] = {
+                        "/mnt/plugin/alencarsoft_tvbox",
+                        "--headless-osd-ir",
+                        "https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8?vhost=player-tvcultura.stream.uol.com.br",
+                        "86400",
+                        NULL
+                    };
+                    execv(args[0], args);
+                    _exit(1);
+                } else if (pid > 0) {
+                    app_child_pid = pid;
+                    printf("[%s] [Daemon] Processo IPTV iniciado com PID %d\n", APP_NAME, (int)pid);
+                    fflush(stdout);
+                } else {
+                    fprintf(stderr, "[%s] [Daemon] Erro no fork: %s\n", APP_NAME, strerror(errno));
+                    input_init(DEFAULT_IR_DEV);
+                }
+            }
+
             usleep(25000);
         }
         return 0;
