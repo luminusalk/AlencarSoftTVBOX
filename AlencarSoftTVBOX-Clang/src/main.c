@@ -159,6 +159,27 @@ int app_init(app_context_t *app) {
     return 0;
 }
 
+static void format_clean_channel_name(const char *raw, char *out, size_t max_len) {
+    if (!raw || !out || max_len == 0) return;
+    size_t j = 0;
+    int in_bracket = 0;
+    for (size_t i = 0; raw[i] && j + 1 < max_len; i++) {
+        if (raw[i] == '[' || raw[i] == '(') {
+            in_bracket = 1;
+            continue;
+        }
+        if (in_bracket) {
+            if (raw[i] == ']' || raw[i] == ')') in_bracket = 0;
+            continue;
+        }
+        out[j++] = raw[i];
+    }
+    out[j] = '\0';
+    while (j > 0 && (out[j - 1] == ' ' || out[j - 1] == '\t' || out[j - 1] == '-')) {
+        out[--j] = '\0';
+    }
+}
+
 void app_render(app_context_t *app) {
     player_state_t playback_state;
     static int last_channel = -2;
@@ -183,13 +204,21 @@ void app_render(app_context_t *app) {
         if (now - play_start_time <= 5 || playback_state == PLAYER_STATE_BUFFERING) {
             if (app->active_playing_idx >= 0 && app->active_playing_idx < app->catalog.total_channels) {
                 iptv_channel_t *ch = &app->catalog.channels[app->active_playing_idx];
-                int inset = app->fb.width / 32;
-                fb_draw_rect(&app->fb, inset, app->fb.height - 76, app->fb.width - 2 * inset, 52, COLOR_PANEL_BG);
-                fb_draw_rect(&app->fb, inset, app->fb.height - 76, 5, 52, COLOR_ACCENT);
-                fb_draw_text_fit(&app->fb, inset + 18, app->fb.height - 59, ch->name,
-                                 app->fb.width - 2 * inset - 36, COLOR_WHITE, 1);
+                char clean_title[128];
+                format_clean_channel_name(ch->name, clean_title, sizeof(clean_title));
+
+                int safe_x = (app->fb.width * 5) / 100;
+                if (safe_x < 24) safe_x = 24;
+                int bar_w = app->fb.width - 2 * safe_x;
+                int bar_h = 56;
+                int bar_y = app->fb.height - (app->fb.height * 6 / 100) - bar_h;
+
+                fb_draw_rect(&app->fb, safe_x, bar_y, bar_w, bar_h, COLOR_PANEL_BG);
+                fb_draw_rect(&app->fb, safe_x, bar_y, 6, bar_h, COLOR_ACCENT);
+                fb_draw_text_fit(&app->fb, safe_x + 20, bar_y + (bar_h - 16) / 2, clean_title,
+                                 bar_w - 40, COLOR_WHITE, 1);
                 if (playback_state == PLAYER_STATE_BUFFERING)
-                    fb_draw_text(&app->fb, 60, app->fb.height - 105, "Aguardando dados do canal...", COLOR_WHITE, 1);
+                    fb_draw_text(&app->fb, safe_x + 20, bar_y - 24, "Conectando ao canal...", COLOR_WHITE, 1);
             }
         }
 
@@ -200,136 +229,190 @@ void app_render(app_context_t *app) {
     last_channel = -2;
     last_view = app->view;
 
-    int width = app->fb.width, height = app->fb.height;
-    int margin = width / 40;
-    int header_h = height >= 720 ? 76 : 58;
-    int footer_h = height >= 720 ? 54 : 42;
-    int sidebar_w = width / 4;
-    if (sidebar_w < 145) sidebar_w = 145;
-    if (sidebar_w > 280) sidebar_w = 280;
-    if (sidebar_w > width / 2) sidebar_w = width / 2;
-    int list_x = sidebar_w + margin;
-    int list_w = width - list_x - margin;
-    int list_y = header_h + 58;
-    int row_h = height >= 720 ? 54 : 43;
-    int visible = (height - footer_h - list_y - 16) / row_h;
+    int width = app->fb.width;
+    int height = app->fb.height;
+
+    /* Enquadramento Universal para qualquer TV (Margem de Seguranca Safe Area 5%) */
+    int safe_x = (width * 5) / 100;
+    if (safe_x < 24) safe_x = 24;
+    int safe_y = (height * 5) / 100;
+    if (safe_y < 20) safe_y = 20;
+
+    int content_w = width - 2 * safe_x;
+    int content_h = height - 2 * safe_y;
+
+    int header_h = height >= 720 ? 56 : 42;
+    int footer_h = height >= 720 ? 40 : 32;
+
+    int body_y = safe_y + header_h + 12;
+    int body_h = content_h - header_h - footer_h - 20;
+
+    /* Coluna 1: Categorias (28% da area util) */
+    int cat_w = (content_w * 28) / 100;
+    if (cat_w < 160) cat_w = 160;
+    if (cat_w > 340) cat_w = 340;
+
+    /* Coluna 2: Canais (restante com espacamento de 16px) */
+    int list_x = safe_x + cat_w + 16;
+    int list_w = (safe_x + content_w) - list_x;
+
+    int ch_header_h = height >= 720 ? 44 : 34;
+    int row_h = height >= 720 ? 48 : 38;
+    int visible = (body_h - ch_header_h - 8) / row_h;
     if (visible < 1) visible = 1;
     if (visible > OSD_MAX_CHANNELS_PER_PAGE) visible = OSD_MAX_CHANNELS_PER_PAGE;
     app->channels_per_page = visible;
+
     if (app->current_channel_idx < app->scroll_offset) app->scroll_offset = app->current_channel_idx;
     if (app->current_channel_idx >= app->scroll_offset + visible)
         app->scroll_offset = app->current_channel_idx - visible + 1;
 
+    /* 1. Fundo Geral */
     fb_clear(&app->fb, COLOR_DARK_BG);
-    fb_draw_rect(&app->fb, 0, 0, width, header_h, COLOR_PANEL_BG);
-    fb_draw_rect(&app->fb, 0, header_h - 3, width, 3, COLOR_ACCENT);
-    fb_draw_text_fit(&app->fb, margin, header_h / 2 - 14, "ALENCARSOFT TVBOX",
-                     width - 115 - 2 * margin, COLOR_WHITE, 2);
+
+    /* 2. Topo (Header) com Safe Area */
+    fb_draw_rect(&app->fb, safe_x, safe_y, content_w, header_h, COLOR_PANEL_BG);
+    fb_draw_rect(&app->fb, safe_x, safe_y + header_h - 2, content_w, 2, COLOR_ACCENT);
+
+    int title_scale = height >= 720 ? 2 : 1;
+    int title_y = safe_y + (header_h - 16 * title_scale) / 2;
+    fb_draw_text_fit(&app->fb, safe_x + 18, title_y, "ALENCARSOFT TVBOX",
+                     content_w - 140, COLOR_WHITE, title_scale);
+
     time_t rawtime = time(NULL);
     struct tm *timeinfo = localtime(&rawtime);
     char clock_str[16] = "--:--";
     if (timeinfo) snprintf(clock_str, sizeof(clock_str), "%02d:%02d", timeinfo->tm_hour, timeinfo->tm_min);
-    fb_draw_text(&app->fb, width - 100, header_h / 2 - 10, clock_str, COLOR_ACCENT, 1);
+    fb_draw_text(&app->fb, safe_x + content_w - 80, safe_y + (header_h - 16) / 2, clock_str, COLOR_ACCENT, 1);
 
-    /* Categorias em coluna: todas acessiveis, inclusive quando a tela e 576p. */
-    fb_draw_rect(&app->fb, 0, header_h, sidebar_w, height - header_h - footer_h, COLOR_PANEL_BG);
-    fb_draw_text_fit(&app->fb, margin, header_h + 20, "CATEGORIAS",
-                     sidebar_w - 2 * margin, COLOR_ACCENT, 1);
-    int cat_y = header_h + 55;
-    int cat_row_h = height >= 720 ? 43 : 34;
-    int cat_visible = (height - footer_h - cat_y - 8) / cat_row_h;
+    /* 3. Coluna Esquerda: Categorias */
+    fb_draw_rect(&app->fb, safe_x, body_y, cat_w, body_h, COLOR_PANEL_BG);
+    fb_draw_text_fit(&app->fb, safe_x + 16, body_y + 14, "CATEGORIAS",
+                     cat_w - 32, COLOR_ACCENT, 1);
+
+    int cat_header_h = 40;
+    int cat_row_h = height >= 720 ? 44 : 34;
+    int cat_visible = (body_h - cat_header_h - 8) / cat_row_h;
     if (cat_visible < 1) cat_visible = 1;
     int cat_start = 0;
     if (app->current_category_idx >= cat_visible)
         cat_start = app->current_category_idx - cat_visible + 1;
+
     for (int i = cat_start; i < app->catalog.total_categories && i < cat_start + cat_visible; i++) {
-        int y = cat_y + (i - cat_start) * cat_row_h;
-        int selected = i == app->current_category_idx;
+        int y = body_y + cat_header_h + (i - cat_start) * cat_row_h;
+        int selected = (i == app->current_category_idx);
         if (selected) {
-            fb_draw_rect(&app->fb, 0, y, sidebar_w, cat_row_h - 2, COLOR_HIGHLIGHT);
-            fb_draw_rect(&app->fb, 0, y, 5, cat_row_h - 2, COLOR_ACCENT);
+            fb_draw_rect(&app->fb, safe_x, y, cat_w, cat_row_h - 4, COLOR_HIGHLIGHT);
+            fb_draw_rect(&app->fb, safe_x, y, 5, cat_row_h - 4, COLOR_ACCENT);
         }
-        fb_draw_text_fit(&app->fb, margin, y + (cat_row_h - 16) / 2,
-                         app->catalog.categories[i].name, sidebar_w - 2 * margin,
+        fb_draw_text_fit(&app->fb, safe_x + 16, y + (cat_row_h - 4 - 16) / 2,
+                         app->catalog.categories[i].name, cat_w - 28,
                          selected ? COLOR_WHITE : COLOR_TEXT_MUTED, 1);
     }
+
+    /* 4. Coluna Direita: Grade de Canais */
+    fb_draw_rect(&app->fb, list_x, body_y, list_w, body_h, COLOR_PANEL_BG);
 
     if (app->current_category_idx < app->catalog.total_categories) {
         iptv_category_t *cat = &app->catalog.categories[app->current_category_idx];
         char subtitle[72];
-        snprintf(subtitle, sizeof(subtitle), "%d canais", cat->count);
-        fb_draw_text_fit(&app->fb, list_x, header_h + 16, cat->name,
-                         list_w - 100, COLOR_WHITE, 1);
-        fb_draw_text_fit(&app->fb, list_x, header_h + 34, subtitle,
-                         list_w, COLOR_TEXT_MUTED, 1);
+        snprintf(subtitle, sizeof(subtitle), "%d canais  [ ▲▼ Selecionar   OK Assistir ]", cat->count);
+        fb_draw_text_fit(&app->fb, list_x + 16, body_y + 12, cat->name,
+                         list_w / 2, COLOR_WHITE, 1);
+        fb_draw_text_fit(&app->fb, list_x + list_w - 360, body_y + 12, subtitle,
+                         340, COLOR_TEXT_MUTED, 1);
+
+        int list_y = body_y + ch_header_h;
         for (int i = 0; i < visible && app->scroll_offset + i < cat->count; i++) {
             int row = app->scroll_offset + i;
             int ch_idx = cat->channel_indices[row];
             iptv_channel_t *ch = &app->catalog.channels[ch_idx];
             int y = list_y + i * row_h;
-            int selected = row == app->current_channel_idx;
-            fb_draw_rect(&app->fb, list_x, y, list_w, row_h - 5,
-                         selected ? COLOR_HIGHLIGHT : COLOR_PANEL_BG);
-            if (selected) fb_draw_rect(&app->fb, list_x, y, 5, row_h - 5, COLOR_ACCENT);
+            int selected = (row == app->current_channel_idx);
+
+            /* Fundo da linha */
+            if (selected) {
+                fb_draw_rect(&app->fb, list_x + 4, y, list_w - 8, row_h - 4, COLOR_HIGHLIGHT);
+                fb_draw_rect(&app->fb, list_x + 4, y, 5, row_h - 4, COLOR_ACCENT);
+            } else {
+                fb_draw_rect(&app->fb, list_x + 4, y, list_w - 8, row_h - 4, 0xFF141923);
+            }
+
+            /* Numero */
             char number[12];
             snprintf(number, sizeof(number), "%03d", row + 1);
-            fb_draw_text(&app->fb, list_x + 14, y + (row_h - 16) / 2, number, COLOR_ACCENT, 1);
-            int badge_w = ch->is_fullhd ? 62 : (ch->is_hd ? 42 : 0);
-            int name_x = list_x + 52;
-            int name_w = list_w - 62 - badge_w - 10;
-            fb_draw_text_fit(&app->fb, name_x, y + (row_h - 16) / 2, ch->name,
+            fb_draw_text(&app->fb, list_x + 16, y + (row_h - 4 - 16) / 2, number, COLOR_ACCENT, 1);
+
+            /* Nome Limpo do Canal */
+            char clean_name[128];
+            format_clean_channel_name(ch->name, clean_name, sizeof(clean_name));
+
+            /* Badge FHD / HD */
+            int badge_w = (ch->is_fullhd || ch->is_hd) ? 52 : 0;
+            int name_x = list_x + 62;
+            int name_w = list_w - 62 - badge_w - 24;
+            fb_draw_text_fit(&app->fb, name_x, y + (row_h - 4 - 16) / 2, clean_name,
                              name_w, COLOR_WHITE, 1);
+
             if (badge_w > 0) {
-                int badge_x = list_x + list_w - badge_w - 12;
-                fb_draw_rect(&app->fb, badge_x, y + (row_h - 24) / 2,
-                             badge_w, 24, ch->is_fullhd ? COLOR_RED_BADGE : COLOR_GREEN_LIVE);
-                fb_draw_text(&app->fb, badge_x + 6, y + (row_h - 16) / 2,
-                             ch->is_fullhd ? "1080p" : "HD", COLOR_BLACK, 1);
+                int badge_x = list_x + list_w - badge_w - 14;
+                int badge_h = 22;
+                int badge_y = y + (row_h - 4 - badge_h) / 2;
+                uint32_t badge_bg = ch->is_fullhd ? COLOR_RED_BADGE : COLOR_GREEN_LIVE;
+                fb_draw_rect(&app->fb, badge_x, badge_y, badge_w, badge_h, badge_bg);
+                fb_draw_text(&app->fb, badge_x + (ch->is_fullhd ? 12 : 16),
+                             badge_y + (badge_h - 16) / 2 + 1,
+                             ch->is_fullhd ? "FHD" : "HD", COLOR_WHITE, 1);
             }
         }
     }
 
-    fb_draw_rect(&app->fb, 0, height - footer_h, width, footer_h, COLOR_PANEL_BG);
-    fb_draw_text_fit(&app->fb, margin, height - footer_h + (footer_h - 16) / 2,
-                     "OK Assistir    ESQ/DIR Categoria    CIMA/BAIXO Canal    EXIT Voltar",
-                     width - 2 * margin, COLOR_TEXT_MUTED, 1);
+    /* 5. Rodape com Safe Area */
+    fb_draw_rect(&app->fb, safe_x, safe_y + content_h - footer_h, content_w, footer_h, COLOR_PANEL_BG);
+    fb_draw_rect(&app->fb, safe_x, safe_y + content_h - footer_h, content_w, 1, 0xFF2A3448);
+    fb_draw_text_fit(&app->fb, safe_x + 18, safe_y + content_h - footer_h + (footer_h - 16) / 2,
+                     "[OK] Assistir     [◄ ►] Categorias     [▲ ▼] Canais     [SAT / EXIT] Sair",
+                     content_w - 36, COLOR_TEXT_MUTED, 1);
+
     if (app->status_message[0] && playback_state == PLAYER_STATE_ERROR)
-        fb_draw_text_fit(&app->fb, list_x, height - footer_h - 18,
+        fb_draw_text_fit(&app->fb, list_x, safe_y + content_h - footer_h - 22,
                          app->status_message, list_w, COLOR_WHITE, 1);
 
-    /* Dialogo modal de confirmacao de saida para a TV Box original */
+    /* 6. Dialogo Modal de Confirmacao de Saida */
     if (app->view == VIEW_CONFIRM_EXIT) {
-        int dw = width * 3 / 5;
-        if (dw > 520) dw = 520;
-        int dh = height / 3;
-        if (dh > 200) dh = 200;
-        int dx = (app->fb.width - dw) / 2;
-        int dy = (app->fb.height - dh) / 2;
+        int dw = (content_w * 50) / 100;
+        if (dw > 500) dw = 500;
+        if (dw < 360) dw = 360;
+        int dh = height >= 720 ? 190 : 160;
+        int dx = (width - dw) / 2;
+        int dy = (height - dh) / 2;
 
-        fb_draw_rect(&app->fb, dx - 4, dy - 4, dw + 8, dh + 8, COLOR_HIGHLIGHT);
+        fb_draw_rect(&app->fb, dx - 3, dy - 3, dw + 6, dh + 6, COLOR_ACCENT);
         fb_draw_rect(&app->fb, dx, dy, dw, dh, COLOR_PANEL_BG);
 
-        fb_draw_text_fit(&app->fb, dx + 20, dy + 28,
-                         "Sair para o sistema original?", dw - 40, COLOR_WHITE, 1);
+        fb_draw_text_fit(&app->fb, dx + 24, dy + 28,
+                         "Deseja sair para o sistema original?", dw - 48, COLOR_WHITE, 1);
 
-        int btn_w = 140;
-        int btn_h = 45;
-        int btn_y = dy + dh - btn_h - 20;
-        if (btn_w * 2 + 40 > dw) btn_w = (dw - 60) / 2;
+        int btn_w = (dw - 64) / 2;
+        int btn_h = 42;
+        int btn_y = dy + dh - btn_h - 24;
         int sim_x = dx + 20;
         int nao_x = dx + dw - btn_w - 20;
 
-        uint32_t sim_bg = (app->exit_dialog_choice == 0) ? COLOR_HIGHLIGHT : COLOR_DARK_BG;
-        uint32_t nao_bg = (app->exit_dialog_choice == 1) ? COLOR_HIGHLIGHT : COLOR_DARK_BG;
+        uint32_t sim_bg = (app->exit_dialog_choice == 0) ? COLOR_HIGHLIGHT : 0xFF222A38;
+        uint32_t nao_bg = (app->exit_dialog_choice == 1) ? COLOR_HIGHLIGHT : 0xFF222A38;
 
         fb_draw_rect(&app->fb, sim_x, btn_y, btn_w, btn_h, sim_bg);
-        fb_draw_text(&app->fb, sim_x + 18, btn_y + 14, "SIM", COLOR_WHITE, 1);
+        if (app->exit_dialog_choice == 0)
+            fb_draw_rect(&app->fb, sim_x, btn_y, 4, btn_h, COLOR_ACCENT);
+        fb_draw_text(&app->fb, sim_x + (btn_w - 24) / 2, btn_y + 13, "SIM", COLOR_WHITE, 1);
 
         fb_draw_rect(&app->fb, nao_x, btn_y, btn_w, btn_h, nao_bg);
-        fb_draw_text(&app->fb, nao_x + 18, btn_y + 14, "NAO", COLOR_WHITE, 1);
+        if (app->exit_dialog_choice == 1)
+            fb_draw_rect(&app->fb, nao_x, btn_y, 4, btn_h, COLOR_ACCENT);
+        fb_draw_text(&app->fb, nao_x + (btn_w - 24) / 2, btn_y + 13, "NAO", COLOR_WHITE, 1);
     }
 
-    /* Envia o buffer pronto para a tela */
     fb_flip(&app->fb);
 }
 

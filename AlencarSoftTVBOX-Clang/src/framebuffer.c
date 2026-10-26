@@ -47,8 +47,13 @@ int fb_init(fb_context_t *ctx, const char *device) {
         ctx->fd = -1;
         return -1;
     }
-    ctx->xoffset = (int)vinfo.xoffset;
-    ctx->yoffset = (int)vinfo.yoffset;
+    if (vinfo.xoffset != 0 || vinfo.yoffset != 0) {
+        vinfo.xoffset = 0;
+        vinfo.yoffset = 0;
+        ioctl(ctx->fd, FBIOPAN_DISPLAY, &vinfo);
+    }
+    ctx->xoffset = 0;
+    ctx->yoffset = 0;
     ctx->map_len = (int)finfo.smem_len;
     ctx->screensize = ctx->width * ctx->height * (ctx->bpp / 8);
 
