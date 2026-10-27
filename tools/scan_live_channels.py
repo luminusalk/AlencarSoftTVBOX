@@ -24,8 +24,8 @@ DEFAULT_EXISTING = Path(__file__).resolve().parents[1] / "AlencarSoftTVBOX-Clang
 GROUP_RE = re.compile(r'group-title="([^"]*)"', re.I)
 VOD_RE = re.compile(r"film|filme|s[eé]rie|novela|temporada|episode|epis[oó]dio|netflix|prime video|amazon|disney|globoplay|adult", re.I)
 NEWS_RE = re.compile(r"cultura|globo\s?news|cnn\s?brasil|band\s?news|record\s?news|jovem\s?pan|jp\s?news|sbt\s?news|tv\s?senado|tv\s?c[aâ]mara|bloomberg|bbc\s?news|euronews", re.I)
-SPORTS_RE = re.compile(r"sport|esporte|espn|premiere|sportv|combate|caz[eé]|futebol|nossa tv|band\s?sports", re.I)
-OPEN_RE = re.compile(r"cultura|globo|record|sbt|band|rede\s?tv|tv\s?brasil|gazeta|tv\s?aparecida|can[cç][aã]o\s?nova|tv\s?senado|tv\s?c[aâ]mara|futura|naza|tv\s?pai\s?eterno", re.I)
+SPORTS_RE = re.compile(r"sport|esporte|espn|premiere|sportv|combate|\bcaz[eé]\b|futebol|nba|nossa tv|band\s?sports", re.I)
+OPEN_RE = re.compile(r"cultura|globo|record|sbt|band|rede\s?tv|rede\s?vida|tv\s?brasil|gazeta|tv\s?aparecida|can[cç][aã]o\s?nova|tv\s?senado|tv\s?c[aâ]mara|futura|naza|tv\s?pai\s?eterno", re.I)
 BRAZIL_RE = re.compile(r"(^|[^a-z])(br|brasil|brazil)([^a-z]|$)|canais|abertos|not[ií]cias|esport", re.I)
 BAD_PREFIX_RE = re.compile(r"^(?:es|usa|us|uk|ar|tr|fr|de|it|pt|mx|arab)[: |]", re.I)
 

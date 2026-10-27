@@ -1,15 +1,20 @@
 """Merge successful scans into a balanced C-compatible live TV catalog."""
 
 from collections import Counter, defaultdict
+from hashlib import sha256
 from pathlib import Path
 import re
 import unicodedata
+from scan_live_channels import classify
 
 
 ROOT = Path(__file__).resolve().parents[1]
 INPUTS = (ROOT / "build-artifacts/verified_channels.m3u8",
-          ROOT / "build-artifacts/verified_open.m3u8")
+          ROOT / "build-artifacts/verified_open.m3u8",
+          ROOT / "build-artifacts/verified_fhd.m3u8",
+          ROOT / "build-artifacts/verified_varieties.m3u8")
 OUTPUT = ROOT / "AlencarSoftTVBOX-Clang/iptv.m3u8"
+FAILED = ROOT / "build-artifacts/receiver_failed_url_sha256.txt"
 CATEGORIES = ("Notícias", "Canais Abertos", "Esportes", "Variedades")
 TARGETS = {"Notícias": 60, "Canais Abertos": 100, "Esportes": 100, "Variedades": 40}
 GROUP = re.compile(r'group-title="([^"]*)"')
@@ -45,14 +50,45 @@ def quality(name):
 def main():
     by_category = defaultdict(list)
     urls = set()
+    failed_hashes = set(FAILED.read_text(encoding="ascii").splitlines()) if FAILED.exists() else set()
     for path in INPUTS:
         if not path.exists():
             raise SystemExit(f"Missing verified scan: {path}")
         for category, name, url in read(path):
+            category = classify(name, category) or category
             if category not in CATEGORIES or url in urls:
+                continue
+            if sha256(url.encode("utf-8")).hexdigest() in failed_hashes:
+                continue
+            if re.match(r"^[A-Z]{2,4}:\s", name) and not name.upper().startswith("BR:"):
                 continue
             urls.add(url)
             by_category[category].append((name.replace("�", "").strip(), url))
+
+    # Put the HD/FHD pair next to the first trusted source for each channel.
+    # Otherwise hundreds of regional HD entries fill the quota before any
+    # FHD entry from the later targeted scan is considered.
+    for category in CATEGORIES:
+        groups = defaultdict(list)
+        order = []
+        for item in by_category[category]:
+            key = identity(item[0])
+            if key not in groups:
+                order.append(key)
+            groups[key].append(item)
+        interleaved = []
+        for key in order:
+            bucket = groups[key]
+            interleaved.append(bucket[0])
+            first_quality = quality(bucket[0][0])
+            partner = next((item for item in bucket[1:]
+                            if quality(item[0]) in ("HD", "FHD")
+                            and quality(item[0]) != first_quality), None)
+            if partner:
+                interleaved.append(partner)
+            elif len(bucket) > 1:
+                interleaved.append(bucket[1])
+        by_category[category] = interleaved
 
     selected = defaultdict(list)
     chosen_urls = set()

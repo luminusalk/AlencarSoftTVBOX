@@ -1,12 +1,15 @@
 # Preparação de instalação do aplicativo C no S1009+
 
-**Não executar esta instalação agora.** O usuário pediu trabalhar no C sem
-novas alterações no receptor. Houve instalações por outro modelo depois do
-guia inicial; **não presumir** qual binário está na box nem usar o MD5 antigo
-como estado atual. O trabalho novo está na branch `codex/native-iptv-repair`. Consulte o
-[guia mestre](GUIA_MESTRE_CONTINUIDADE_E_HANDOVER.md) ao retomar.
+Estado conferido em 27/10/2026: o usuário autorizou a instalação no diretório
+próprio `/mnt/plugin`. O binário C-SKY do CI `40563865386` está em
+`/mnt/plugin/alencarsoft_tvbox` com MD5
+`311eeb0e5473b9e455338509602c129c`. O catálogo de 300 canais está em
+`/mnt/plugin/iptv/iptv.m3u8`, com MD5
+`266996e45994e35dc5bf4b7cb0c817e8`. O IP pode mudar a cada reboot.
+Leia [SAT e lista verificada](SAT_E_LISTA_VERIFICADA.md) para o mecanismo de
+inicialização via notebook e a limitação de validação audiovisual.
 
-## O que será instalado quando o usuário autorizar
+## Componentes do aplicativo instalado
 
 - **Um único executável C-SKY** `alencarsoft_tvbox_csky`, compilado no GitHub
   Actions a partir da branch revisada. Ele contém o pacote de CAs embutido;
@@ -18,7 +21,7 @@ como estado atual. O trabalho novo está na branch `codex/native-iptv-repair`. C
   `v1.0.8-native` é antiga e **não contém** o backend DLNA atual. O job de
   release não publica esta branch.
 
-## Procedimento reversível para a sessão futura
+## Procedimento reversível para futuras atualizações
 
 1. Confirmar autorização para atualizar/testar, descobrir o IP atual da box
    (não assumir `192.168.18.23`) e verificar que `dvbapp` está ativo. Checar

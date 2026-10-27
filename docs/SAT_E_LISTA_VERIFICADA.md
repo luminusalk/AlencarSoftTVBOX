@@ -13,7 +13,9 @@ e executa o modo C `--sat-daemon` quando necessário. O binário continua em
 `/mnt/plugin/alencarsoft_tvbox`. O log fica em
 `%LOCALAPPDATA%\AlencarSoftTVBOX\sat_boot_watcher.log`. Em teste com reboot,
 o IP mudou de `192.168.137.35` para `192.168.137.149` e o monitor reativou o
-daemon. O atalho depende do notebook ligado, conectado e com a sessão iniciada.
+daemon. O monitor também ajusta o relógio UTC quando a box volta para 1970;
+sem isso a validação HTTPS do certificado da TV Cultura falha com `-9984`.
+O atalho depende do notebook ligado, conectado e com a sessão iniciada.
 Para remover só o monitor do notebook, rode `tools/uninstall_sat_watcher.ps1`.
 
 `tools/scan_live_channels.py` percorre todos os M3U do repositório local
@@ -31,3 +33,8 @@ anterior em `/mnt/plugin/iptv/iptv.before-verified.m3u8` e atualiza a cópia de
 fallback em `/mnt/plugin/lists/Canais ao Vivo.m3u`. O app C lê o catálogo quando
 é aberto. Fluxo válido no computador é uma triagem; imagem e som de cada canal
 dependem de confirmação na TV e podem mudar quando a fonte expirar.
+
+A versão C compilada no run de CI `40563865386` elimina o quadro transparente
+inicial e, enquanto a grade está aberta, restaura linhas do framebuffer que
+o `dvbapp` redesenhar. Os testes Linux do CI e o build C-SKY passaram. A
+confirmação visual do flicker após reboot ainda depende da observação na TV.

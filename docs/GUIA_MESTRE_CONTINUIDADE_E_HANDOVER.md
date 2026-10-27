@@ -1,5 +1,10 @@
 # Guia mestre de continuidade — IPTV C no Azamerica S1009+
 
+> Atualização de 27/10/2026: para o estado atual da tecla SAT após reboot,
+> correção do relógio HTTPS, catálogo de 300 canais e diagnóstico de flicker,
+> leia [SAT e lista verificada](SAT_E_LISTA_VERIFICADA.md). O conteúdo abaixo
+> registra fases anteriores e pode não representar o binário agora instalado.
+
 ## Atualização prioritária: controle exclusivo integrado
 
 Em 25/10/2026 o usuário confirmou Cultura com imagem/som no teste de isolamento

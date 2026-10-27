@@ -1,616 +1,601 @@
 #EXTM3U
-#EXTINF:-1 tvg-logo="https://raw.githubusercontent.com/luminusalk/AlencarSoftTVBOX/master/assets/cultura.png" group-title="Notícias — Apuração",TV Cultura HD
-#EXTGRP:Notícias — Apuração
+#EXTINF:-1 group-title="Notícias",TV Cultura HD
 https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8?vhost=player-tvcultura.stream.uol.com.br
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBONEWS.png" group-title="Notícias — Apuração",GloboNews [1080p FULL HD]
-#EXTGRP:Notícias — Apuração
-http://dns.explouddev.com:80/632270679/F823j7133R/479
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBONEWS.png" group-title="Notícias — Apuração",GloboNews [720p HD]
-#EXTGRP:Notícias — Apuração
-http://dns.explouddev.com:80/632270679/F823j7133R/478
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/CNNBRASIL.png" group-title="Notícias — Apuração",CNN Brasil [1080p FULL HD]
-#EXTGRP:Notícias — Apuração
-http://dns.explouddev.com:80/632270679/F823j7133R/474
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/CNNBRASIL.png" group-title="Notícias — Apuração",CNN Brasil [720p HD]
-#EXTGRP:Notícias — Apuração
-http://dns.explouddev.com:80/632270679/F823j7133R/472
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/BANDNEWS.png" group-title="Notícias — Apuração",BandNews [1080p FULL HD]
-#EXTGRP:Notícias — Apuração
-http://dns.explouddev.com:80/632270679/F823j7133R/469
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/BANDNEWS.png" group-title="Notícias — Apuração",BandNews [720p HD]
-#EXTGRP:Notícias — Apuração
+#EXTINF:-1 group-title="Notícias",BandNews [720p HD]
 http://dns.explouddev.com:80/632270679/F823j7133R/467
-#EXTINF:-1 tvg-logo="http://media.jovempan.com.br/uploads/2018/07/JPNews-imagem-pagina-e1530887165749.png" group-title="Notícias — Apuração",Jovem Pan News [1080p FULL HD]
-#EXTGRP:Notícias — Apuração
-http://dns.explouddev.com:80/632270679/F823j7133R/483
-#EXTINF:-1 tvg-logo="http://media.jovempan.com.br/uploads/2018/07/JPNews-imagem-pagina-e1530887165749.png" group-title="Notícias — Apuração",Jovem Pan News [720p HD]
-#EXTGRP:Notícias — Apuração
+#EXTINF:-1 group-title="Notícias",BR: BAND NEWS
+http://31.43.191.125:8080/restream/restream/4834
+#EXTINF:-1 group-title="Notícias",Jovem Pan News [720p HD]
 http://dns.explouddev.com:80/632270679/F823j7133R/482
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/RECORDNEWS.png" group-title="Notícias — Apuração",Record News [1080p FULL HD]
-#EXTGRP:Notícias — Apuração
-http://dns.explouddev.com:80/632270679/F823j7133R/488
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/RECORDNEWS.png" group-title="Notícias — Apuração",Record News [720p HD]
-#EXTGRP:Notícias — Apuração
-http://dns.explouddev.com:80/632270679/F823j7133R/486
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SBT.png" group-title="Notícias — Apuração",SBT News [1080p FULL HD]
-#EXTGRP:Notícias — Apuração
-http://dns.explouddev.com:80/632270679/F823j7133R/599766
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SBT.png" group-title="Notícias — Apuração",SBT News [720p HD]
-#EXTGRP:Notícias — Apuração
+#EXTINF:-1 group-title="Notícias",Jovem Pan News HD
+http://64.31.23.207:80/96795792/50165825/5298081.ts
+#EXTINF:-1 group-title="Notícias",CNN Brasil [720p HD]
+http://dns.explouddev.com:80/632270679/F823j7133R/472
+#EXTINF:-1 group-title="Notícias",CNN Brasil [1080p FULL HD]
+http://dns.explouddev.com:80/632270679/F823j7133R/474
+#EXTINF:-1 group-title="Notícias",SBT News [720p HD]
 http://dns.explouddev.com:80/632270679/F823j7133R/599767
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/bloomberg.png" group-title="Notícias — Apuração",Bloomberg [720p HD]
-#EXTGRP:Notícias — Apuração
-http://dns.explouddev.com:80/632270679/F823j7133R/489
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBO.png" group-title="Canais Abertos",Globo SP [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/289881
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBO.png" group-title="Canais Abertos",Globo SP [720p HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/289883
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBO.png" group-title="Canais Abertos",Globo RJ [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/2376
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBO.png" group-title="Canais Abertos",Globo RJ [720p HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/2374
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBO.png" group-title="Canais Abertos",Globo MG [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/2380
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBO.png" group-title="Canais Abertos",Globo MG [720p HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/2378
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBO.png" group-title="Canais Abertos",Globo DF [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/2452
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBO.png" group-title="Canais Abertos",Globo DF [720p HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/2451
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBO.png" group-title="Canais Abertos",Globo Nordeste [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/2428
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBO.png" group-title="Canais Abertos",Globo Nordeste [720p HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/2427
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SBT.png" group-title="Canais Abertos",SBT SP [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/244161
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SBT.png" group-title="Canais Abertos",SBT SP [720p HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/244167
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SBT.png" group-title="Canais Abertos",SBT RJ [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/244173
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SBT.png" group-title="Canais Abertos",SBT RJ [720p HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/244174
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SBT.png" group-title="Canais Abertos",SBT RS [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/244181
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SBT.png" group-title="Canais Abertos",SBT RS [720p HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/244182
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/RECORDTV.png" group-title="Canais Abertos",RecordTV SP [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/244071
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/RECORDTV.png" group-title="Canais Abertos",RecordTV SP [720p HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/244075
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/RECORDTV.png" group-title="Canais Abertos",RecordTV RJ [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/528661
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/RECORDTV.png" group-title="Canais Abertos",RecordTV RJ [720p HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/528662
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/RECORDTV.png" group-title="Canais Abertos",RecordTV Minas [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/244098
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/RECORDTV.png" group-title="Canais Abertos",RecordTV Minas [720p HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/244099
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/BAND.png" group-title="Canais Abertos",Band SP [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/255465
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/BAND.png" group-title="Canais Abertos",Band SP [720p HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/255467
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/REDETV!.png" group-title="Canais Abertos",RedeTV! [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/80170
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/REDETV!.png" group-title="Canais Abertos",RedeTV! [720p HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/80172
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TVCULTURA.png" group-title="Canais Abertos",TV Cultura [720p HD]
-#EXTGRP:Canais Abertos
-https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8?vhost=player-tvcultura.stream.uol.com.br
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TVBRASIL.png" group-title="Canais Abertos",TV Brasil [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/364678
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TVBRASIL.png" group-title="Canais Abertos",TV Brasil [720p HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/165
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBO.png" group-title="Canais Abertos",TV Gazeta [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/2440
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBO.png" group-title="Canais Abertos",TV Gazeta [720p HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/2439
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/REDEVIDA.png" group-title="Canais Abertos",Rede Vida [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/198
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/REDEVIDA.png" group-title="Canais Abertos",Rede Vida [720p HD]
-#EXTGRP:Canais Abertos
+#EXTINF:-1 group-title="Notícias",SBT News [1080p FULL HD]
+http://dns.explouddev.com:80/632270679/F823j7133R/599766
+#EXTINF:-1 group-title="Notícias",GloboNews [1080p FULL HD]
+http://dns.explouddev.com:80/632270679/F823j7133R/479
+#EXTINF:-1 group-title="Notícias",Globo News HD
+http://64.31.23.207:80/96795792/50165825/5298078.ts
+#EXTINF:-1 group-title="Notícias",Record News [1080p FULL HD]
+http://dns.explouddev.com:80/632270679/F823j7133R/488
+#EXTINF:-1 group-title="Notícias",Record News HD
+http://64.31.23.207:80/96795792/50165825/5298084.ts
+#EXTINF:-1 group-title="Notícias",Cultura HD
+http://64.31.23.207:80/96795792/50165825/5298049.ts
+#EXTINF:-1 group-title="Notícias",Cultura FHD
+http://64.31.23.207:80/96795792/50165825/5298048.ts
+#EXTINF:-1 group-title="Notícias",BAND NEWS HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30171.ts
+#EXTINF:-1 group-title="Notícias",CNN BRASIL HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30166.ts
+#EXTINF:-1 group-title="Notícias",CNN BRASIL HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30167.ts
+#EXTINF:-1 group-title="Notícias",JOVEM PAN HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/167985.ts
+#EXTINF:-1 group-title="Notícias",JOVEM PAN FHD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/167984.ts
+#EXTINF:-1 group-title="Notícias",GLOBO NEWS HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30169.ts
+#EXTINF:-1 group-title="Notícias",GLOBO NEWS HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30168.ts
+#EXTINF:-1 group-title="Notícias",RECORD NEWS HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30170.ts
+#EXTINF:-1 group-title="Notícias",TV SENADO HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/69027.ts
+#EXTINF:-1 group-title="Notícias",TV Senado
+http://64.31.23.207:80/96795792/50165825/5298067.ts
+#EXTINF:-1 group-title="Notícias",TV Camara
+http://64.31.23.207:80/96795792/50165825/5298063.ts
+#EXTINF:-1 group-title="Notícias",TV CÂMARA FHD
+http://dns.explouddev.com:80/632270679/F823j7133R/368851
+#EXTINF:-1 group-title="Notícias",CULTURA PA
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/21022.ts
+#EXTINF:-1 group-title="Notícias",BAND NEWS FHD H.265
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/81596.ts
+#EXTINF:-1 group-title="Notícias",CNN BRASIL FHD H.265
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/81597.ts
+#EXTINF:-1 group-title="Notícias",GLOBO NEWS FHD H.265
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/81598.ts
+#EXTINF:-1 group-title="Notícias",SBT NEWS FHD H.265
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1129618.ts
+#EXTINF:-1 group-title="Canais Abertos",Rede Vida [720p HD]
 http://dns.explouddev.com:80/632270679/F823j7133R/197
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TVAPARECIDA.png" group-title="Canais Abertos",TV Aparecida [1080p FULL HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/190
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TVAPARECIDA.png" group-title="Canais Abertos",TV Aparecida [720p HD]
-#EXTGRP:Canais Abertos
-http://dns.explouddev.com:80/632270679/F823j7133R/189
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SPORTV.png" group-title="Esportes",SporTV 1 [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/118881
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SPORTV.png" group-title="Esportes",SporTV 1 [720p HD]
-#EXTGRP:Esportes
+#EXTINF:-1 group-title="Canais Abertos",REDE VIDA HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9076.ts
+#EXTINF:-1 group-title="Canais Abertos",RecordTV Campos Dos Goytacazes HD
+http://dns.explouddev.com:80/632270679/F823j7133R/613045
+#EXTINF:-1 group-title="Canais Abertos",RecordTV Campos Dos Goytacazes SD
+http://dns.explouddev.com:80/632270679/F823j7133R/613046
+#EXTINF:-1 group-title="Canais Abertos",SBT RS [720p HD]
+http://dns.explouddev.com:80/632270679/F823j7133R/244182
+#EXTINF:-1 group-title="Canais Abertos",SBT RS HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/91907.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Nordeste [720p HD]
+http://dns.explouddev.com:80/632270679/F823j7133R/2427
+#EXTINF:-1 group-title="Canais Abertos",Globo Nordeste FHD
+http://64.31.23.207:80/96795792/50165825/5299057.ts
+#EXTINF:-1 group-title="Canais Abertos",Band SP [720p HD]
+http://dns.explouddev.com:80/632270679/F823j7133R/255467
+#EXTINF:-1 group-title="Canais Abertos",Band SP FHD
+http://64.31.23.207:80/96795792/50165825/324371.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT RJ [720p HD]
+http://dns.explouddev.com:80/632270679/F823j7133R/244174
+#EXTINF:-1 group-title="Canais Abertos",SBT RJ FHD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/131563.ts
+#EXTINF:-1 group-title="Canais Abertos",RecordTV SP [720p HD]
+http://dns.explouddev.com:80/632270679/F823j7133R/244075
+#EXTINF:-1 group-title="Canais Abertos",Record TV SP FHD
+http://64.31.23.207:80/96795792/50165825/5298124.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo SP [720p HD]
+http://dns.explouddev.com:80/632270679/F823j7133R/289883
+#EXTINF:-1 group-title="Canais Abertos",Globo SP FHD
+http://64.31.23.207:80/96795792/50165825/5298295.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo DF [720p HD]
+http://dns.explouddev.com:80/632270679/F823j7133R/2451
+#EXTINF:-1 group-title="Canais Abertos",Globo MG [720p HD]
+http://dns.explouddev.com:80/632270679/F823j7133R/2378
+#EXTINF:-1 group-title="Canais Abertos",RecordTV RJ [720p HD]
+http://dns.explouddev.com:80/632270679/F823j7133R/528662
+#EXTINF:-1 group-title="Canais Abertos",RedeTV! [720p HD]
+http://dns.explouddev.com:80/632270679/F823j7133R/80172
+#EXTINF:-1 group-title="Canais Abertos",RedeTV! FHD
+http://64.31.23.207:80/96795792/50165825/5298055.ts
+#EXTINF:-1 group-title="Canais Abertos",BR: GLOBO EPTV CAMPINAS
+http://31.43.191.125:8080/restream/restream/4862
+#EXTINF:-1 group-title="Canais Abertos",Globo EPTV Campinas HD
+http://64.31.23.207:80/96795792/50165825/5298270.ts
+#EXTINF:-1 group-title="Canais Abertos",BR: SBT
+http://31.43.191.125:8080/restream/restream/4898
+#EXTINF:-1 group-title="Canais Abertos",SBT HD
+http://64.31.23.207:80/96795792/50165825/324292.ts
+#EXTINF:-1 group-title="Canais Abertos",BR: Record SP
+http://31.43.191.125:8080/restream/restream/58731
+#EXTINF:-1 group-title="Canais Abertos",RECORD SP HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/12888.ts
+#EXTINF:-1 group-title="Canais Abertos",Band Campinas HD
+http://64.31.23.207:80/96795792/50165825/324353.ts
+#EXTINF:-1 group-title="Canais Abertos",Band Campinas FHD
+http://64.31.23.207:80/96795792/50165825/324352.ts
+#EXTINF:-1 group-title="Canais Abertos",Band Curitiba HD
+http://64.31.23.207:80/96795792/50165825/324355.ts
+#EXTINF:-1 group-title="Canais Abertos",Band Curitiba FHD
+http://64.31.23.207:80/96795792/50165825/324354.ts
+#EXTINF:-1 group-title="Canais Abertos",BAND HD
+http://64.31.23.207:80/96795792/50165825/324358.ts
+#EXTINF:-1 group-title="Canais Abertos",BAND FHD
+http://64.31.23.207:80/96795792/50165825/324357.ts
+#EXTINF:-1 group-title="Canais Abertos",Band Minas HD
+http://64.31.23.207:80/96795792/50165825/324361.ts
+#EXTINF:-1 group-title="Canais Abertos",Band Minas FHD
+http://64.31.23.207:80/96795792/50165825/5299035.ts
+#EXTINF:-1 group-title="Canais Abertos",Band Pará HD
+http://64.31.23.207:80/96795792/50165825/324362.ts
+#EXTINF:-1 group-title="Canais Abertos",Band Recife TV Tribuna HD
+http://64.31.23.207:80/96795792/50165825/324365.ts
+#EXTINF:-1 group-title="Canais Abertos",Band Recife TV Tribuna FHD
+http://64.31.23.207:80/96795792/50165825/324364.ts
+#EXTINF:-1 group-title="Canais Abertos",Band RJ HD
+http://64.31.23.207:80/96795792/50165825/324366.ts
+#EXTINF:-1 group-title="Canais Abertos",Band RJ HD
+http://dns.explouddev.com:80/632270679/F823j7133R/255475
+#EXTINF:-1 group-title="Canais Abertos",Band RS HD
+http://64.31.23.207:80/96795792/50165825/324368.ts
+#EXTINF:-1 group-title="Canais Abertos",BAND RS HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/72575.ts
+#EXTINF:-1 group-title="Canais Abertos",Band Sergipe HD
+http://64.31.23.207:80/96795792/50165825/324370.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RPC Curitiba HD
+http://64.31.23.207:80/96795792/50165825/5298291.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RPC Curitiba FHD
+http://64.31.23.207:80/96795792/50165825/5298290.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT Alterosa HD*
+http://64.31.23.207:80/96795792/50165825/324287.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT GO HD
+http://64.31.23.207:80/96795792/50165825/324291.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT SP HD
+http://64.31.23.207:80/96795792/50165825/324308.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT SP FHD
+http://64.31.23.207:80/96795792/50165825/324307.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT Piaui HD
+http://64.31.23.207:80/96795792/50165825/324309.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT PIAUI HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/131432.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT Minas HD
+http://64.31.23.207:80/96795792/50165825/324310.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT Maringa HD
+http://64.31.23.207:80/96795792/50165825/324311.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT Londrina HD
+http://64.31.23.207:80/96795792/50165825/324312.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT TV Jornal PE HD
+http://64.31.23.207:80/96795792/50165825/324313.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Brasília HD
+http://64.31.23.207:80/96795792/50165825/5298109.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Brasília FHD
+http://64.31.23.207:80/96795792/50165825/5298108.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Itapoan HD
+http://64.31.23.207:80/96795792/50165825/5298113.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Itapoan FHD
+http://64.31.23.207:80/96795792/50165825/5298112.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Rio HD
+http://64.31.23.207:80/96795792/50165825/5298119.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Rio FHD
+http://64.31.23.207:80/96795792/50165825/5298118.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Bahia HD
+http://64.31.23.207:80/96795792/50165825/5299038.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Bahia SD
+http://64.31.23.207:80/96795792/50165825/5299039.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV RS HD
+http://64.31.23.207:80/96795792/50165825/5298122.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV RS FHD
+http://64.31.23.207:80/96795792/50165825/5298121.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Bh HD
+http://64.31.23.207:80/96795792/50165825/5299041.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Bh FHD
+http://64.31.23.207:80/96795792/50165825/5299040.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Belem HD
+http://64.31.23.207:80/96795792/50165825/5298107.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Minas HD
+http://64.31.23.207:80/96795792/50165825/5298116.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Minas FHD
+http://64.31.23.207:80/96795792/50165825/5298115.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Juara HD
+http://64.31.23.207:80/96795792/50165825/5298129.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Mirante São Luís HD
+http://64.31.23.207:80/96795792/50165825/5299047.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Juina HD
+http://64.31.23.207:80/96795792/50165825/5298128.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Parana HD
+http://64.31.23.207:80/96795792/50165825/5298131.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Parana FHD
+http://64.31.23.207:80/96795792/50165825/5298130.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV SJ Rio Preto HD
+http://64.31.23.207:80/96795792/50165825/5298134.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV SJ Rio Preto FHD
+http://64.31.23.207:80/96795792/50165825/5298133.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RJ Interior HD
+http://64.31.23.207:80/96795792/50165825/5299062.ts
+#EXTINF:-1 group-title="Canais Abertos",Band Bahia HD
+http://64.31.23.207:80/96795792/50165825/5299033.ts
+#EXTINF:-1 group-title="Canais Abertos",BAND BAHIA
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1166299.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Morena Ponta Porã HD
+http://64.31.23.207:80/96795792/50165825/5299049.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Morena Ponta Porã FHD
+http://64.31.23.207:80/96795792/50165825/5299048.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Recife HD
+http://64.31.23.207:80/96795792/50165825/5299073.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Recife FHD
+http://64.31.23.207:80/96795792/50165825/5299072.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Bahia HD
+http://64.31.23.207:80/96795792/50165825/5299065.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Bahia FHD
+http://64.31.23.207:80/96795792/50165825/5299064.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Verdes Mares CE HD
+http://64.31.23.207:80/96795792/50165825/5299078.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Verdes Mares CE FHD
+http://64.31.23.207:80/96795792/50165825/5299077.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Inter PT HD
+http://64.31.23.207:80/96795792/50165825/5299055.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Diário Mogi HD
+http://64.31.23.207:80/96795792/50165825/5299069.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Mirante São Luis HD
+http://64.31.23.207:80/96795792/50165825/5299071.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Mirante São Luis FHD
+http://64.31.23.207:80/96795792/50165825/5299070.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Brasília HD
+http://64.31.23.207:80/96795792/50165825/5299082.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Brasília FHD
+http://64.31.23.207:80/96795792/50165825/5299081.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Cabo Branco HD
+http://64.31.23.207:80/96795792/50165825/5299068.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Cabo Branco FHD
+http://64.31.23.207:80/96795792/50165825/5299067.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Centro America HD
+http://64.31.23.207:80/96795792/50165825/5299086.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Centro America FHD
+http://64.31.23.207:80/96795792/50165825/5299085.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Subaé BA HD
+http://64.31.23.207:80/96795792/50165825/5299076.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Mirante Balsas HD
+http://64.31.23.207:80/96795792/50165825/5299080.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Sergipe HD
+http://64.31.23.207:80/96795792/50165825/5299075.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Sergipe FHD
+http://64.31.23.207:80/96795792/50165825/5299074.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Morena HD
+http://64.31.23.207:80/96795792/50165825/5299097.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Morena FHD
+http://64.31.23.207:80/96795792/50165825/5299096.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Vanguarda SJC HD
+http://64.31.23.207:80/96795792/50165825/5299100.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Vanguarda SJC FHD
+http://64.31.23.207:80/96795792/50165825/5299099.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Bahia Santa Cruz HD
+http://64.31.23.207:80/96795792/50165825/5299107.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo NSC Florianopolis HD
+http://64.31.23.207:80/96795792/50165825/5299109.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo NSC Florianopolis FHD
+http://64.31.23.207:80/96795792/50165825/5299108.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Anhanguera Goiania HD
+http://64.31.23.207:80/96795792/50165825/5299091.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Anhanguera Goiania FHD
+http://64.31.23.207:80/96795792/50165825/5299090.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RBS TV Porto Alegre HD
+http://64.31.23.207:80/96795792/50165825/5299121.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RBS TV Porto Alegre FHD
+http://64.31.23.207:80/96795792/50165825/5299120.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Anhanguera Tocantins HD
+http://64.31.23.207:80/96795792/50165825/5299092.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO TV ANHANGUERA TOCANTINS HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1169025.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RPC Cascavel HD
+http://64.31.23.207:80/96795792/50165825/5299123.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RPC Londrina HD
+http://64.31.23.207:80/96795792/50165825/5299125.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO RPC LONDRINA HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1169013.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Brasilia HD
+http://64.31.23.207:80/96795792/50165825/5299094.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Brasilia FHD
+http://64.31.23.207:80/96795792/50165825/5299093.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Chapecó HD
+http://64.31.23.207:80/96795792/50165825/5299102.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Chapecó FHD
+http://64.31.23.207:80/96795792/50165825/5299101.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Santa Maria HD
+http://64.31.23.207:80/96795792/50165825/5299106.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RBS TV Caxias do Sul HD
+http://64.31.23.207:80/96795792/50165825/5299119.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO RBS TV CAXIAS DO SUL HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1168998.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RBS TV Pelotas HD
+http://64.31.23.207:80/96795792/50165825/5299132.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RBS TV Pelotas SD
+http://64.31.23.207:80/96795792/50165825/5299133.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RBS Santa Cruz HD
+http://64.31.23.207:80/96795792/50165825/5299118.ts
+#EXTINF:-1 group-title="Esportes",SporTV 1 [720p HD]
 http://dns.explouddev.com:80/632270679/F823j7133R/547
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SPORTV.png" group-title="Esportes",SporTV 2 [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/554
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SPORTV.png" group-title="Esportes",SporTV 2 [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/552
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SPORTV.png" group-title="Esportes",SporTV 3 [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/559
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SPORTV.png" group-title="Esportes",SporTV 3 [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/557
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SPORTV.png" group-title="Esportes",SporTV 4 [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/567893
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SPORTV.png" group-title="Esportes",SporTV 4 [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/567895
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SPORTV.png" group-title="Esportes",SporTV 5 [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/613662
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SPORTV.png" group-title="Esportes",SporTV 5 [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/613663
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/ESPN.png" group-title="Esportes",ESPN 1 [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/309458
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/ESPN.png" group-title="Esportes",ESPN 1 [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/520127
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/ESPN.png" group-title="Esportes",ESPN 2 [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/215
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/ESPN.png" group-title="Esportes",ESPN 2 [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/213
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/ESPN.png" group-title="Esportes",ESPN 3 [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/220
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/ESPN.png" group-title="Esportes",ESPN 3 [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/218
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/ESPN.png" group-title="Esportes",ESPN 4 [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/225
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/ESPN.png" group-title="Esportes",ESPN 4 [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/223
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/ESPN.png" group-title="Esportes",ESPN 5 [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/563030
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/ESPN.png" group-title="Esportes",ESPN 5 [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/563031
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/BANDSPORTS.png" group-title="Esportes",Band Sports [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/235
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/BANDSPORTS.png" group-title="Esportes",Band Sports [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/233
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/PREMIERE.png" group-title="Esportes",Premiere Clubes [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/494
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/PREMIERE.png" group-title="Esportes",Premiere Clubes [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/492
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/PREMIERE.png" group-title="Esportes",Premiere 2 [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/499
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/PREMIERE.png" group-title="Esportes",Premiere 2 [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/497
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/PREMIERE.png" group-title="Esportes",Premiere 3 [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/504
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/PREMIERE.png" group-title="Esportes",Premiere 3 [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/502
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/PREMIERE.png" group-title="Esportes",Premiere 4 [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/509
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/PREMIERE.png" group-title="Esportes",Premiere 4 [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/507
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/PREMIERE.png" group-title="Esportes",Premiere 5 [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/514
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/PREMIERE.png" group-title="Esportes",Premiere 5 [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/512
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/PREMIERE.png" group-title="Esportes",Premiere 6 [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/519
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/PREMIERE.png" group-title="Esportes",Premiere 6 [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/517
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/PREMIERE.png" group-title="Esportes",Premiere 7 [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/524
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/PREMIERE.png" group-title="Esportes",Premiere 7 [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/522
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/COMBATE.png" group-title="Esportes",Combate [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/240
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/COMBATE.png" group-title="Esportes",Combate [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/238
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/CAZETV.png" group-title="Esportes",CazéTV [1080p FULL HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/254102
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/CAZETV.png" group-title="Esportes",CazéTV [720p HD]
-#EXTGRP:Esportes
-http://dns.explouddev.com:80/632270679/F823j7133R/254104
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/NBALEAGUEPASS.png" group-title="Esportes",NBA TV [720p HD]
-#EXTGRP:Esportes
+#EXTINF:-1 group-title="Esportes",BR: SPORTV 1
+http://31.43.191.125:8080/restream/restream/4902
+#EXTINF:-1 group-title="Esportes",Eurosport 2  HD
+http://89.44.231.117:7000/eurosport2
+#EXTINF:-1 group-title="Esportes",Eurosport 2 HD
+http://89.44.231.73:7000/eurosport2
+#EXTINF:-1 group-title="Esportes",Eurosport HD
+http://89.44.231.117:7000/eurosport
+#EXTINF:-1 group-title="Esportes",Eurosport HD
+http://89.44.231.73:7000/eurosport
+#EXTINF:-1 group-title="Esportes",BR: BAND SPORT
+http://31.43.191.125:8080/restream/restream/4835
+#EXTINF:-1 group-title="Esportes",BR: ESPN 2
+http://31.43.191.125:8080/restream/restream/4855
+#EXTINF:-1 group-title="Esportes",ESPN 2 HD
+http://64.31.23.207:80/96795792/50165825/3460186.ts
+#EXTINF:-1 group-title="Esportes",BR: ESPN4
+http://31.43.191.125:8080/restream/restream/4859
+#EXTINF:-1 group-title="Esportes",ESPN 4 HD
+http://64.31.23.207:80/96795792/50165825/3460192.ts
+#EXTINF:-1 group-title="Esportes",BR: PREMIERE 2
+http://31.43.191.125:8080/restream/restream/4887
+#EXTINF:-1 group-title="Esportes",Premiere 2 HD
+http://64.31.23.207:80/96795792/50165825/3460213.ts
+#EXTINF:-1 group-title="Esportes",BR: FOX SPORTS 2
+http://31.43.191.125:8080/restream/restream/4860
+#EXTINF:-1 group-title="Esportes",BR: PREMIERE 5
+http://31.43.191.125:8080/restream/restream/4890
+#EXTINF:-1 group-title="Esportes",Premiere 5 FHD
+http://64.31.23.207:80/96795792/50165825/3460221.ts
+#EXTINF:-1 group-title="Esportes",BR: PREMIERE 3
+http://31.43.191.125:8080/restream/restream/4888
+#EXTINF:-1 group-title="Esportes",Premiere 3 FHD
+http://64.31.23.207:80/96795792/50165825/3460215.ts
+#EXTINF:-1 group-title="Esportes",BR: SPORTV 2
+http://31.43.191.125:8080/restream/restream/4903
+#EXTINF:-1 group-title="Esportes",SporTV+ 2 HD
+http://64.31.23.207:80/96795792/50165825/5299160.ts
+#EXTINF:-1 group-title="Esportes",BR: SPORTV 3
+http://31.43.191.125:8080/restream/restream/4904
+#EXTINF:-1 group-title="Esportes",SporTV+ 3 HD
+http://64.31.23.207:80/96795792/50165825/5299161.ts
+#EXTINF:-1 group-title="Esportes",BR: PREMIERE CLUBES
+http://31.43.191.125:8080/restream/restream/4892
+#EXTINF:-1 group-title="Esportes",PREMIERE CLUBES FHD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9037.ts
+#EXTINF:-1 group-title="Esportes",NBA TV [720p HD]
 http://dns.explouddev.com:80/632270679/F823j7133R/254078
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HBO.png" group-title="Filmes e Séries",HBO [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/543987
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HBO.png" group-title="Filmes e Séries",HBO [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/543988
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HBO.png" group-title="Filmes e Séries",HBO 2 [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/18755
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HBO.png" group-title="Filmes e Séries",HBO 2 [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/18756
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HBO.png" group-title="Filmes e Séries",HBO Plus [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/559662
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HBO.png" group-title="Filmes e Séries",HBO Plus [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/559663
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HBO.png" group-title="Filmes e Séries",HBO Family [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/18759
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HBO.png" group-title="Filmes e Séries",HBO Family [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/18760
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HBO.png" group-title="Filmes e Séries",HBO Signature [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/559665
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HBO.png" group-title="Filmes e Séries",HBO Signature [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/559666
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HBO.png" group-title="Filmes e Séries",HBO Mundi [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/559668
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HBO.png" group-title="Filmes e Séries",HBO Mundi [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/559669
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HBO.png" group-title="Filmes e Séries",HBO Pop [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/559671
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HBO.png" group-title="Filmes e Séries",HBO Pop [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/559672
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/MEGAPIX.png" group-title="Filmes e Séries",Megapix [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/692
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/MEGAPIX.png" group-title="Filmes e Séries",Megapix [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/690
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TNT.png" group-title="Filmes e Séries",TNT [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/264555
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TNT.png" group-title="Filmes e Séries",TNT [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/264556
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TNTSERIES.png" group-title="Filmes e Séries",TNT Series [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/738
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TNTSERIES.png" group-title="Filmes e Séries",TNT Series [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/736
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TNT.png" group-title="Filmes e Séries",TNT Novelas [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/264555
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TNT.png" group-title="Filmes e Séries",TNT Novelas [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/264556
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SPACE.png" group-title="Filmes e Séries",Space [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/707
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SPACE.png" group-title="Filmes e Séries",Space [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/705
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/WARNERCHANNEL.png" group-title="Filmes e Séries",Warner Channel [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/749
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/WARNERCHANNEL.png" group-title="Filmes e Séries",Warner Channel [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/746
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/STUDIOUNIVERSAL.png" group-title="Filmes e Séries",Universal TV [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/713
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/STUDIOUNIVERSAL.png" group-title="Filmes e Séries",Universal TV [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/711
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TELECINE.png" group-title="Filmes e Séries",Telecine Premium [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/543963
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TELECINE.png" group-title="Filmes e Séries",Telecine Premium [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/543964
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TELECINE.png" group-title="Filmes e Séries",Telecine Action [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/615
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TELECINE.png" group-title="Filmes e Séries",Telecine Action [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/613
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TELECINE.png" group-title="Filmes e Séries",Telecine Touch [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/543957
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TELECINE.png" group-title="Filmes e Séries",Telecine Touch [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/543958
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TELECINE.png" group-title="Filmes e Séries",Telecine Fun [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/559656
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TELECINE.png" group-title="Filmes e Séries",Telecine Fun [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/559657
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TELECINE.png" group-title="Filmes e Séries",Telecine Pipoca [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/543960
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TELECINE.png" group-title="Filmes e Séries",Telecine Pipoca [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/543961
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TELECINE.png" group-title="Filmes e Séries",Telecine Cult [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/543954
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TELECINE.png" group-title="Filmes e Séries",Telecine Cult [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/543955
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/CINEMAX.png" group-title="Filmes e Séries",Cinemax [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/682
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/CINEMAX.png" group-title="Filmes e Séries",Cinemax [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/680
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/AXN.png" group-title="Filmes e Séries",AXN [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/676
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/AXN.png" group-title="Filmes e Séries",AXN [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/674
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SONYCHANNEL.png" group-title="Filmes e Séries",Sony Channel [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/702
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SONYCHANNEL.png" group-title="Filmes e Séries",Sony Channel [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/700
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/PARAMOUNTPLUS.png" group-title="Filmes e Séries",Paramount Network [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/250563
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/PARAMOUNTPLUS.png" group-title="Filmes e Séries",Paramount Network [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/250560
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/STUDIOUNIVERSAL.png" group-title="Filmes e Séries",Studio Universal [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/713
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/STUDIOUNIVERSAL.png" group-title="Filmes e Séries",Studio Universal [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/711
-#EXTINF:-1 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/8/8e/CanalBrasil_logos_700px_0-03.png" group-title="Filmes e Séries",Canal Brasil [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/146
-#EXTINF:-1 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/8/8e/CanalBrasil_logos_700px_0-03.png" group-title="Filmes e Séries",Canal Brasil [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/145
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/A&E.png" group-title="Filmes e Séries",A&E [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/666
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/A&E.png" group-title="Filmes e Séries",A&E [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/664
-#EXTINF:-1 tvg-logo="https://image.tmdb.org/t/p/w600_and_h900_bestv2/A5Pt5eksuxKFC6EUIKTW4qsSAEH.jpg" group-title="Filmes e Séries",FX [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/movie/632270679/F823j7133R/1252.mp4
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TCM.png" group-title="Filmes e Séries",TCM [1080p FULL HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/740
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/EUA.png" group-title="Filmes e Séries",Comedy Central [720p HD]
-#EXTGRP:Filmes e Séries
-http://dns.explouddev.com:80/632270679/F823j7133R/285541
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HISTORY.png" group-title="Documentários e Variedades",History Channel [1080p FULL HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2617
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HISTORY.png" group-title="Documentários e Variedades",History Channel [720p HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2615
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HISTORY.png" group-title="Documentários e Variedades",History 2 [1080p FULL HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2622
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HISTORY.png" group-title="Documentários e Variedades",History 2 [720p HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2620
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/DISCOVERYCHANNEL.png" group-title="Documentários e Variedades",Discovery Channel [1080p FULL HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2577
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/DISCOVERYCHANNEL.png" group-title="Documentários e Variedades",Discovery Channel [720p HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2575
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/DISCOVERYTURBO.png" group-title="Documentários e Variedades",Discovery Turbo [1080p FULL HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2592
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/DISCOVERYTURBO.png" group-title="Documentários e Variedades",Discovery Turbo [720p HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2590
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/DISCOVERYSCIENCE.png" group-title="Documentários e Variedades",Discovery Science [1080p FULL HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2582
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/DISCOVERYSCIENCE.png" group-title="Documentários e Variedades",Discovery Science [720p HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2580
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/DISCOVERYTHEATER.png" group-title="Documentários e Variedades",Discovery Theater [1080p FULL HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2587
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/DISCOVERYTHEATER.png" group-title="Documentários e Variedades",Discovery Theater [720p HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2585
-#EXTINF:-1 tvg-logo="http://beststorage4you.com/logoscanais/DISCOVERYHOME&HEALTH.png" group-title="Documentários e Variedades",Discovery Home & Health [1080p FULL HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2572
-#EXTINF:-1 tvg-logo="http://beststorage4you.com/logoscanais/DISCOVERYHOME&HEALTH.png" group-title="Documentários e Variedades",Discovery Home & Health [720p HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2570
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/ANIMALPLANET.png" group-title="Documentários e Variedades",Animal Planet [1080p FULL HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2602
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/ANIMALPLANET.png" group-title="Documentários e Variedades",Animal Planet [720p HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/365234
-#EXTINF:-1 tvg-logo="https://image.tmdb.org/t/p/w600_and_h900_bestv2/3ztnTPFeXyGH0gZ2WFpUKkb8Iou.jpg" group-title="Documentários e Variedades",National Geographic [720p HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/series/632270679/F823j7133R/571678.mp4
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/EUA.png" group-title="Documentários e Variedades",Nat Geo Wild [720p HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/285745
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HGTV.png" group-title="Documentários e Variedades",HGTV [1080p FULL HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2627
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/HGTV.png" group-title="Documentários e Variedades",HGTV [720p HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2625
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TLC.png" group-title="Documentários e Variedades",TLC [1080p FULL HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/728
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/TLC.png" group-title="Documentários e Variedades",TLC [720p HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/726
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/FOODNETWORK.png" group-title="Documentários e Variedades",Food Network [1080p FULL HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2480
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/FOODNETWORK.png" group-title="Documentários e Variedades",Food Network [720p HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2479
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/CURTA!.jpg" group-title="Documentários e Variedades",Canal Curta! [1080p FULL HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2612
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/CURTA!.jpg" group-title="Documentários e Variedades",Canal Curta! [720p HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/367045
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/ARTE1.png" group-title="Documentários e Variedades",Arte 1 [1080p FULL HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/2607
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/ARTE1.png" group-title="Documentários e Variedades",Arte 1 [720p HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/367046
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/Portugal.png" group-title="Documentários e Variedades",Viva [1080p FULL HD]
-#EXTGRP:Documentários e Variedades
-http://dns.explouddev.com:80/632270679/F823j7133R/112104
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBONEWS.png" group-title="Notícias",GloboNews [1080p FULL HD]
-#EXTGRP:Notícias
-http://dns.explouddev.com:80/632270679/F823j7133R/479
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOBONEWS.png" group-title="Notícias",GloboNews [720p HD]
-#EXTGRP:Notícias
-http://dns.explouddev.com:80/632270679/F823j7133R/478
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/CNNBRASIL.png" group-title="Notícias",CNN Brasil [1080p FULL HD]
-#EXTGRP:Notícias
-http://dns.explouddev.com:80/632270679/F823j7133R/474
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/CNNBRASIL.png" group-title="Notícias",CNN Brasil [720p HD]
-#EXTGRP:Notícias
-http://dns.explouddev.com:80/632270679/F823j7133R/472
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/BANDNEWS.png" group-title="Notícias",BandNews [1080p FULL HD]
-#EXTGRP:Notícias
-http://dns.explouddev.com:80/632270679/F823j7133R/469
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/BANDNEWS.png" group-title="Notícias",BandNews [720p HD]
-#EXTGRP:Notícias
-http://dns.explouddev.com:80/632270679/F823j7133R/467
-#EXTINF:-1 tvg-logo="http://media.jovempan.com.br/uploads/2018/07/JPNews-imagem-pagina-e1530887165749.png" group-title="Notícias",Jovem Pan News [1080p FULL HD]
-#EXTGRP:Notícias
-http://dns.explouddev.com:80/632270679/F823j7133R/483
-#EXTINF:-1 tvg-logo="http://media.jovempan.com.br/uploads/2018/07/JPNews-imagem-pagina-e1530887165749.png" group-title="Notícias",Jovem Pan News [720p HD]
-#EXTGRP:Notícias
-http://dns.explouddev.com:80/632270679/F823j7133R/482
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/RECORDNEWS.png" group-title="Notícias",Record News [1080p FULL HD]
-#EXTGRP:Notícias
-http://dns.explouddev.com:80/632270679/F823j7133R/488
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/RECORDNEWS.png" group-title="Notícias",Record News [720p HD]
-#EXTGRP:Notícias
-http://dns.explouddev.com:80/632270679/F823j7133R/486
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SBT.png" group-title="Notícias",SBT News [1080p FULL HD]
-#EXTGRP:Notícias
-http://dns.explouddev.com:80/632270679/F823j7133R/599766
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/SBT.png" group-title="Notícias",SBT News [720p HD]
-#EXTGRP:Notícias
-http://dns.explouddev.com:80/632270679/F823j7133R/599767
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/bloomberg.png" group-title="Notícias",Bloomberg [720p HD]
-#EXTGRP:Notícias
-http://dns.explouddev.com:80/632270679/F823j7133R/552456
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/AGROMAIS.png" group-title="Notícias",AgroMais [1080p FULL HD]
-#EXTGRP:Notícias
-http://dns.explouddev.com:80/632270679/F823j7133R/464
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/AGROMAIS.png" group-title="Notícias",AgroMais [720p HD]
-#EXTGRP:Notícias
-http://dns.explouddev.com:80/632270679/F823j7133R/462
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/CARTOONNETWORK.png" group-title="Infantil e Desenhos",Cartoon Network [1080p FULL HD]
-#EXTGRP:Infantil e Desenhos
-http://dns.explouddev.com:80/632270679/F823j7133R/352
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/CARTOONNETWORK.png" group-title="Infantil e Desenhos",Cartoon Network [720p HD]
-#EXTGRP:Infantil e Desenhos
-http://dns.explouddev.com:80/632270679/F823j7133R/351
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/CARTOONITO.png" group-title="Infantil e Desenhos",Cartoonito [1080p FULL HD]
-#EXTGRP:Infantil e Desenhos
-http://dns.explouddev.com:80/632270679/F823j7133R/110683
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/CARTOONITO.png" group-title="Infantil e Desenhos",Cartoonito [720p HD]
-#EXTGRP:Infantil e Desenhos
-http://dns.explouddev.com:80/632270679/F823j7133R/110684
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/DISCOVERYKIDS.png" group-title="Infantil e Desenhos",Discovery Kids [1080p FULL HD]
-#EXTGRP:Infantil e Desenhos
-http://dns.explouddev.com:80/632270679/F823j7133R/364
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/DISCOVERYKIDS.png" group-title="Infantil e Desenhos",Discovery Kids [720p HD]
-#EXTGRP:Infantil e Desenhos
-http://dns.explouddev.com:80/632270679/F823j7133R/363
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOOB.png" group-title="Infantil e Desenhos",Gloob [1080p FULL HD]
-#EXTGRP:Infantil e Desenhos
-http://dns.explouddev.com:80/632270679/F823j7133R/377228
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOOB.png" group-title="Infantil e Desenhos",Gloob [720p HD]
-#EXTGRP:Infantil e Desenhos
-http://dns.explouddev.com:80/632270679/F823j7133R/377229
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOOBINHO.png" group-title="Infantil e Desenhos",Gloobinho [1080p FULL HD]
-#EXTGRP:Infantil e Desenhos
-http://dns.explouddev.com:80/632270679/F823j7133R/377232
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/GLOOBINHO.png" group-title="Infantil e Desenhos",Gloobinho [720p HD]
-#EXTGRP:Infantil e Desenhos
-http://dns.explouddev.com:80/632270679/F823j7133R/377234
-#EXTINF:-1 tvg-logo="http://beststorage4you.com:80/logoscanais/EUA.png" group-title="Infantil e Desenhos",Nickelodeon [720p HD]
-#EXTGRP:Infantil e Desenhos
-http://dns.explouddev.com:80/632270679/F823j7133R/285758
-#EXTINF:-1 tvg-logo="http://beststorage4you.com/logoscanais/latinos.png" group-title="Infantil e Desenhos",Nick Jr [1080p FULL HD]
-#EXTGRP:Infantil e Desenhos
-http://dns.explouddev.com:80/632270679/F823j7133R/249214
-#EXTINF:-1 tvg-logo="http://beststorage4you.com/logoscanais/latinos.png" group-title="Infantil e Desenhos",Disney Junior [720p HD]
-#EXTGRP:Infantil e Desenhos
-http://dns.explouddev.com:80/632270679/F823j7133R/249207
-#EXTINF:-1 tvg-logo="http://beststorage4you.com/logoscanais/latinos.png" group-title="Infantil e Desenhos",Tooncast [720p HD]
-#EXTGRP:Infantil e Desenhos
-http://dns.explouddev.com:80/632270679/F823j7133R/249217
+#EXTINF:-1 group-title="Esportes",Combate HD
+http://64.31.23.207:80/96795792/50165825/297543.ts
+#EXTINF:-1 group-title="Esportes",Combate FHD
+http://64.31.23.207:80/96795792/50165825/297542.ts
+#EXTINF:-1 group-title="Esportes",Band Sports HD
+http://64.31.23.207:80/96795792/50165825/3460153.ts
+#EXTINF:-1 group-title="Esportes",Band Sports FHD
+http://64.31.23.207:80/96795792/50165825/3460152.ts
+#EXTINF:-1 group-title="Esportes",NSports HD
+http://64.31.23.207:80/96795792/50165825/3460166.ts
+#EXTINF:-1 group-title="Esportes",NSports FHD
+http://64.31.23.207:80/96795792/50165825/3460165.ts
+#EXTINF:-1 group-title="Esportes",Premiere 1 HD
+http://64.31.23.207:80/96795792/50165825/3460210.ts
+#EXTINF:-1 group-title="Esportes",﻿Premiere 1 FHD
+http://64.31.23.207:80/96795792/50165825/3460209.ts
+#EXTINF:-1 group-title="Esportes",Xsport HD
+http://64.31.23.207:80/96795792/50165825/3460263.ts
+#EXTINF:-1 group-title="Esportes",Xsport FHD
+http://64.31.23.207:80/96795792/50165825/3460262.ts
+#EXTINF:-1 group-title="Esportes",ESPN HD
+http://64.31.23.207:80/96795792/50165825/3460183.ts
+#EXTINF:-1 group-title="Esportes",ESPN FHD
+http://64.31.23.207:80/96795792/50165825/3460182.ts
+#EXTINF:-1 group-title="Esportes",ESPN 3 HD
+http://64.31.23.207:80/96795792/50165825/3460189.ts
+#EXTINF:-1 group-title="Esportes",ESPN 3 FHD
+http://64.31.23.207:80/96795792/50165825/3460188.ts
+#EXTINF:-1 group-title="Esportes",SporTV HD
+http://64.31.23.207:80/96795792/50165825/3460201.ts
+#EXTINF:-1 group-title="Esportes",SporTV FHD
+http://64.31.23.207:80/96795792/50165825/3460200.ts
+#EXTINF:-1 group-title="Esportes",ESPN 5 HD
+http://64.31.23.207:80/96795792/50165825/3460195.ts
+#EXTINF:-1 group-title="Esportes",ESPN 5 FHD
+http://64.31.23.207:80/96795792/50165825/3460194.ts
+#EXTINF:-1 group-title="Esportes",ESPN 6 HD
+http://64.31.23.207:80/96795792/50165825/3460198.ts
+#EXTINF:-1 group-title="Esportes",ESPN 6 FHD
+http://64.31.23.207:80/96795792/50165825/3460197.ts
+#EXTINF:-1 group-title="Esportes",Premiere 8 HD
+http://64.31.23.207:80/96795792/50165825/3460231.ts
+#EXTINF:-1 group-title="Esportes",Premiere 8 FHD
+http://64.31.23.207:80/96795792/50165825/3460230.ts
+#EXTINF:-1 group-title="Esportes",BAND SPORTS HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30064.ts
+#EXTINF:-1 group-title="Esportes",BAND SPORTS HD ³
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/26724.ts
+#EXTINF:-1 group-title="Esportes",COMBATE HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30066.ts
+#EXTINF:-1 group-title="Esportes",COMBATE HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30067.ts
+#EXTINF:-1 group-title="Esportes",CAZÉ TV HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/227520.ts
+#EXTINF:-1 group-title="Esportes",CAZE TV FHD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/245797.ts
+#EXTINF:-1 group-title="Esportes",ESPN HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/598917.ts
+#EXTINF:-1 group-title="Esportes",ESPN 2 HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30071.ts
+#EXTINF:-1 group-title="Esportes",ESPN 5 HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30084.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 3 HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30051.ts
+#EXTINF:-1 group-title="Esportes",ESPN 6 HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30077.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 2 HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/69029.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 2 FHD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/13576.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 4 HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108298.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 4 FHD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108296.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 4 HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108300.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 5 HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108304.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 5 FHD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108302.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 6 HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108310.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 6 FHD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108308.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 5 HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108306.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 5 FHD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108305.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 7 HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108316.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 7 FHD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108314.ts
+#EXTINF:-1 group-title="Esportes",SPORTV 2 HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30123.ts
+#EXTINF:-1 group-title="Esportes",Sporty Net 1 HD
+http://dns.explouddev.com:80/632270679/F823j7133R/301420
+#EXTINF:-1 group-title="Esportes",SPORTV 3 HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30124.ts
+#EXTINF:-1 group-title="Esportes",Sporty Net 2 HD
+http://dns.explouddev.com:80/632270679/F823j7133R/301421
+#EXTINF:-1 group-title="Esportes",Sporty Net 3 HD
+http://dns.explouddev.com:80/632270679/F823j7133R/301422
+#EXTINF:-1 group-title="Esportes",DSPORTS HD
+http://dns.explouddev.com:80/632270679/F823j7133R/561315
+#EXTINF:-1 group-title="Esportes",ESPN Extra HD
+http://dns.explouddev.com:80/632270679/F823j7133R/613800
+#EXTINF:-1 group-title="Esportes",SporTV 2 HD¹
+http://64.31.23.207:80/96795792/50165825/5299144.ts
+#EXTINF:-1 group-title="Esportes",SporTV HD¹
+http://64.31.23.207:80/96795792/50165825/5299156.ts
+#EXTINF:-1 group-title="Esportes",SporTV SD¹
+http://64.31.23.207:80/96795792/50165825/5299158.ts
+#EXTINF:-1 group-title="Esportes",SporTV 3 HD²
+http://64.31.23.207:80/96795792/50165825/5299149.ts
+#EXTINF:-1 group-title="Esportes",SportyNet 01
+http://64.31.23.207:80/96795792/50165825/3460158.ts
+#EXTINF:-1 group-title="Esportes",SportyNet 01
+http://64.31.23.207:80/96795792/50165825/3460269.ts
+#EXTINF:-1 group-title="Esportes",SporTV 3 HD¹
+http://64.31.23.207:80/96795792/50165825/5299150.ts
+#EXTINF:-1 group-title="Esportes",SporTV 2 SD¹
+http://64.31.23.207:80/96795792/50165825/5299146.ts
+#EXTINF:-1 group-title="Esportes",SporTV 3 SD¹
+http://64.31.23.207:80/96795792/50165825/5299152.ts
+#EXTINF:-1 group-title="Esportes",﻿Premiere Clubs 4K
+http://64.31.23.207:80/96795792/50165825/324401.ts
+#EXTINF:-1 group-title="Esportes",XSports
+http://64.31.23.207:80/96795792/50165825/3460175.ts
+#EXTINF:-1 group-title="Esportes",X SPORTS FHD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/631631.ts
+#EXTINF:-1 group-title="Esportes",NSPORT (JOGO 01)
+http://64.31.23.207:80/96795792/50165825/3460254.ts
+#EXTINF:-1 group-title="Esportes",Nsports 03
+http://64.31.23.207:80/96795792/50165825/5299159.ts
+#EXTINF:-1 group-title="Esportes",SPORTYNET
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1165167.ts
+#EXTINF:-1 group-title="Esportes",SporTV 1 H265
+http://dns.explouddev.com:80/632270679/F823j7133R/52090
+#EXTINF:-1 group-title="Esportes",URU- DIRECTV SPORTS
+http://dns.explouddev.com:80/632270679/F823j7133R/387227
+#EXTINF:-1 group-title="Esportes",SporTV 2 H265
+http://dns.explouddev.com:80/632270679/F823j7133R/118703
+#EXTINF:-1 group-title="Esportes",SPORTV 2 FHD H.265
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/81592.ts
+#EXTINF:-1 group-title="Esportes",SporTV 4 H265
+http://dns.explouddev.com:80/632270679/F823j7133R/567896
+#EXTINF:-1 group-title="Esportes",SporTV 3 H265
+http://dns.explouddev.com:80/632270679/F823j7133R/118705
+#EXTINF:-1 group-title="Esportes",SPORTV 3 FHD H.265
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/81593.ts
+#EXTINF:-1 group-title="Variedades",BR: BOOMERANG
+http://31.43.191.125:8080/restream/restream/4836
+#EXTINF:-1 group-title="Variedades",BR: ANIMAL PLANET
+http://31.43.191.125:8080/restream/restream/4831
+#EXTINF:-1 group-title="Variedades",Animal Planet HD
+http://64.31.23.207:80/96795792/50165825/296620.ts
+#EXTINF:-1 group-title="Variedades",BR: A&E
+http://31.43.191.125:8080/restream/restream/4829
+#EXTINF:-1 group-title="Variedades",A&E HD
+http://64.31.23.207:80/96795792/50165825/518548.ts
+#EXTINF:-1 group-title="Variedades",BR: AMC
+http://31.43.191.125:8080/restream/restream/4830
+#EXTINF:-1 group-title="Variedades",BR: AXN
+http://31.43.191.125:8080/restream/restream/4832
+#EXTINF:-1 group-title="Variedades",BR: CARTOON NETWORK
+http://31.43.191.125:8080/restream/restream/4837
+#EXTINF:-1 group-title="Variedades",Cartoon Network HD
+http://64.31.23.207:80/96795792/50165825/1882623.ts
+#EXTINF:-1 group-title="Variedades",BR: BABY
+http://31.43.191.125:8080/restream/restream/4833
+#EXTINF:-1 group-title="Variedades",BR: COMEDY CENTRAL
+http://31.43.191.125:8080/restream/restream/4839
+#EXTINF:-1 group-title="Variedades",BR: DISCOVERY ID
+http://31.43.191.125:8080/restream/restream/4844
+#EXTINF:-1 group-title="Variedades",Discovery ID HD
+http://64.31.23.207:80/96795792/50165825/297949.ts
+#EXTINF:-1 group-title="Variedades",BR: HGTV
+http://31.43.191.125:8080/restream/restream/4842
+#EXTINF:-1 group-title="Variedades",HGTV HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/304508.ts
+#EXTINF:-1 group-title="Variedades",BR: DISCOVERY SCIENCE
+http://31.43.191.125:8080/restream/restream/4846
+#EXTINF:-1 group-title="Variedades",Discovery Science HD
+http://64.31.23.207:80/96795792/50165825/297952.ts
+#EXTINF:-1 group-title="Variedades",BR: DISCOVERY HOME & HEALTH
+http://31.43.191.125:8080/restream/restream/4843
+#EXTINF:-1 group-title="Variedades",DISCOVERY HOME & HEALTH HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8740.ts
+#EXTINF:-1 group-title="Variedades",BR: DISCOVERY KIDS
+http://31.43.191.125:8080/restream/restream/4845
+#EXTINF:-1 group-title="Variedades",Discovery Kids HD
+http://64.31.23.207:80/96795792/50165825/297946.ts
+#EXTINF:-1 group-title="Variedades",BR: DISCOVERY CHANNEL
+http://31.43.191.125:8080/restream/restream/4841
+#EXTINF:-1 group-title="Variedades",Discovery Channel HD
+http://64.31.23.207:80/96795792/50165825/297937.ts
+#EXTINF:-1 group-title="Variedades",BR: DISCOVERY THEATER
+http://31.43.191.125:8080/restream/restream/4847
+#EXTINF:-1 group-title="Variedades",Discovery Theater HD
+http://64.31.23.207:80/96795792/50165825/297955.ts
+#EXTINF:-1 group-title="Variedades",BR: DISCOVERY TLC
+http://31.43.191.125:8080/restream/restream/4848
+#EXTINF:-1 group-title="Variedades",DISCOVERY TLC HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8754.ts
+#EXTINF:-1 group-title="Variedades",BR: DISCOVERY TURBO
+http://31.43.191.125:8080/restream/restream/4849
+#EXTINF:-1 group-title="Variedades",Discovery Turbo HD
+http://64.31.23.207:80/96795792/50165825/518557.ts
+#EXTINF:-1 group-title="Variedades",BR: E!
+http://31.43.191.125:8080/restream/restream/4853
+#EXTINF:-1 group-title="Variedades",E! HD
+http://64.31.23.207:80/96795792/50165825/518560.ts
+#EXTINF:-1 group-title="Variedades",BR: FOOD NETWORK
+http://31.43.191.125:8080/restream/restream/4856
+#EXTINF:-1 group-title="Variedades",Food Network HD
+http://64.31.23.207:80/96795792/50165825/518566.ts
+#EXTINF:-1 group-title="Variedades",BR: STAR CHANNEL
+http://31.43.191.125:8080/restream/restream/4857
+#EXTINF:-1 group-title="Variedades",BR: FOX LIFE
+http://31.43.191.125:8080/restream/restream/4858
+#EXTINF:-1 group-title="Variedades",BR: FX
+http://31.43.191.125:8080/restream/restream/4861
+#EXTINF:-1 group-title="Variedades",BR: GLOOB
+http://31.43.191.125:8080/restream/restream/4866
+#EXTINF:-1 group-title="Variedades",Gloob HD
+http://64.31.23.207:80/96795792/50165825/1882626.ts
+#EXTINF:-1 group-title="Variedades",BR: GNT
+http://31.43.191.125:8080/restream/restream/4867
+#EXTINF:-1 group-title="Variedades",GNT HD
+http://64.31.23.207:80/96795792/50165825/518569.ts
