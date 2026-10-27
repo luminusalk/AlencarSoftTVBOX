@@ -34,7 +34,20 @@ fallback em `/mnt/plugin/lists/Canais ao Vivo.m3u`. O app C lê o catálogo quan
 é aberto. Fluxo válido no computador é uma triagem; imagem e som de cada canal
 dependem de confirmação na TV e podem mudar quando a fonte expirar.
 
-A versão C compilada no run de CI `40563865386` elimina o quadro transparente
-inicial e, enquanto a grade está aberta, restaura linhas do framebuffer que
-o `dvbapp` redesenhar. Os testes Linux do CI e o build C-SKY passaram. A
-confirmação visual do flicker após reboot ainda depende da observação na TV.
+A versão C do run `40563865386` foi vista na TV abrindo a Cultura com imagem,
+som e sem flicker no teste curto. No teste prolongado, porém, o `Lavf` fechou
+o HTTP após 1,27 MB; o UPnP continuou anunciando `PLAYING` e a interface do
+firmware voltou a piscar sobre o aplicativo. Logo, o estado UPnP isolado não
+prova reprodução contínua.
+
+O reparo posterior monitora se o HTTP local entregou bytes e se o cliente
+desconectou. Quando o canal cai, o C inicia
+`/mnt/plugin/iptv/fallback_particles.ts`, um vídeo H.264 de partículas com
+trilha AAC silenciosa, mantém a mensagem de perda de conexão e tenta reabrir
+o mesmo canal a cada oito segundos. MENU/EXIT cancela a reconexão e mostra a
+grade. A grade e a tela de conexão são redesenhadas quando o `dvbapp` altera
+o framebuffer; a transição para DLNA mantém um quadro opaco. O arquivo local
+vem do projeto, não do firmware. O vídeo precisa ser instalado junto com o
+executável: `tools/install_verified_channels.py` transfere e confere os dois
+arquivos por MD5. O comportamento visual desse reparo no hardware ainda deve
+ser confirmado antes de anunciá-lo como resolvido.

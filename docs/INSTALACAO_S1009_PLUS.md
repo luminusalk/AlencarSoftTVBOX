@@ -17,6 +17,11 @@ inicialização via notebook e a limitação de validação audiovisual.
 - Destino do aplicativo próprio: `/mnt/plugin/alencarsoft_tvbox`. O firmware
   `/app/dvbapp`, `/app`, os drivers e o plugin Python AZ IPTV permanecem
   intactos. O backend DLNA depende do `dvbapp` ativo.
+- O vídeo local de recuperação fica em
+  `/mnt/plugin/iptv/fallback_particles.ts`. Instale-o com
+  `python tools/install_verified_channels.py AlencarSoftTVBOX-Clang/iptv.m3u8`
+  antes de trocar para um binário que o use. O arquivo contém H.264 e áudio
+  silencioso para manter a compatibilidade do player do firmware.
 - Artefatos de `workflow_dispatch` são obtidos na página do run. A release
   `v1.0.8-native` é antiga e **não contém** o backend DLNA atual. O job de
   release não publica esta branch.
@@ -32,9 +37,10 @@ inicialização via notebook e a limitação de validação audiovisual.
    e registrar hash do binário **atualmente instalado** antes de substituí-lo.
    Não usar scripts de `build-artifacts/` sem revisão:
    alguns fixam IP e copiam certificado separado.
-3. Transferir o novo executável pela rede para um arquivo temporário dentro
-   de `/mnt/plugin`, comparar hash no receptor, ajustar `chmod 755` e fazer
-   `mv` para `/mnt/plugin/alencarsoft_tvbox` somente após verificar a cópia.
+3. Transferir o novo executável com
+   `python tools/install_csky_binary.py <caminho-do-artefato-csky>`. O script
+   grava um arquivo temporário em `/mnt/plugin`, compara MD5 no receptor,
+   ajusta `chmod 755` e só então troca `/mnt/plugin/alencarsoft_tvbox`.
    Conferir novamente o hash final. Manter uma única versão ativa.
 4. Executar primeiro um ensaio limitado de TV Cultura via `--play-url` com
    `dvbapp` ativo. Observar imagem e som na TV, não apenas logs. Parar por

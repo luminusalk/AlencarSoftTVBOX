@@ -19,6 +19,16 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include <pthread.h>
+#include <sys/time.h>
+
+static uint64_t app_time_ms(void) {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (uint64_t)tv.tv_sec * 1000 + tv.tv_usec / 1000;
+}
+
+static uint64_t s_banner_end_ms = 0;
+static void app_draw_channel_banner(app_context_t *app, const char *raw_name);
 
 static app_context_t s_app;
 /* Installed beside the channel list; playable without network or TLS. */
@@ -178,14 +188,12 @@ static int app_start_channel(app_context_t *app, int index) {
     s_fallback_active = 0;
     s_fallback_retry_at = 0;
 #ifdef RECEIVER_DLNA_BACKEND
-    /* Player startup can wait for HLS. Hold an opaque frame above the
-     * satellite menu while the DLNA renderer switches sources. */
-    fb_clear(&app->fb, COLOR_DARK_BG);
-    fb_draw_text_fit(&app->fb, app->fb.width / 8, app->fb.height / 2,
-                     "Conectando ao canal...", app->fb.width * 3 / 4,
-                     COLOR_WHITE, 1);
+    /* Mostra a tarja centralizada com o nome do canal enquanto o stream conecta */
+    fb_clear(&app->fb, 0x00000000);
+    app_draw_channel_banner(app, ch->name);
     fb_flip(&app->fb);
 #endif
+    s_banner_end_ms = app_time_ms() + 1800;
     int play_result = app_play_guarded(app, ch->url, ch->name);
     if (play_result < 0) {
         app_recover_failed_channel(app, index);
@@ -334,11 +342,50 @@ static void format_clean_channel_name(const char *raw, char *out, size_t max_len
     }
 }
 
+static void app_draw_channel_banner(app_context_t *app, const char *raw_name) {
+    if (!app || !app->fb.back_buffer) return;
+
+    char clean_name[128];
+    format_clean_channel_name(raw_name ? raw_name : "Canal IPTV", clean_name, sizeof(clean_name));
+
+    int text_len = (int)strlen(clean_name);
+    if (text_len == 0) return;
+
+    /* Usa scale=2 para legibilidade em TV ou scale=1 se o nome for muito longo */
+    int scale = 2;
+    if (text_len * FONT_WIDTH * 2 + 56 > app->fb.width - 48) {
+        scale = 1;
+    }
+
+    int text_w = text_len * FONT_WIDTH * scale;
+    /* Tarja um pouco maior que o nome do canal */
+    int pad_x = (scale == 2) ? 28 : 20;
+    int bar_w = text_w + pad_x * 2;
+    if (bar_w < 180) bar_w = 180;
+    if (bar_w > app->fb.width - 32) bar_w = app->fb.width - 32;
+
+    int bar_h = (scale == 2) ? 52 : 38;
+
+    /* Centralizada perfeitamente na tela (X e Y) */
+    int bar_x = (app->fb.width - bar_w) / 2;
+    int bar_y = (app->fb.height - bar_h) / 2;
+
+    /* Caixa do painel, borda sutil e friso azul de destaque */
+    fb_draw_rect(&app->fb, bar_x, bar_y, bar_w, bar_h, COLOR_PANEL_BG);
+    fb_draw_rect_outline(&app->fb, bar_x, bar_y, bar_w, bar_h, 1, 0xFF2A3448);
+    fb_draw_rect(&app->fb, bar_x, bar_y, 4, bar_h, COLOR_ACCENT);
+
+    /* Texto centralizado dentro da tarja */
+    int text_x = bar_x + (bar_w - text_w) / 2;
+    if (text_x < bar_x + 8) text_x = bar_x + 8;
+    int text_y = bar_y + (bar_h - FONT_HEIGHT * scale) / 2;
+    fb_draw_text_fit(&app->fb, text_x, text_y, clean_name, bar_w - 16, COLOR_WHITE, scale);
+}
+
 void app_render(app_context_t *app) {
     player_state_t playback_state;
     static int last_channel = -2;
     static app_view_t last_view = (app_view_t)-1;
-    static time_t play_start_time = 0;
     if (!app->fb.back_buffer) return;
 
     playback_state = player_get_state();
@@ -364,57 +411,16 @@ void app_render(app_context_t *app) {
         fb_flip(&app->fb);
         return;
     }
-    if (app->view == VIEW_PLAYING && playback_state == PLAYER_STATE_BUFFERING) {
-        const char *name = "Canal IPTV";
-        int panel_w = app->fb.width * 3 / 5;
-        int panel_x = (app->fb.width - panel_w) / 2;
-        int panel_y = app->fb.height / 2 - 60;
-        if (app->active_playing_idx >= 0 &&
-            app->active_playing_idx < app->catalog.total_channels)
-            name = app->catalog.channels[app->active_playing_idx].name;
-        fb_clear(&app->fb, COLOR_DARK_BG);
-        fb_draw_rect(&app->fb, panel_x, panel_y, panel_w, 120, COLOR_PANEL_BG);
-        fb_draw_rect(&app->fb, panel_x, panel_y, 6, 120, COLOR_ACCENT);
-        fb_draw_text_fit(&app->fb, panel_x + 24, panel_y + 25,
-                         name, panel_w - 48, COLOR_WHITE, 1);
-        fb_draw_text(&app->fb, panel_x + 24, panel_y + 68,
-                     "Conectando ao canal...", COLOR_TEXT_MUTED, 1);
-        fb_flip(&app->fb);
-        return;
-    }
-    if (app->view == VIEW_PLAYING && playback_state == PLAYER_STATE_PLAYING) {
-        if (last_channel != app->active_playing_idx || last_view != app->view) {
-            play_start_time = time(NULL);
-            last_channel = app->active_playing_idx;
-            last_view = app->view;
-        }
-
-        /* Modo Reproducao: Framebuffer 100% transparente para permitir que o
-         * plano de hardware de video subjacente seja exibido diretamente na TV */
+    if (app->view == VIEW_PLAYING) {
+        /* Modo Reproducao: Framebuffer 100% transparente */
         fb_clear(&app->fb, 0x00000000);
 
-        /* Barra de informacoes inferior sobreposta com identificacao do canal por 5s */
-        time_t now = time(NULL);
-        if (now - play_start_time <= 5) {
-            if (app->active_playing_idx >= 0 && app->active_playing_idx < app->catalog.total_channels) {
-                iptv_channel_t *ch = &app->catalog.channels[app->active_playing_idx];
-                char clean_title[128];
-                format_clean_channel_name(ch->name, clean_title, sizeof(clean_title));
-
-                int safe_x = (app->fb.width * 5) / 100;
-                if (safe_x < 24) safe_x = 24;
-                int bar_w = app->fb.width - 2 * safe_x;
-                int bar_h = 56;
-                int bar_y = app->fb.height - (app->fb.height * 6 / 100) - bar_h;
-
-                fb_draw_rect(&app->fb, safe_x, bar_y, bar_w, bar_h, COLOR_PANEL_BG);
-                fb_draw_rect(&app->fb, safe_x, bar_y, 6, bar_h, COLOR_ACCENT);
-                fb_draw_text_fit(&app->fb, safe_x + 20, bar_y + (bar_h - 16) / 2, clean_title,
-                                 bar_w - 40, COLOR_WHITE, 1);
-                if (app->status_message[0])
-                    fb_draw_text_fit(&app->fb, safe_x + 20, bar_y - 24,
-                                     app->status_message, bar_w - 40, COLOR_WHITE, 1);
-            }
+        /* Tarja centralizada com o nome do canal (aparece rapido e sumir em 1.8s) */
+        uint64_t now_ms = app_time_ms();
+        if (now_ms < s_banner_end_ms && app->active_playing_idx >= 0 &&
+            app->active_playing_idx < app->catalog.total_channels) {
+            iptv_channel_t *ch = &app->catalog.channels[app->active_playing_idx];
+            app_draw_channel_banner(app, ch->name);
         }
 
         fb_flip(&app->fb);
@@ -1005,7 +1011,6 @@ int main(int argc, char **argv) {
 
             time_t start_time = time(NULL);
             time_t last_sec = 0;
-            time_t play_banner_timeout = 0;
             int needs_render = 0;
             int loop_cnt = 0;
             player_state_t last_player_state = player_get_state();
@@ -1024,21 +1029,18 @@ int main(int argc, char **argv) {
                     fflush(stdout);
                     app_handle_input(&s_app, key);
                     needs_render = 1;
-                    if (s_app.view == VIEW_PLAYING) {
-                        play_banner_timeout = time(NULL) + 5;
-                    }
                 }
 
                 time_t now = time(NULL);
+                uint64_t now_ms = app_time_ms();
                 if (now != last_sec) {
                     last_sec = now;
-                    /* A grade so muda por acao do usuario. Uma copia integral
-                     * de /dev/fb0 a cada segundo provoca tearing no GX6622. */
-                    /* Em reproducao, limpa o banner quando expirar os 5 segundos */
-                    if (s_app.view == VIEW_PLAYING && play_banner_timeout > 0 && now >= play_banner_timeout) {
-                        play_banner_timeout = 0;
-                        needs_render = 1;
-                    }
+                }
+
+                /* Em reproducao, limpa o banner quando expirar o tempo (aparece rapido e sumir) */
+                if (s_app.view == VIEW_PLAYING && s_banner_end_ms > 0 && now_ms >= s_banner_end_ms) {
+                    s_banner_end_ms = 0;
+                    needs_render = 1;
                 }
 
                 if (needs_render) {
@@ -1079,7 +1081,6 @@ int main(int argc, char **argv) {
                         needs_render = 1;
                         if (cur_st == PLAYER_STATE_PLAYING && s_app.active_playing_idx >= 0) {
                             channel_history_save(&s_app.catalog.channels[s_app.active_playing_idx], CHANNEL_HISTORY_PATH);
-                            play_banner_timeout = time(NULL) + 5;
                         }
                     }
                     last_player_state = cur_st;
