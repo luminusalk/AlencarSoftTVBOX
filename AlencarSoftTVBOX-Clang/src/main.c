@@ -48,6 +48,31 @@ static void *fb_guard_loop(void *context) {
     return NULL;
 }
 #endif
+
+static int app_play_guarded(app_context_t *app, const char *url, const char *title) {
+#ifdef RECEIVER_DLNA_BACKEND
+    fb_guard_t guard;
+    pthread_t guard_thread;
+    int guard_started;
+    guard.fb = &app->fb;
+    guard.running = 1;
+    pthread_mutex_init(&guard.lock, NULL);
+    guard_started = pthread_create(&guard_thread, NULL, fb_guard_loop, &guard) == 0;
+#else
+    (void)app;
+#endif
+    int result = player_play(url, title);
+#ifdef RECEIVER_DLNA_BACKEND
+    if (guard_started) {
+        pthread_mutex_lock(&guard.lock);
+        guard.running = 0;
+        pthread_mutex_unlock(&guard.lock);
+        pthread_join(guard_thread, NULL);
+    }
+    pthread_mutex_destroy(&guard.lock);
+#endif
+    return result;
+}
 static time_t s_input_resume_at = 0;
 
 /* Run network validation in a separate executable so slow DNS/TLS cannot
@@ -117,7 +142,7 @@ static void app_recover_failed_channel(app_context_t *app, int failed_index) {
 
     if ((!s_fallback_active || player_get_state() == PLAYER_STATE_ERROR) &&
         time(NULL) >= s_fallback_retry_at) {
-        if (player_play(FALLBACK_VIDEO_PATH, "AlencarSoft TVBOX") == 0) {
+        if (app_play_guarded(app, FALLBACK_VIDEO_PATH, "AlencarSoft TVBOX") == 0) {
             s_fallback_active = 1;
             fprintf(stderr, "[Player] Fundo local iniciado apos falha do canal.\n");
         } else {
@@ -160,23 +185,8 @@ static int app_start_channel(app_context_t *app, int index) {
                      "Conectando ao canal...", app->fb.width * 3 / 4,
                      COLOR_WHITE, 1);
     fb_flip(&app->fb);
-    fb_guard_t guard;
-    guard.fb = &app->fb;
-    guard.running = 1;
-    pthread_mutex_init(&guard.lock, NULL);
-    pthread_t guard_thread;
-    int guard_started = pthread_create(&guard_thread, NULL, fb_guard_loop, &guard) == 0;
 #endif
-    int play_result = player_play(ch->url, ch->name);
-#ifdef RECEIVER_DLNA_BACKEND
-    if (guard_started) {
-        pthread_mutex_lock(&guard.lock);
-        guard.running = 0;
-        pthread_mutex_unlock(&guard.lock);
-        pthread_join(guard_thread, NULL);
-    }
-    pthread_mutex_destroy(&guard.lock);
-#endif
+    int play_result = app_play_guarded(app, ch->url, ch->name);
     if (play_result < 0) {
         app_recover_failed_channel(app, index);
         return -1;
