@@ -113,10 +113,23 @@ void fb_flip(fb_context_t *ctx) {
     for (int y = 0; y < ctx->height; y++) {
         const uint8_t *source = ctx->back_buffer + (size_t)y * row;
         uint8_t *previous = ctx->front_buffer ? ctx->front_buffer + (size_t)y * row : NULL;
-        if (ctx->front_valid && previous && memcmp(source, previous, row) == 0) continue;
         size_t dest = ((size_t)y + ctx->yoffset) * ctx->line_len +
                       (size_t)ctx->xoffset * (ctx->bpp / 8);
         if (dest + row > (size_t)ctx->map_len) return;
+
+        /* The firmware can repaint /dev/fb0 behind our back. Compare with
+         * video memory as well as our previous frame, so an unchanged menu
+         * can repair only the rows the firmware actually replaced. */
+        if (ctx->front_valid && previous && memcmp(source, previous, row) == 0) {
+            if (ctx->width == 1280 && ctx->line_len == 5120) {
+                const size_t part1 = 512 * 4, part2 = 768 * 4;
+                if (memcmp(ctx->fbp + dest + part2, source, part1) == 0 &&
+                    memcmp(ctx->fbp + dest, source + part1, part2) == 0)
+                    continue;
+            } else if (memcmp(ctx->fbp + dest, source, row) == 0) {
+                continue;
+            }
+        }
 
         /* No NationalChip GX6622, a controladora de video HDMI efetua a varredura
          * de cada linha iniciando em +3072 bytes (offset exato de 768 pixels @ 32bpp).

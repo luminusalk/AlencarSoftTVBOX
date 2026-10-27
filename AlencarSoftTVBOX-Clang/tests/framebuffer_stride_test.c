@@ -4,7 +4,7 @@
 #include <string.h>
 
 int main(void) {
-    uint8_t mapped[64], back[16];
+    uint8_t mapped[64], back[16], front[16];
     uint32_t pixel;
     fb_context_t fb;
     memset(&fb, 0, sizeof(fb));
@@ -12,6 +12,7 @@ int main(void) {
     memset(back, 0, sizeof(back));
     fb.fbp = mapped;
     fb.back_buffer = back;
+    fb.front_buffer = front;
     fb.width = fb.height = 2;
     fb.bpp = 32;
     fb.line_len = 16;
@@ -33,5 +34,11 @@ int main(void) {
     memcpy(&pixel, mapped + 36, 4); assert(pixel == 0xff123456);
     memcpy(&pixel, mapped + 40, 4); assert(pixel == 0xff123456);
     assert(mapped[44] == 0xaa);
+    /* The firmware may paint the same mapped OSD after our last frame.
+     * A later flip must restore only the damaged pixels even if our back
+     * buffer has not changed. */
+    memset(mapped + 20, 0, 4);
+    fb_flip(&fb);
+    memcpy(&pixel, mapped + 20, 4); assert(pixel == 0xff123456);
     return 0;
 }

@@ -888,9 +888,6 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "[%s] Falha ao abrir framebuffer para OSD+IR\n", APP_NAME);
                 return 1;
             }
-            fb_clear(&s_app.fb, 0);
-            fb_flip(&s_app.fb);
-
 #ifdef RECEIVER_DLNA_BACKEND
             if (ir_guard_start() < 0) {
                 fprintf(stderr, "[IR] Falha no controle exclusivo; retornando ao firmware.\n");
@@ -958,6 +955,12 @@ int main(int argc, char **argv) {
                     app_render(&s_app);
                     needs_render = 0;
                 }
+
+                /* Satellite firmware can repaint fb0 when no DLNA video is
+                 * active. Restore damaged rows without redrawing the whole
+                 * grid or presenting a transparent frame first. */
+                if (s_app.view != VIEW_PLAYING && loop_cnt % 7 == 0)
+                    fb_flip(&s_app.fb);
 
                 usleep(15000); /* 15ms de intervalo = ~66Hz de polling instantaneo com quase 0% CPU */
 
