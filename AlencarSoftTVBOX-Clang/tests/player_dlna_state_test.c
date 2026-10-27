@@ -32,7 +32,8 @@ int firmware_dlna_stream_progress_recent(int seconds) {
 
 int main(void) {
     player_init();
-    if (player_play("http://example.invalid/video.ts", "Canal") != 0) return 1;
+    stream_started = 1;
+    if (player_play("https://example.invalid/live.m3u8", "Canal") != 0) return 1;
     if (player_get_state() != PLAYER_STATE_BUFFERING) return 2;
     renderer_playing = 0;
     fake_now = 1002;
