@@ -42,7 +42,9 @@ int main(void) {
     if (player_get_state() != PLAYER_STATE_BUFFERING) return 4;
     renderer_playing = 1;
     fake_now = 1004;
-    if (player_get_state() != PLAYER_STATE_BUFFERING) return 8;
+    /* The first confirmed local HTTP playback must clear the loading OSD.
+     * Keeping it for a second SOAP poll hides real video and causes flicker. */
+    if (player_get_state() != PLAYER_STATE_PLAYING) return 8;
     fake_now = 1005;
     if (player_get_state() != PLAYER_STATE_PLAYING) return 9;
     renderer_playing = 0;
@@ -77,7 +79,7 @@ int main(void) {
     if (player_get_state() != PLAYER_STATE_BUFFERING) return 15;
     stream_started = 1;
     fake_now = 3003;
-    if (player_get_state() != PLAYER_STATE_BUFFERING) return 16;
+    if (player_get_state() != PLAYER_STATE_PLAYING) return 16;
     fake_now = 3004;
     if (player_get_state() != PLAYER_STATE_PLAYING) return 17;
     stream_disconnected = 1;
@@ -89,7 +91,7 @@ int main(void) {
     fake_now = 4000;
     if (player_play("https://example.invalid/live.m3u8", "Canal") != 0) return 21;
     fake_now = 4002;
-    if (player_get_state() != PLAYER_STATE_BUFFERING) return 22;
+    if (player_get_state() != PLAYER_STATE_PLAYING) return 22;
     fake_now = 4003;
     if (player_get_state() != PLAYER_STATE_PLAYING) return 23;
     renderer_playing = 0;

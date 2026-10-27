@@ -163,7 +163,7 @@ player_state_t player_get_state(void) {
             if (firmware_dlna_stream_disconnected())
                 fprintf(stderr, "[Player] Cliente DLNA fechou o fluxo HTTP; estado PLAYING ignorado.\n");
             s_player_state = PLAYER_STATE_ERROR;
-        } else if (now - s_start_time >= 2 &&
+        } else if (now - s_start_time >= (s_requires_local_http ? 1 : 2) &&
                    now != s_last_transport_check) {
             int transport = firmware_dlna_transport_playing();
             s_last_transport_check = now;
@@ -171,7 +171,10 @@ player_state_t player_get_state(void) {
                 (!s_requires_local_http || firmware_dlna_stream_started())) {
                 s_stopped_checks = 0;
                 s_first_stopped_at = 0;
-                if (++s_playing_checks >= 2)
+                /* Local HTTP delivery plus the firmware's PLAYING report is
+                 * enough to uncover the video. Waiting for another SOAP poll
+                 * leaves an opaque loading frame over already-visible video. */
+                if (++s_playing_checks >= (s_requires_local_http ? 1 : 2))
                     s_player_state = PLAYER_STATE_PLAYING;
             } else if (transport == 0) {
                 s_playing_checks = 0;

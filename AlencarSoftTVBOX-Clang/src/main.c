@@ -55,7 +55,9 @@ static void *fb_guard_loop(void *context) {
         pthread_mutex_unlock(&guard->lock);
         if (!running) break;
         fb_flip(guard->fb);
-        usleep(50000);
+        /* The firmware can repaint fb0 between video transitions. Restore
+         * the loading frame at display cadence while SetURI/Play blocks. */
+        usleep(20000);
     }
     return NULL;
 }
@@ -99,13 +101,13 @@ static int app_probe_source(const char *url, fb_context_t *fb) {
         execl("/proc/self/exe", "alencarsoft_tvbox", "--probe-source", url, (char *)NULL);
         _exit(127);
     }
-    for (int i = 0; i < 200; i++) {
+    for (int i = 0; i < 500; i++) {
         pid_t result = waitpid(child, &status, WNOHANG);
         if (result == child) return WIFEXITED(status) && WEXITSTATUS(status) == 0 ? 0 : -1;
         if (result < 0 && errno != EINTR) return -1;
         /* Keep the grade over the firmware while DNS/TLS validates a source. */
         if (fb) fb_flip(fb);
-        usleep(50000);
+        usleep(20000);
     }
     kill(child, SIGKILL);
     while (waitpid(child, &status, 0) < 0 && errno == EINTR) {}
@@ -1082,7 +1084,7 @@ int main(int argc, char **argv) {
                 /* Satellite firmware can repaint fb0 when no DLNA video is
                  * active. Restore damaged rows without redrawing the whole
                  * grid or presenting a transparent frame first. */
-                if (loop_cnt % 7 == 0 &&
+                if (loop_cnt % 2 == 0 &&
                     (s_app.view != VIEW_PLAYING || player_peek_state() != PLAYER_STATE_PLAYING))
                     fb_flip(&s_app.fb);
 
