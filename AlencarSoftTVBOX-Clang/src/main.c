@@ -6,6 +6,7 @@
 #include "app.h"
 #include "channel_history.h"
 #include "hls_bridge.h"
+#include "font_default.h"
 #ifdef RECEIVER_DLNA_BACKEND
 #include "ir_guard.h"
 #endif
