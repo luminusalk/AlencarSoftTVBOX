@@ -13,6 +13,7 @@
 #include <string.h>
 #include <strings.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
@@ -79,7 +80,10 @@ static void serve_client(int client) {
     char header[256];
     int source = -1;
     ssize_t n;
-    size_t used = 0, delivered = 0;
+    size_t used = 0;
+    unsigned long long delivered = 0;
+    unsigned long long loop_file_size = 0;
+    struct timeval started;
     int is_head = 0;
     struct pollfd pfd;
     while (used < sizeof(request) - 1 && s_running) {
@@ -116,6 +120,16 @@ static void serve_client(int client) {
         http_status_disconnected();
         return;
     }
+    if (s_loop_file) {
+        struct stat info;
+        if (fstat(source, &info) < 0 || info.st_size <= 0) {
+            close(source);
+            http_status_disconnected();
+            return;
+        }
+        loop_file_size = (unsigned long long)info.st_size;
+        gettimeofday(&started, NULL);
+    }
     while (s_running) {
         pfd.fd = source;
         pfd.events = POLLIN;
@@ -141,13 +155,27 @@ static void serve_client(int client) {
             http_status_delivered((size_t)n);
             if (delivered == 0 || delivered / (1024 * 1024) !=
                                   (delivered + (size_t)n) / (1024 * 1024))
-                fprintf(stderr, "[DLNA HTTP] TS enviado: %lu bytes\n",
-                        (unsigned long)(delivered + (size_t)n));
+                fprintf(stderr, "[DLNA HTTP] TS enviado: %llu bytes\n",
+                        delivered + (size_t)n);
             delivered += (size_t)n;
+            if (loop_file_size) {
+                /* A file loop must follow its 30-second media clock. Without
+                 * pacing, Lavf can consume hours of repeated TS in seconds. */
+                unsigned long long target_ms = delivered * 30000ULL / loop_file_size;
+                while (s_running) {
+                    struct timeval now;
+                    long long elapsed_ms;
+                    gettimeofday(&now, NULL);
+                    elapsed_ms = (long long)(now.tv_sec - started.tv_sec) * 1000LL +
+                                 (now.tv_usec - started.tv_usec) / 1000LL;
+                    if (elapsed_ms < 0 || target_ms <= (unsigned long long)elapsed_ms + 4000ULL)
+                        break;
+                    usleep(50000);
+                }
+            }
         }
     }
-    fprintf(stderr, "[DLNA HTTP] Conexao encerrada apos %lu bytes TS.\n",
-            (unsigned long)delivered);
+    fprintf(stderr, "[DLNA HTTP] Conexao encerrada apos %llu bytes TS.\n", delivered);
     if (s_running)
         http_status_disconnected();
     close(source);
@@ -471,7 +499,7 @@ int firmware_dlna_start(const char *source, const char *title) {
     if (source[0] == '/') {
         if (strlen(source) >= sizeof(s_file_path) || access(source, R_OK) < 0) return -1;
         strcpy(s_file_path, source);
-        s_loop_file = strstr(source, ".ts") != NULL;
+        s_loop_file = strstr(source, "/fallback_particles.ts") != NULL;
     } else if (strstr(source, ".m3u8") || strstr(source, ".m3u")) {
         if (hls_bridge_start(source) < 0) return -1;
         s_bridge_started = 1;
