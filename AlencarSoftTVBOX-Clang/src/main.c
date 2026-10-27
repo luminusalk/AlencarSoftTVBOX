@@ -529,7 +529,7 @@ void app_handle_input(app_context_t *app, app_key_t key) {
 
     /* 1. Tratamento durante a reproducao de video em tela cheia */
     if (app->view == VIEW_PLAYING) {
-        if (key == KEY_ACTION_BACK || key == KEY_EXIT_APP || key == KEY_ACTION_MENU || key == KEY_ACTION_SAT) {
+        if (key == KEY_ACTION_BACK || key == KEY_EXIT_APP || key == KEY_ACTION_MENU || key == KEY_ACTION_SAT || key == KEY_ACTION_OK) {
             /* NAO encerra o player DLNA! Apenas traz a grade para a frente.
              * Manter o DLNA ativo engana o firmware para nunca voltar ao satelite! */
             app->view = VIEW_CATEGORIES;
@@ -630,6 +630,18 @@ void app_handle_input(app_context_t *app, app_key_t key) {
             break;
 
         case KEY_ACTION_BACK:
+            if (app->active_playing_idx >= 0) {
+                printf("[%s] [BACK] Retornando ao canal ativo em tela cheia...\n", APP_NAME);
+                app->view = VIEW_PLAYING;
+                vfd_set_text(app->catalog.channels[app->active_playing_idx].name);
+                fb_clear(&app->fb, 0x00000000);
+                fb_flip(&app->fb);
+                break;
+            }
+            app->view = VIEW_CONFIRM_EXIT;
+            app->exit_dialog_choice = 1;
+            break;
+
         case KEY_EXIT_APP:
             /* Na grade de canais, abre o dialogo de confirmacao de saida */
             app->view = VIEW_CONFIRM_EXIT;
@@ -637,10 +649,13 @@ void app_handle_input(app_context_t *app, app_key_t key) {
             break;
 
         case KEY_ACTION_MENU:
-            if (app->active_playing_idx >= 0 &&
-                player_get_state() == PLAYER_STATE_PLAYING) {
+            /* Alternador (Toggle) do MENU: fecha a grade mantendo o canal ativo */
+            if (app->active_playing_idx >= 0) {
+                printf("[%s] [MENU] Fechando grade e mantendo canal ativo em tela cheia...\n", APP_NAME);
                 app->view = VIEW_PLAYING;
                 vfd_set_text(app->catalog.channels[app->active_playing_idx].name);
+                fb_clear(&app->fb, 0x00000000);
+                fb_flip(&app->fb);
             }
             break;
 
