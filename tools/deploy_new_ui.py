@@ -20,7 +20,7 @@ if res.returncode != 0:
 
 # 2. Determinar IP do receptor
 RECEIVER_IP = None
-for candidate in ["192.168.137.237", "192.168.18.23", "192.168.137.77"]:
+for candidate in ["192.168.137.15", "192.168.137.237", "192.168.18.23", "192.168.137.77"]:
     try:
         s = socket.create_connection((candidate, 23), timeout=1)
         s.close()
@@ -29,6 +29,18 @@ for candidate in ["192.168.137.237", "192.168.18.23", "192.168.137.77"]:
         break
     except Exception:
         pass
+
+if not RECEIVER_IP:
+    print("Buscando IP do receptor na sub-rede...")
+    for i in range(1, 255):
+        try:
+            s = socket.create_connection((f"192.168.137.{i}", 23), timeout=0.15)
+            s.close()
+            RECEIVER_IP = f"192.168.137.{i}"
+            print(f"Receptor encontrado em {RECEIVER_IP}:23")
+            break
+        except Exception:
+            pass
 
 if not RECEIVER_IP:
     print("ERRO: Receptor nao encontrado na rede!")
