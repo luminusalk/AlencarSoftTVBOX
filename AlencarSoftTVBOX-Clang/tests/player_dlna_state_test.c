@@ -95,6 +95,8 @@ int main(void) {
     renderer_playing = 0;
     for (fake_now = 4004; fake_now < 4009; fake_now++)
         if (player_get_state() != PLAYER_STATE_PLAYING) return 24;
+    fake_now = 4009;
+    if (player_get_state() != PLAYER_STATE_PLAYING) return 26;
     fake_now = 4010;
     if (player_get_state() != PLAYER_STATE_ERROR) return 25;
     return 0;
