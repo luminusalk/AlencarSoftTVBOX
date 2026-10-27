@@ -51,3 +51,44 @@ vem do projeto, não do firmware. O vídeo precisa ser instalado junto com o
 executável: `tools/install_verified_channels.py` transfere e confere os dois
 arquivos por MD5. O comportamento visual desse reparo no hardware ainda deve
 ser confirmado antes de anunciá-lo como resolvido.
+
+## Ajustes de 27/10/2026 para quedas e flicker
+
+O commit `23c0aa4` (com testes corrigidos nos commits seguintes) muda a
+transição de canal do aplicativo C. Antes, `app_start_channel()` limpava o
+framebuffer com alfa zero **antes** de parar e trocar o fluxo DLNA. O plano do
+firmware ficava exposto nessa janela. A transição e o estado `BUFFERING` agora
+desenham um quadro opaco; o vídeo só recebe transparência quando o player C
+considera a reprodução iniciada. Enquanto não há vídeo, a proteção do
+framebuffer continua restaurando as linhas que o `dvbapp` sobrescrever.
+
+A ponte HLS já possuía ring buffer de 4 MiB, mas liberava `Play` após o
+primeiro bloco de 64 KiB. Agora espera cerca de três segundos de mídia,
+estimados pelo `#EXTINF` e pela fração do segmento baixado. Também libera com
+1 MiB e pelo menos dois segundos estimados; com 3 MiB libera por segurança
+para não encher o ring buffer de 4 MiB antes de existir consumidor. Quando a
+playlist não informa duração, usa 1 MiB. Isso é um pré-buffer de **início**,
+não garantia de que a internet manterá o bitrate do canal por horas.
+
+A reprodução HLS agora segue redirecionamentos HTTP de playlist e segmento,
+usando a URL final como base dos caminhos relativos. Antes o probe aceitava
+um redirect, mas a reprodução falhava na mesma URL. A capacidade temporária
+de segmentos da playlist subiu de 16 para 64. A checagem de estado DLNA passa
+a tolerar `STOPPED` transitório enquanto nosso servidor ainda entrega bytes,
+mas por no máximo cinco segundos; queda persistente continua acionando a
+recuperação. Desenho e navegação consultam o estado em cache, sem bloquear em
+SOAP a cada tecla. O relógio exibido pelo C usa `BRT3` (Brasília, UTC−3),
+sem alterar o relógio UTC do sistema usado por TLS.
+
+O run `40576280679` passou nos testes Linux e nas compilações C-SKY e MIPS.
+O executável C-SKY foi instalado em `/mnt/plugin/alencarsoft_tvbox` com MD5
+`a5d3f25fb33acfe38fb26eaf16c9015d`. Após reboot, a box recebeu
+`192.168.137.247`; o watcher do notebook iniciou `--sat-daemon` e o log da
+box registrou `SAT 0x6a` abrindo `--headless-osd-ir`. Na retomada da Cultura,
+o pré-buffer liberou o Play com 418.148 bytes e 3.648 ms estimados; depois o
+HTTP entregou pelo menos 4,19 MiB em 77 segundos com estado `PLAYING`.
+Esses logs não confirmam por si só imagem, áudio ou ausência de flicker na TV.
+
+O atalho SAT após reboot continua dependendo do watcher do notebook descrito
+acima; não existe hook de inicialização confirmado em `/mnt/plugin` e o
+firmware original não deve ser modificado.
