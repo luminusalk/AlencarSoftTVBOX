@@ -29,6 +29,7 @@ static time_t s_start_time = 0;
 static time_t s_last_transport_check = 0;
 static int s_playing_checks = 0;
 static int s_stopped_checks = 0;
+static int s_requires_local_http = 0;
 #endif
 
 int player_init(void) {
@@ -41,6 +42,7 @@ int player_init(void) {
     s_last_transport_check = 0;
     s_playing_checks = 0;
     s_stopped_checks = 0;
+    s_requires_local_http = 0;
 #endif
     return 0;
 }
@@ -55,6 +57,7 @@ int player_play(const char *url, const char *channel_name) {
         return -1;
     }
     s_uses_bridge = strstr(url, ".m3u") != NULL;
+    s_requires_local_http = s_uses_bridge || url[0] == '/';
     s_start_time = time(NULL);
     s_last_transport_check = 0;
     s_playing_checks = 0;
@@ -143,6 +146,7 @@ void player_stop(void) {
     s_last_transport_check = 0;
     s_playing_checks = 0;
     s_stopped_checks = 0;
+    s_requires_local_http = 0;
 #endif
 }
 
@@ -151,13 +155,16 @@ player_state_t player_get_state(void) {
     if (s_player_state == PLAYER_STATE_BUFFERING ||
         s_player_state == PLAYER_STATE_PLAYING) {
         time_t now = time(NULL);
-        if (!firmware_dlna_active()) {
+        if (!firmware_dlna_active() || firmware_dlna_stream_disconnected()) {
+            if (firmware_dlna_stream_disconnected())
+                fprintf(stderr, "[Player] Cliente DLNA fechou o fluxo HTTP; estado PLAYING ignorado.\n");
             s_player_state = PLAYER_STATE_ERROR;
         } else if (now - s_start_time >= 2 &&
                    now != s_last_transport_check) {
             int transport = firmware_dlna_transport_playing();
             s_last_transport_check = now;
-            if (transport == 1) {
+            if (transport == 1 &&
+                (!s_requires_local_http || firmware_dlna_stream_started())) {
                 s_stopped_checks = 0;
                 if (++s_playing_checks >= 2)
                     s_player_state = PLAYER_STATE_PLAYING;

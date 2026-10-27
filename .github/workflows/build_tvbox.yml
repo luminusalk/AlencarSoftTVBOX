@@ -150,6 +150,7 @@ jobs:
             AlencarSoftTVBOX-Clang/alencarsoft_tvbox_csky
             AlencarSoftTVBOX-Clang/mini_test
             AlencarSoftTVBOX-Clang/ir_guard_probe_csky
+            AlencarSoftTVBOX-Clang/assets/fallback_particles.ts
 
       - name: Upload GXAV ABI probe
         uses: actions/upload-artifact@v4
@@ -259,6 +260,7 @@ jobs:
         run: |
           find release_files/ -type f -exec mv -f {} release_files/ \; 2>/dev/null || true
           cp AlencarSoftTVBOX-Clang/iptv.m3u8 release_files/
+          cp AlencarSoftTVBOX-Clang/assets/fallback_particles.ts release_files/
           ls -la release_files/
 
       - name: Criar Release no GitHub

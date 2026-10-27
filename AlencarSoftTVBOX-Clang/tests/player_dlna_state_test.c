@@ -5,6 +5,8 @@
 static time_t fake_now = 1000;
 static int renderer_active = 1;
 static int renderer_playing = 1;
+static int stream_started = 0;
+static int stream_disconnected = 0;
 
 time_t time(time_t *out) {
     if (out) *out = fake_now;
@@ -20,6 +22,8 @@ int firmware_dlna_start(const char *source, const char *title) {
 void firmware_dlna_stop(void) { renderer_active = 0; }
 int firmware_dlna_active(void) { return renderer_active; }
 int firmware_dlna_transport_playing(void) { return renderer_playing; }
+int firmware_dlna_stream_started(void) { return stream_started; }
+int firmware_dlna_stream_disconnected(void) { return stream_disconnected; }
 
 int main(void) {
     player_init();
@@ -51,5 +55,21 @@ int main(void) {
     if (player_get_state() != PLAYER_STATE_BUFFERING) return 12;
     fake_now = 2013;
     if (player_get_state() != PLAYER_STATE_ERROR) return 13;
+    player_stop();
+    renderer_playing = 1;
+    stream_started = 0;
+    stream_disconnected = 0;
+    fake_now = 3000;
+    if (player_play("https://example.invalid/live.m3u8", "Canal") != 0) return 14;
+    fake_now = 3002;
+    if (player_get_state() != PLAYER_STATE_BUFFERING) return 15;
+    stream_started = 1;
+    fake_now = 3003;
+    if (player_get_state() != PLAYER_STATE_BUFFERING) return 16;
+    fake_now = 3004;
+    if (player_get_state() != PLAYER_STATE_PLAYING) return 17;
+    stream_disconnected = 1;
+    fake_now = 3005;
+    if (player_get_state() != PLAYER_STATE_ERROR) return 18;
     return 0;
 }

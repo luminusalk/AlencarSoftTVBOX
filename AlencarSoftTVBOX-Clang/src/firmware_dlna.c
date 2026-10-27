@@ -14,6 +14,7 @@
 #include <strings.h>
 #include <sys/socket.h>
 #include <sys/time.h>
+#include <time.h>
 #include <unistd.h>
 
 #ifndef MSG_NOSIGNAL
@@ -29,6 +30,29 @@ static int s_server_started;
 static int s_bridge_started;
 static int s_transport_owned;
 static char s_file_path[1024];
+static int s_loop_file;
+static pthread_mutex_t s_http_status_lock = PTHREAD_MUTEX_INITIALIZER;
+static unsigned int s_http_disconnected_at;
+static unsigned long long s_http_bytes_delivered;
+
+static void http_status_reset(void) {
+    pthread_mutex_lock(&s_http_status_lock);
+    s_http_disconnected_at = 0;
+    s_http_bytes_delivered = 0;
+    pthread_mutex_unlock(&s_http_status_lock);
+}
+
+static void http_status_disconnected(void) {
+    pthread_mutex_lock(&s_http_status_lock);
+    s_http_disconnected_at = (unsigned int)time(NULL);
+    pthread_mutex_unlock(&s_http_status_lock);
+}
+
+static void http_status_delivered(size_t bytes) {
+    pthread_mutex_lock(&s_http_status_lock);
+    s_http_bytes_delivered += bytes;
+    pthread_mutex_unlock(&s_http_status_lock);
+}
 static char s_renderer_ip[64];
 static int s_renderer_port;
 static char s_control_path[256];
@@ -83,21 +107,38 @@ static void serve_client(int client) {
              s_file_path[0] && strstr(s_file_path, ".mp4") ?
              "video/mp4" : "video/mp2t");
     if (send_all(client, header, strlen(header)) < 0 || is_head) return;
+    pthread_mutex_lock(&s_http_status_lock);
+    s_http_disconnected_at = 0;
+    pthread_mutex_unlock(&s_http_status_lock);
     source = open(s_file_path[0] ? s_file_path : hls_bridge_get_url(), O_RDONLY | O_NONBLOCK);
     if (source < 0) {
         fprintf(stderr, "[DLNA HTTP] Falha ao abrir fonte MPEG-TS: errno=%d\n", errno);
+        http_status_disconnected();
         return;
     }
     while (s_running) {
         pfd.fd = source;
         pfd.events = POLLIN;
         pfd.revents = 0;
-        if (poll(&pfd, 1, 200) <= 0) continue;
+        if (poll(&pfd, 1, 200) <= 0) {
+            char peek;
+            struct pollfd peer = {client, POLLIN, 0};
+            if (poll(&peer, 1, 0) > 0 &&
+                (peer.revents & (POLLHUP | POLLERR | POLLNVAL) ||
+                 ((peer.revents & POLLIN) && recv(client, &peek, 1, MSG_PEEK) == 0)))
+                break;
+            continue;
+        }
         n = read(source, bytes, sizeof(bytes));
         if (n < 0 && (errno == EINTR || errno == EAGAIN)) continue;
+        if (n == 0 && s_loop_file && delivered > 0) {
+            if (lseek(source, 0, SEEK_SET) < 0) break;
+            continue;
+        }
         if (n < 0 || (n == 0 && s_file_path[0])) break;
         if (n > 0) {
             if (send_all(client, bytes, (size_t)n) < 0) break;
+            http_status_delivered((size_t)n);
             if (delivered == 0 || delivered / (1024 * 1024) !=
                                   (delivered + (size_t)n) / (1024 * 1024))
                 fprintf(stderr, "[DLNA HTTP] TS enviado: %lu bytes\n",
@@ -107,6 +148,8 @@ static void serve_client(int client) {
     }
     fprintf(stderr, "[DLNA HTTP] Conexao encerrada apos %lu bytes TS.\n",
             (unsigned long)delivered);
+    if (s_running)
+        http_status_disconnected();
     close(source);
 }
 
@@ -414,6 +457,8 @@ int firmware_dlna_start(const char *source, const char *title) {
     const char *mime;
     if (!source || !*source) return -1;
     firmware_dlna_stop();
+    http_status_reset();
+    s_loop_file = 0;
     if (discover_renderer() < 0) {
         fprintf(stderr, "[DLNA] Renderizador local nao encontrado.\n");
         return -1;
@@ -424,8 +469,9 @@ int firmware_dlna_start(const char *source, const char *title) {
            "video/mp4" : "video/mpeg";
     s_file_path[0] = '\0';
     if (source[0] == '/') {
-        if (strlen(source) >= sizeof(s_file_path)) return -1;
+        if (strlen(source) >= sizeof(s_file_path) || access(source, R_OK) < 0) return -1;
         strcpy(s_file_path, source);
+        s_loop_file = strstr(source, ".ts") != NULL;
     } else if (strstr(source, ".m3u8") || strstr(source, ".m3u")) {
         if (hls_bridge_start(source) < 0) return -1;
         s_bridge_started = 1;
@@ -503,6 +549,22 @@ void firmware_dlna_stop(void) {
 }
 
 int firmware_dlna_active(void) { return s_running != 0; }
+
+int firmware_dlna_stream_disconnected(void) {
+    unsigned int at;
+    pthread_mutex_lock(&s_http_status_lock);
+    at = s_http_disconnected_at;
+    pthread_mutex_unlock(&s_http_status_lock);
+    return at != 0 && (unsigned int)time(NULL) - at >= 2;
+}
+
+int firmware_dlna_stream_started(void) {
+    int started;
+    pthread_mutex_lock(&s_http_status_lock);
+    started = s_http_bytes_delivered > 0;
+    pthread_mutex_unlock(&s_http_status_lock);
+    return started;
+}
 
 int firmware_dlna_transport_playing(void) {
     char body[512], reply[4096], action[160];

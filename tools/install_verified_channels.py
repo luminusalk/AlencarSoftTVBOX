@@ -14,6 +14,8 @@ import threading
 PROMPT = b"\x1b[m "
 DEST = "/mnt/plugin/iptv/iptv.m3u8"
 BACKUP = "/mnt/plugin/iptv/iptv.before-verified.m3u8"
+FALLBACK = "/mnt/plugin/iptv/fallback_particles.ts"
+FALLBACK_SOURCE = Path(__file__).resolve().parents[1] / "AlencarSoftTVBOX-Clang/assets/fallback_particles.ts"
 
 
 def reachable(ip):
@@ -46,10 +48,12 @@ def main():
     parser.add_argument("playlist", type=Path)
     args = parser.parse_args()
     data = args.playlist.read_bytes()
+    fallback_data = FALLBACK_SOURCE.read_bytes()
     count = data.count(b"#EXTINF:")
     if not (1 <= count <= 300):
         raise RuntimeError(f"Invalid channel count: {count}")
     digest = md5(data).hexdigest()
+    fallback_digest = md5(fallback_data).hexdigest()
     receiver = find_receiver()
     route = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     route.connect((receiver, 80))
@@ -58,14 +62,18 @@ def main():
 
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
-            if self.path != "/verified.m3u8":
+            if self.path == "/verified.m3u8":
+                payload, mime = data, "application/x-mpegURL"
+            elif self.path == "/fallback_particles.ts":
+                payload, mime = fallback_data, "video/mp2t"
+            else:
                 self.send_error(404)
                 return
             self.send_response(200)
-            self.send_header("Content-Type", "application/x-mpegURL")
-            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Content-Type", mime)
+            self.send_header("Content-Length", str(len(payload)))
             self.end_headers()
-            self.wfile.write(data)
+            self.wfile.write(payload)
 
         def log_message(self, *_):
             pass
@@ -79,6 +87,12 @@ def main():
             if b"[root@GX6622:" not in banner:
                 raise RuntimeError("Unexpected receiver shell")
             run(tn, "mkdir -p /mnt/plugin/iptv /mnt/plugin/lists")
+            fallback_url = f"http://{local_ip}:{server.server_port}/fallback_particles.ts"
+            run(tn, f"wget -q -T 20 -O {FALLBACK}.new {fallback_url}", timeout=30)
+            fallback_hash = run(tn, f"md5sum {FALLBACK}.new")
+            if fallback_digest not in fallback_hash:
+                raise RuntimeError("Fallback video checksum mismatch; active files preserved")
+            run(tn, f"mv {FALLBACK}.new {FALLBACK}")
             url = f"http://{local_ip}:{server.server_port}/verified.m3u8"
             run(tn, f"wget -q -T 20 -O {DEST}.new {url}", timeout=30)
             output = run(tn, f"md5sum {DEST}.new")
@@ -91,7 +105,8 @@ def main():
             output = run(tn, f"md5sum {DEST}")
             if digest not in output:
                 raise RuntimeError("Installed playlist checksum mismatch")
-            print(f"Installed {count} verified channel entries on {receiver}; MD5 {digest}")
+            print(f"Installed {count} verified channel entries and silent fallback on {receiver}; "
+                  f"playlist MD5 {digest}, fallback MD5 {fallback_digest}")
     finally:
         server.shutdown()
         server.server_close()

@@ -18,15 +18,41 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <pthread.h>
 
 static app_context_t s_app;
-static int s_last_working_idx = -1;
-static int s_recovery_attempted = 0;
+/* Installed beside the channel list; playable without network or TLS. */
+#define FALLBACK_VIDEO_PATH "/mnt/plugin/iptv/fallback_particles.ts"
+static int s_fallback_active = 0;
+static time_t s_fallback_retry_at = 0;
+static int s_reconnect_idx = -1;
+static time_t s_next_reconnect_at = 0;
+
+#ifdef RECEIVER_DLNA_BACKEND
+typedef struct {
+    fb_context_t *fb;
+    pthread_mutex_t lock;
+    int running;
+} fb_guard_t;
+
+static void *fb_guard_loop(void *context) {
+    fb_guard_t *guard = (fb_guard_t *)context;
+    for (;;) {
+        pthread_mutex_lock(&guard->lock);
+        int running = guard->running;
+        pthread_mutex_unlock(&guard->lock);
+        if (!running) break;
+        fb_flip(guard->fb);
+        usleep(50000);
+    }
+    return NULL;
+}
+#endif
 static time_t s_input_resume_at = 0;
 
 /* Run network validation in a separate executable so slow DNS/TLS cannot
  * stall the UI indefinitely or disturb the currently running HLS threads. */
-static int app_probe_source(const char *url) {
+static int app_probe_source(const char *url, fb_context_t *fb) {
     int status = 0;
     pid_t child;
     if (url[0] == '/') return access(url, R_OK);
@@ -36,11 +62,13 @@ static int app_probe_source(const char *url) {
         execl("/proc/self/exe", "alencarsoft_tvbox", "--probe-source", url, (char *)NULL);
         _exit(127);
     }
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 200; i++) {
         pid_t result = waitpid(child, &status, WNOHANG);
         if (result == child) return WIFEXITED(status) && WEXITSTATUS(status) == 0 ? 0 : -1;
         if (result < 0 && errno != EINTR) return -1;
-        usleep(100000);
+        /* Keep the grade over the firmware while DNS/TLS validates a source. */
+        if (fb) fb_flip(fb);
+        usleep(50000);
     }
     kill(child, SIGKILL);
     while (waitpid(child, &status, 0) < 0 && errno == EINTR) {}
@@ -70,39 +98,33 @@ static int app_select_channel(app_context_t *app, int index) {
 }
 
 static void app_recover_failed_channel(app_context_t *app, int failed_index) {
-    int recovery = s_last_working_idx;
     const char *failed_name = "canal";
-    if (failed_index >= 0 && failed_index < app->catalog.total_channels)
-        failed_name = app->catalog.channels[failed_index].name;
+    int desired = failed_index >= 0 ? failed_index : s_reconnect_idx;
+    int reconnect = app->view == VIEW_PLAYING && desired >= 0;
+    if (desired >= 0 && desired < app->catalog.total_channels)
+        failed_name = app->catalog.channels[desired].name;
     app->active_playing_idx = -1;
-    app->view = VIEW_CATEGORIES;
+    app->view = reconnect ? VIEW_PLAYING : VIEW_CATEGORIES;
+    s_reconnect_idx = reconnect ? desired : -1;
+    s_next_reconnect_at = time(NULL) + 8;
     snprintf(app->status_message, sizeof(app->status_message),
-             "Canal indisponivel: %.90s", failed_name);
+             reconnect ? "Conexao perdida: %.80s. Reconectando..." :
+                         "Canal indisponivel: %.90s", failed_name);
     vfd_set_text("FALHA");
     /* Cobrir imediatamente o plano de video antes de parar/trocar o DLNA. */
     app->fb.front_valid = 0;
     app_render(app);
 
-    if (recovery < 0 || recovery >= app->catalog.total_channels) {
-        recovery = -1;
-        for (int i = 0; i < app->catalog.total_channels; i++) {
-            if (strstr(app->catalog.channels[i].name, "TV Cultura")) {
-                recovery = i;
-                break;
-            }
+    if ((!s_fallback_active || player_get_state() == PLAYER_STATE_ERROR) &&
+        time(NULL) >= s_fallback_retry_at) {
+        if (player_play(FALLBACK_VIDEO_PATH, "AlencarSoft TVBOX") == 0) {
+            s_fallback_active = 1;
+            fprintf(stderr, "[Player] Fundo local iniciado apos falha do canal.\n");
+        } else {
+            s_fallback_active = 0;
+            fprintf(stderr, "[Player] Falha ao iniciar fundo local.\n");
         }
-    }
-    if (!s_recovery_attempted && recovery >= 0 && recovery != failed_index) {
-        s_recovery_attempted = 1;
-        if (player_play(app->catalog.channels[recovery].url,
-                        app->catalog.channels[recovery].name) == 0) {
-        app->active_playing_idx = recovery;
-        app->view = VIEW_PLAYING;
-        app_select_channel(app, recovery);
-        snprintf(app->status_message, sizeof(app->status_message),
-                 "%.65s indisponivel. Retornando ao canal anterior.", failed_name);
-        fprintf(stderr, "[Player] Recuperacao do ultimo canal valido, indice=%d.\n", recovery);
-        }
+        s_fallback_retry_at = time(NULL) + 10;
     }
     app_discard_transition_keys();
     app->fb.front_valid = 0;
@@ -112,13 +134,11 @@ static void app_recover_failed_channel(app_context_t *app, int failed_index) {
 static int app_start_channel(app_context_t *app, int index) {
     if (index < 0 || index >= app->catalog.total_channels) return -1;
     iptv_channel_t *ch = &app->catalog.channels[index];
-    if (app->active_playing_idx >= 0 && player_get_state() == PLAYER_STATE_PLAYING)
-        s_last_working_idx = app->active_playing_idx;
     snprintf(app->status_message, sizeof(app->status_message), "Verificando %.95s...", ch->name);
     app->fb.front_valid = 0;
     app_render(app);
-    if (app_probe_source(ch->url) < 0) {
-        if (app->active_playing_idx < 0) {
+    if (app_probe_source(ch->url, &app->fb) < 0) {
+        if (app->active_playing_idx < 0 || player_get_state() == PLAYER_STATE_ERROR) {
             app_recover_failed_channel(app, index);
             return -1;
         }
@@ -130,12 +150,39 @@ static int app_start_channel(app_context_t *app, int index) {
         app_render(app);
         return -1;
     }
-    s_recovery_attempted = 0;
-    if (player_play(ch->url, ch->name) < 0) {
+    s_fallback_active = 0;
+    s_fallback_retry_at = 0;
+#ifdef RECEIVER_DLNA_BACKEND
+    /* Player startup can wait for HLS. Hold an opaque frame above the
+     * satellite menu while the DLNA renderer switches sources. */
+    fb_clear(&app->fb, COLOR_DARK_BG);
+    fb_draw_text_fit(&app->fb, app->fb.width / 8, app->fb.height / 2,
+                     "Conectando ao canal...", app->fb.width * 3 / 4,
+                     COLOR_WHITE, 1);
+    fb_flip(&app->fb);
+    fb_guard_t guard;
+    guard.fb = &app->fb;
+    guard.running = 1;
+    pthread_mutex_init(&guard.lock, NULL);
+    pthread_t guard_thread;
+    int guard_started = pthread_create(&guard_thread, NULL, fb_guard_loop, &guard) == 0;
+#endif
+    int play_result = player_play(ch->url, ch->name);
+#ifdef RECEIVER_DLNA_BACKEND
+    if (guard_started) {
+        pthread_mutex_lock(&guard.lock);
+        guard.running = 0;
+        pthread_mutex_unlock(&guard.lock);
+        pthread_join(guard_thread, NULL);
+    }
+    pthread_mutex_destroy(&guard.lock);
+#endif
+    if (play_result < 0) {
         app_recover_failed_channel(app, index);
         return -1;
     }
     app->active_playing_idx = index;
+    s_reconnect_idx = -1;
     app->view = VIEW_PLAYING;
     app->status_message[0] = '\0';
     app_select_channel(app, index);
@@ -152,7 +199,16 @@ static int app_start_last_channel(app_context_t *app) {
         }
     }
     if (index < 0 && app->catalog.total_channels > 0) index = 0;
-    return app_start_channel(app, index);
+    if (app_start_channel(app, index) == 0) return 0;
+    if (s_fallback_active && index >= 0) {
+        s_reconnect_idx = index;
+        s_next_reconnect_at = time(NULL) + 8;
+        app->view = VIEW_PLAYING;
+        snprintf(app->status_message, sizeof(app->status_message),
+                 "Canal indisponivel. Reconectando... MENU abre a grade.");
+        app_render(app);
+    }
+    return -1;
 }
 
 static void sig_handler(int sig) {
@@ -276,6 +332,28 @@ void app_render(app_context_t *app) {
     if (!app->fb.back_buffer) return;
 
     playback_state = player_get_state();
+    if (app->view == VIEW_PLAYING && s_fallback_active &&
+        playback_state == PLAYER_STATE_PLAYING) {
+        int panel_w = app->fb.width * 3 / 5;
+        int panel_h = 112;
+        int panel_x = (app->fb.width - panel_w) / 2;
+        int panel_y = app->fb.height - panel_h - app->fb.height / 12;
+        fb_clear(&app->fb, 0x00000000);
+        fb_draw_rect(&app->fb, panel_x, panel_y, panel_w, panel_h, COLOR_PANEL_BG);
+        fb_draw_rect(&app->fb, panel_x, panel_y, 6, panel_h, COLOR_ACCENT);
+        fb_draw_text_fit(&app->fb, panel_x + 22, panel_y + 22,
+                         s_reconnect_idx >= 0 ? "Conexao perdida" : "Canal indisponivel",
+                         panel_w - 44, COLOR_WHITE, 1);
+        fb_draw_text_fit(&app->fb, panel_x + 22, panel_y + 56,
+                         s_reconnect_idx >= 0 ? "Tentando reconectar..." :
+                                                  "Escolha outro canal na grade",
+                         panel_w - 44, COLOR_TEXT_MUTED, 1);
+        fb_draw_text_fit(&app->fb, panel_x + 22, panel_y + 83,
+                         "MENU ou EXIT: abrir grade", panel_w - 44,
+                         COLOR_TEXT_MUTED, 1);
+        fb_flip(&app->fb);
+        return;
+    }
     if (app->view == VIEW_PLAYING && playback_state == PLAYER_STATE_BUFFERING) {
         const char *name = "Canal IPTV";
         int panel_w = app->fb.width * 3 / 5;
@@ -530,6 +608,7 @@ void app_handle_input(app_context_t *app, app_key_t key) {
     /* 1. Tratamento durante a reproducao de video em tela cheia */
     if (app->view == VIEW_PLAYING) {
         if (key == KEY_ACTION_BACK || key == KEY_EXIT_APP || key == KEY_ACTION_MENU || key == KEY_ACTION_SAT || key == KEY_ACTION_OK) {
+            s_reconnect_idx = -1;
             /* NAO encerra o player DLNA! Apenas traz a grade para a frente.
              * Manter o DLNA ativo engana o firmware para nunca voltar ao satelite! */
             app->view = VIEW_CATEGORIES;
@@ -650,10 +729,11 @@ void app_handle_input(app_context_t *app, app_key_t key) {
 
         case KEY_ACTION_MENU:
             /* Alternador (Toggle) do MENU: fecha a grade mantendo o canal ativo */
-            if (app->active_playing_idx >= 0) {
+            if (app->active_playing_idx >= 0 || s_fallback_active) {
                 printf("[%s] [MENU] Fechando grade e mantendo canal ativo em tela cheia...\n", APP_NAME);
                 app->view = VIEW_PLAYING;
-                vfd_set_text(app->catalog.channels[app->active_playing_idx].name);
+                vfd_set_text(app->active_playing_idx >= 0 ?
+                             app->catalog.channels[app->active_playing_idx].name : "SEM SINAL");
                 fb_clear(&app->fb, 0x00000000);
                 fb_flip(&app->fb);
             }
@@ -969,13 +1049,26 @@ int main(int argc, char **argv) {
                     if (cur_st == PLAYER_STATE_ERROR && s_app.active_playing_idx >= 0) {
                         app_recover_failed_channel(&s_app, s_app.active_playing_idx);
                         cur_st = player_get_state();
+                    } else if (cur_st == PLAYER_STATE_ERROR &&
+                               time(NULL) >= s_fallback_retry_at) {
+                        app_recover_failed_channel(&s_app, -1);
+                        cur_st = player_get_state();
+                    }
+                    if (s_fallback_active && s_reconnect_idx >= 0 &&
+                        s_app.view == VIEW_PLAYING &&
+                        time(NULL) >= s_next_reconnect_at) {
+                        int target = s_reconnect_idx;
+                        s_next_reconnect_at = time(NULL) + 8;
+                        fprintf(stderr, "[Player] Tentando reconectar canal %d.\n", target);
+                        app_start_channel(&s_app, target);
+                        cur_st = player_get_state();
+                        needs_render = 1;
                     }
                     if (cur_st != last_player_state) {
                         s_app.fb.front_valid = 0;
                         needs_render = 1;
                         if (cur_st == PLAYER_STATE_PLAYING && s_app.active_playing_idx >= 0) {
-                            s_last_working_idx = s_app.active_playing_idx;
-                            channel_history_save(&s_app.catalog.channels[s_last_working_idx], CHANNEL_HISTORY_PATH);
+                            channel_history_save(&s_app.catalog.channels[s_app.active_playing_idx], CHANNEL_HISTORY_PATH);
                             play_banner_timeout = time(NULL) + 5;
                         }
                     }
