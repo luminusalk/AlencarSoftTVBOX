@@ -14,7 +14,8 @@ INPUTS = (ROOT / "build-artifacts/verified_channels.m3u8",
           ROOT / "build-artifacts/verified_fhd.m3u8",
           ROOT / "build-artifacts/verified_varieties.m3u8")
 OUTPUT = ROOT / "AlencarSoftTVBOX-Clang/iptv.m3u8"
-FAILED = ROOT / "build-artifacts/receiver_failed_url_sha256.txt"
+FAILED = (ROOT / "tools/receiver_failed_url_sha256.txt",
+          ROOT / "build-artifacts/receiver_failed_url_sha256.txt")
 CATEGORIES = ("Notícias", "Canais Abertos", "Esportes", "Variedades")
 TARGETS = {"Notícias": 60, "Canais Abertos": 100, "Esportes": 100, "Variedades": 40}
 GROUP = re.compile(r'group-title="([^"]*)"')
@@ -50,7 +51,10 @@ def quality(name):
 def main():
     by_category = defaultdict(list)
     urls = set()
-    failed_hashes = set(FAILED.read_text(encoding="ascii").splitlines()) if FAILED.exists() else set()
+    failed_hashes = set()
+    for path in FAILED:
+        if path.exists():
+            failed_hashes.update(path.read_text(encoding="ascii").splitlines())
     for path in INPUTS:
         if not path.exists():
             raise SystemExit(f"Missing verified scan: {path}")
