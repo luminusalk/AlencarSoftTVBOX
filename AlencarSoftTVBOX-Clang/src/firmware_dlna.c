@@ -35,11 +35,13 @@ static int s_loop_file;
 static pthread_mutex_t s_http_status_lock = PTHREAD_MUTEX_INITIALIZER;
 static unsigned int s_http_disconnected_at;
 static unsigned long long s_http_bytes_delivered;
+static time_t s_http_last_delivery_at;
 
 static void http_status_reset(void) {
     pthread_mutex_lock(&s_http_status_lock);
     s_http_disconnected_at = 0;
     s_http_bytes_delivered = 0;
+    s_http_last_delivery_at = 0;
     pthread_mutex_unlock(&s_http_status_lock);
 }
 
@@ -52,6 +54,7 @@ static void http_status_disconnected(void) {
 static void http_status_delivered(size_t bytes) {
     pthread_mutex_lock(&s_http_status_lock);
     s_http_bytes_delivered += bytes;
+    s_http_last_delivery_at = time(NULL);
     pthread_mutex_unlock(&s_http_status_lock);
 }
 static char s_renderer_ip[64];
@@ -594,6 +597,16 @@ int firmware_dlna_stream_started(void) {
     return started;
 }
 
+int firmware_dlna_stream_progress_recent(int seconds) {
+    int recent;
+    time_t now = time(NULL);
+    pthread_mutex_lock(&s_http_status_lock);
+    recent = s_http_last_delivery_at != 0 && now >= s_http_last_delivery_at &&
+             now - s_http_last_delivery_at <= seconds;
+    pthread_mutex_unlock(&s_http_status_lock);
+    return recent;
+}
+
 int firmware_dlna_transport_playing(void) {
     char body[512], reply[4096], action[160];
     const char *state, *end;
@@ -607,7 +620,7 @@ int firmware_dlna_transport_playing(void) {
     if (n < 0 || (size_t)n >= sizeof(body)) return -1;
     snprintf(action, sizeof(action), AV_SERVICE "#GetTransportInfo");
     if (http_request(s_renderer_ip, s_renderer_port, s_control_path,
-                     "POST", action, body, reply, sizeof(reply), 2) < 0)
+                     "POST", action, body, reply, sizeof(reply), 1) < 0)
         return -1;
     state = strstr(reply, "<CurrentTransportState>");
     if (!state) return -1;

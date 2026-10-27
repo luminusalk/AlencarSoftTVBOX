@@ -68,6 +68,7 @@ int hls_parse_media_playlist(const char *body, const char *playlist_url,
     uint64_t next_after = 0;
     size_t seen = 0, fresh = 0;
     int first_line = 1, has_sequence = 0;
+    unsigned int pending_duration_ms = 0;
 
     if (!body || !playlist_url || !next_sequence || !segments || !count)
         return -1;
@@ -114,6 +115,16 @@ int hls_parse_media_playlist(const char *body, const char *playlist_url,
             has_sequence = 1;
             continue;
         }
+        if (strncmp(line, "#EXTINF:", 8) == 0) {
+            double seconds;
+            errno = 0;
+            seconds = strtod(line + 8, &tail);
+            if (errno || tail == line + 8 || (*tail && *tail != ',') ||
+                seconds < 0.0 || seconds != seconds) return -1;
+            if (seconds > 120.0) seconds = 120.0;
+            pending_duration_ms = (unsigned int)(seconds * 1000.0 + 0.5);
+            continue;
+        }
         if (line[0] == '#') continue;
         if (!has_sequence || first_sequence > UINT64_MAX - seen) return -1;
         if (first_sequence + seen >= *next_sequence) {
@@ -122,8 +133,10 @@ int hls_parse_media_playlist(const char *body, const char *playlist_url,
                             sizeof(segments[fresh].url)) < 0 ||
                 !is_ts_url(segments[fresh].url)) return -1;
             segments[fresh].sequence = first_sequence + seen;
+            segments[fresh].duration_ms = pending_duration_ms;
             fresh++;
         }
+        pending_duration_ms = 0;
         seen++;
     }
     if (first_line || !has_sequence || seen == 0 ||

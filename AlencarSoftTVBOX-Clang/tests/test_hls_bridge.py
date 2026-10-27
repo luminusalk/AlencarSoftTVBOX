@@ -31,8 +31,29 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-Length", "0")
             self.end_headers()
             return
+        elif self.path == "/redirect.m3u8":
+            self.send_response(302)
+            self.send_header("Location", "/live.m3u8")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        elif self.path == "/redirect-segment.ts":
+            self.send_response(302)
+            self.send_header("Location", "/segment.ts")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        elif self.path == "/redirect-live.m3u8":
+            body = b"#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:42\n#EXTINF:2,\nredirect-segment.ts\n"
         elif self.path == "/live.m3u8":
             body = b"#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:42\n#EXTINF:2,\nsegment.ts\n"
+        elif self.path == "/short.m3u8":
+            body = b"#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:1\n#EXTINF:1,\nshort.ts\n"
+        elif self.path == "/buffered.m3u8":
+            body = (b"#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:1\n"
+                    b"#EXTINF:2,\nshort.ts\n#EXTINF:2,\nshort2.ts\n")
+        elif self.path in ("/short.ts", "/short2.ts"):
+            body = (b"\x47" + bytes(187)) * 1000
         elif self.path == "/segment.ts":
             body = SEGMENT
         elif self.path == "/broken.m3u8":
@@ -116,8 +137,22 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, SEGMENT)
 
+    def test_playback_follows_playlist_and_segment_redirects(self):
+        result = self.run_bridge("stream", "/redirect.m3u8", len(SEGMENT), timeout=12)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, SEGMENT)
+        result = self.run_bridge("stream", "/redirect-live.m3u8", len(SEGMENT), timeout=12)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, SEGMENT)
+
     def test_stop_without_fifo_reader_is_bounded(self):
         result = self.run_bridge("stop", "/live.m3u8", timeout=5)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_prebuffer_waits_for_enough_media(self):
+        result = self.run_bridge("empty", "/short.m3u8", timeout=8)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        result = self.run_bridge("ready", "/buffered.m3u8", timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_http_error_does_not_enter_fifo(self):

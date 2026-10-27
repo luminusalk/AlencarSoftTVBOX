@@ -30,6 +30,7 @@ static uint64_t app_time_ms(void) {
 
 static uint64_t s_banner_end_ms = 0;
 static void app_draw_channel_banner(app_context_t *app, const char *raw_name);
+static void app_draw_loading(app_context_t *app, const char *title);
 
 static app_context_t s_app;
 /* Installed beside the channel list; playable without network or TLS. */
@@ -186,14 +187,14 @@ static int app_start_channel(app_context_t *app, int index) {
         app_render(app);
         return -1;
     }
-    s_fallback_active = 0;
-    s_fallback_retry_at = 0;
 #ifdef RECEIVER_DLNA_BACKEND
-    /* Mostra a tarja centralizada com o nome do canal enquanto o stream conecta */
-    fb_clear(&app->fb, 0x00000000);
-    app_draw_channel_banner(app, ch->name);
+    /* Stop/SetURI/Play may expose the satellite video plane. Keep an opaque
+     * frame until the HTTP stream and DLNA playback are both confirmed. */
+    app_draw_loading(app, ch->name);
     fb_flip(&app->fb);
 #endif
+    s_fallback_active = 0;
+    s_fallback_retry_at = 0;
     s_banner_end_ms = app_time_ms() + 1800;
     int play_result = app_play_guarded(app, ch->url, ch->name);
     if (play_result < 0) {
@@ -383,13 +384,39 @@ static void app_draw_channel_banner(app_context_t *app, const char *raw_name) {
     fb_draw_text_fit(&app->fb, text_x, text_y, clean_name, bar_w - 16, COLOR_WHITE, scale);
 }
 
+static void app_draw_loading(app_context_t *app, const char *title) {
+    int panel_w = app->fb.width * 3 / 5;
+    int panel_h = 110;
+    if (panel_w < 200) panel_w = app->fb.width - 40;
+    int panel_x = (app->fb.width - panel_w) / 2;
+    int panel_y = (app->fb.height - panel_h) / 2;
+    fb_clear(&app->fb, COLOR_DARK_BG);
+    fb_draw_rect(&app->fb, panel_x, panel_y, panel_w, panel_h, COLOR_PANEL_BG);
+    fb_draw_rect(&app->fb, panel_x, panel_y, 6, panel_h, COLOR_ACCENT);
+    fb_draw_text_fit(&app->fb, panel_x + 22, panel_y + 22,
+                     title && *title ? title : "Aguardando video",
+                     panel_w - 44, COLOR_WHITE, 1);
+    fb_draw_text_fit(&app->fb, panel_x + 22, panel_y + 60,
+                     app->status_message[0] ? app->status_message : "Conectando ao canal...",
+                     panel_w - 44, COLOR_TEXT_MUTED, 1);
+}
+
 void app_render(app_context_t *app) {
     player_state_t playback_state;
     static int last_channel = -2;
     static app_view_t last_view = (app_view_t)-1;
     if (!app->fb.back_buffer) return;
 
-    playback_state = player_get_state();
+    playback_state = player_peek_state();
+    if (app->view == VIEW_PLAYING && playback_state != PLAYER_STATE_PLAYING) {
+        const char *title = NULL;
+        int index = app->active_playing_idx >= 0 ? app->active_playing_idx : s_reconnect_idx;
+        if (index >= 0 && index < app->catalog.total_channels)
+            title = app->catalog.channels[index].name;
+        app_draw_loading(app, title);
+        fb_flip(&app->fb);
+        return;
+    }
     if (app->view == VIEW_PLAYING && s_fallback_active &&
         playback_state == PLAYER_STATE_PLAYING) {
         int panel_w = app->fb.width * 3 / 5;
@@ -788,6 +815,9 @@ void app_cleanup(app_context_t *app) {
 }
 
 int main(int argc, char **argv) {
+    /* The receiver clock stays UTC for TLS; only this process displays BRT. */
+    setenv("TZ", "BRT3", 1);
+    tzset();
     if (argc == 3 && strcmp(argv[1], "--probe-source") == 0) {
         signal(SIGPIPE, SIG_IGN);
         return hls_source_probe(argv[2]) == 0 ? 0 : 1;
@@ -1024,7 +1054,7 @@ int main(int argc, char **argv) {
 #endif
                 app_key_t key = input_poll();
                 if (key != KEY_NONE) {
-                    player_state_t cur_st = player_get_state();
+                    player_state_t cur_st = player_peek_state();
                     printf("[%s] [OSD+IR] Tecla=%d (estado player=%d, canal=%d)\n",
                            APP_NAME, key, cur_st, s_app.current_channel_idx);
                     fflush(stdout);
@@ -1052,7 +1082,8 @@ int main(int argc, char **argv) {
                 /* Satellite firmware can repaint fb0 when no DLNA video is
                  * active. Restore damaged rows without redrawing the whole
                  * grid or presenting a transparent frame first. */
-                if (s_app.view != VIEW_PLAYING && loop_cnt % 7 == 0)
+                if (loop_cnt % 7 == 0 &&
+                    (s_app.view != VIEW_PLAYING || player_peek_state() != PLAYER_STATE_PLAYING))
                     fb_flip(&s_app.fb);
 
                 usleep(15000); /* 15ms de intervalo = ~66Hz de polling instantaneo com quase 0% CPU */

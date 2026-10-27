@@ -30,6 +30,10 @@
 
 #define RING_BUFFER_SIZE (4 * 1024 * 1024) /* 4 MB buffer */
 #define MAX_SEGMENT_SIZE (8 * 1024 * 1024) /* Limite explicito por segmento */
+#define STARTUP_BUFFER_BYTES (1024 * 1024)
+#define STARTUP_BUFFER_MS 3000
+#define STARTUP_MIN_MS 2000
+#define STARTUP_SAFETY_BYTES (3 * 1024 * 1024)
 
 typedef struct {
     uint8_t *data;
@@ -293,7 +297,7 @@ static int http_fetch_mode(const char *url, uint8_t *out_buf, size_t max_size,
             if (!split) continue;
             header_len = (size_t)(split + 4 - header_buf);
             if (sscanf(header_buf, "HTTP/%*d.%*d %d", &status) != 1) break;
-            if (mode && status >= 300 && status < 400 && redirects < 4) {
+            if (status >= 300 && status < 400 && redirects < 4) {
                 char *location = strcasestr(header_buf, "\r\nLocation:");
                 if (location && location < split) {
                     char *end;
@@ -414,6 +418,8 @@ static void *hls_producer_thread(void *arg) {
     uint8_t *segment_buf = (uint8_t *)malloc(MAX_SEGMENT_SIZE);
     uint64_t next_sequence = 0;
     int started = 0;
+    size_t startup_bytes = 0;
+    unsigned int startup_ms = 0;
     unsigned int playlist_failures = 0;
     if (!playlist_buf || !segment_buf) {
         fprintf(stderr, "[HLS Bridge] Memoria insuficiente para segmentos.\n");
@@ -426,14 +432,16 @@ static void *hls_producer_thread(void *arg) {
 
     while (s_bridge_running) {
         size_t p_size = 0;
-        if (http_fetch(s_current_m3u8, playlist_buf, 128 * 1024 - 1, &p_size) == 0 && p_size > 0) {
-            hls_segment_t segments[16];
+        char effective_playlist_url[1024];
+        if (http_fetch_mode(s_current_m3u8, playlist_buf, 128 * 1024 - 1,
+                            &p_size, 0, 0, effective_playlist_url) == 0 && p_size > 0) {
+            hls_segment_t segments[64];
             size_t count = 0, start_idx, i;
             uint64_t parsed_next = next_sequence;
             playlist_failures = 0;
             playlist_buf[p_size] = '\0';
-            if (hls_parse_media_playlist((const char *)playlist_buf, s_current_m3u8,
-                                         &parsed_next, segments, 16, &count) < 0) {
+            if (hls_parse_media_playlist((const char *)playlist_buf, effective_playlist_url,
+                                         &parsed_next, segments, 64, &count) < 0) {
                 fprintf(stderr, "[HLS Bridge] Playlist invalida ou formato HLS nao suportado.\n");
             } else {
                 if (!started)
@@ -455,9 +463,35 @@ static void *hls_producer_thread(void *arg) {
                         if (chunk > 64 * 1024) chunk = 64 * 1024;
                         if (ring_write(&s_ring, segment_buf + offset, chunk) < 0) break;
                         offset += chunk;
-                        s_data_ready = 1;
+                        if (!s_data_ready) {
+                            unsigned int estimated_ms = startup_ms;
+                            startup_bytes += chunk;
+                            if (segments[i].duration_ms && seg_size)
+                                estimated_ms += (unsigned int)
+                                    ((unsigned long long)segments[i].duration_ms * offset / seg_size);
+                            /* Prefer three seconds of media; 1 MiB with at
+                             * least two seconds is enough. The 3 MiB guard
+                             * starts the consumer before the 4 MiB ring fills. */
+                            if (estimated_ms >= STARTUP_BUFFER_MS ||
+                                (startup_bytes >= STARTUP_BUFFER_BYTES &&
+                                 (estimated_ms >= STARTUP_MIN_MS ||
+                                  (!segments[i].duration_ms && startup_ms == 0))) ||
+                                startup_bytes >= STARTUP_SAFETY_BYTES) {
+                                s_data_ready = 1;
+                                fprintf(stderr, "[HLS Bridge] Prebuffer pronto: %lu bytes, %u ms estimados.\n",
+                                        (unsigned long)startup_bytes, estimated_ms);
+                            }
+                        }
                     }
                     if (offset != seg_size) break;
+                    if (!s_data_ready && segments[i].duration_ms) {
+                        startup_ms += segments[i].duration_ms;
+                        if (startup_ms >= STARTUP_BUFFER_MS) {
+                            s_data_ready = 1;
+                            fprintf(stderr, "[HLS Bridge] Prebuffer pronto: %u ms de segmentos, %lu bytes.\n",
+                                    startup_ms, (unsigned long)startup_bytes);
+                        }
+                    }
                     next_sequence = segments[i].sequence + 1;
                     started = 1;
                 }

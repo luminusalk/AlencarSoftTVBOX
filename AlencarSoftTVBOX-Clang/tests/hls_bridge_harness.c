@@ -29,6 +29,13 @@ int main(int argc, char **argv) {
         hls_bridge_stop();
         return total ? 4 : 0;
     }
+    if (strcmp(argv[1], "ready") == 0) {
+        deadline = time(NULL) + 6;
+        while (!hls_bridge_has_data() && time(NULL) < deadline) usleep(50000);
+        total = hls_bridge_has_data();
+        hls_bridge_stop();
+        return total ? 0 : 8;
+    }
     if ((strcmp(argv[1], "stream") != 0 && strcmp(argv[1], "sample") != 0 &&
          strcmp(argv[1], "live") != 0) ||
         expected <= 0) return 5;

@@ -17,6 +17,8 @@ int            player_init(void);
 int            player_play(const char *url, const char *channel_name);
 void           player_stop(void);
 player_state_t player_get_state(void);
+/* Cached state for rendering and remote navigation; does not perform SOAP I/O. */
+player_state_t player_peek_state(void);
 void           player_close(void);
 
 #endif /* ALENCARSOFT_PLAYER_H */

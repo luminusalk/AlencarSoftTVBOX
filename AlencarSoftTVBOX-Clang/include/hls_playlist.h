@@ -9,6 +9,7 @@ int hls_resolve_url(const char *base, const char *reference, char *out, size_t s
 
 typedef struct {
     uint64_t sequence;
+    unsigned int duration_ms;
     char url[HLS_SEGMENT_URL_SIZE];
 } hls_segment_t;
 

@@ -29,6 +29,7 @@ static time_t s_start_time = 0;
 static time_t s_last_transport_check = 0;
 static int s_playing_checks = 0;
 static int s_stopped_checks = 0;
+static time_t s_first_stopped_at = 0;
 static int s_requires_local_http = 0;
 #endif
 
@@ -42,6 +43,7 @@ int player_init(void) {
     s_last_transport_check = 0;
     s_playing_checks = 0;
     s_stopped_checks = 0;
+    s_first_stopped_at = 0;
     s_requires_local_http = 0;
 #endif
     return 0;
@@ -62,6 +64,7 @@ int player_play(const char *url, const char *channel_name) {
     s_last_transport_check = 0;
     s_playing_checks = 0;
     s_stopped_checks = 0;
+    s_first_stopped_at = 0;
     s_player_state = PLAYER_STATE_BUFFERING;
     return 0;
 #else
@@ -146,6 +149,7 @@ void player_stop(void) {
     s_last_transport_check = 0;
     s_playing_checks = 0;
     s_stopped_checks = 0;
+    s_first_stopped_at = 0;
     s_requires_local_http = 0;
 #endif
 }
@@ -166,10 +170,20 @@ player_state_t player_get_state(void) {
             if (transport == 1 &&
                 (!s_requires_local_http || firmware_dlna_stream_started())) {
                 s_stopped_checks = 0;
+                s_first_stopped_at = 0;
                 if (++s_playing_checks >= 2)
                     s_player_state = PLAYER_STATE_PLAYING;
             } else if (transport == 0) {
                 s_playing_checks = 0;
+                if (!s_first_stopped_at) s_first_stopped_at = now;
+                if (s_player_state == PLAYER_STATE_PLAYING &&
+                    s_requires_local_http && firmware_dlna_stream_progress_recent(3) &&
+                    now - s_first_stopped_at < 5) {
+                    /* Some firmware transitions report STOPPED while the
+                     * local MPEG-TS connection is still delivering data. */
+                    s_stopped_checks = 0;
+                    return s_player_state;
+                }
                 /* O dvbapp anuncia STOPPED durante alguns segundos antes de
                  * sincronizar o MPEG-TS. So uma reproducao JA confirmada pode
                  * ser considerada perdida apos duas leituras STOPPED. */
@@ -213,4 +227,8 @@ player_state_t player_get_state(void) {
 
 void player_close(void) {
     player_stop();
+}
+
+player_state_t player_peek_state(void) {
+    return s_player_state;
 }

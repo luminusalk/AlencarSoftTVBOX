@@ -8,6 +8,8 @@ int firmware_dlna_active(void);
 /* True when the local MPEG-TS consumer closed its HTTP stream unexpectedly. */
 int firmware_dlna_stream_disconnected(void);
 int firmware_dlna_stream_started(void);
+/* True when our HTTP server has delivered bytes to the renderer recently. */
+int firmware_dlna_stream_progress_recent(int seconds);
 /* 1 = PLAYING, 0 = stopped/no media, -1 = unavailable/transitioning. */
 int firmware_dlna_transport_playing(void);
 

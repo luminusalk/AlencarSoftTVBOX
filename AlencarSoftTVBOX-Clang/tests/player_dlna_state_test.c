@@ -7,6 +7,7 @@ static int renderer_active = 1;
 static int renderer_playing = 1;
 static int stream_started = 0;
 static int stream_disconnected = 0;
+static int stream_progress_recent = 0;
 
 time_t time(time_t *out) {
     if (out) *out = fake_now;
@@ -24,6 +25,10 @@ int firmware_dlna_active(void) { return renderer_active; }
 int firmware_dlna_transport_playing(void) { return renderer_playing; }
 int firmware_dlna_stream_started(void) { return stream_started; }
 int firmware_dlna_stream_disconnected(void) { return stream_disconnected; }
+int firmware_dlna_stream_progress_recent(int seconds) {
+    (void)seconds;
+    return stream_progress_recent;
+}
 
 int main(void) {
     player_init();
@@ -42,8 +47,14 @@ int main(void) {
     renderer_playing = 0;
     fake_now = 1006;
     if (player_get_state() != PLAYER_STATE_PLAYING) return 5;
+    stream_progress_recent = 1;
     fake_now = 1007;
-    if (player_get_state() != PLAYER_STATE_ERROR) return 6;
+    if (player_get_state() != PLAYER_STATE_PLAYING) return 6;
+    stream_progress_recent = 0;
+    fake_now = 1008;
+    if (player_get_state() != PLAYER_STATE_PLAYING) return 19;
+    fake_now = 1009;
+    if (player_get_state() != PLAYER_STATE_ERROR) return 20;
     player_stop();
     if (player_get_state() != PLAYER_STATE_STOPPED) return 7;
     renderer_playing = 0;
@@ -71,5 +82,19 @@ int main(void) {
     stream_disconnected = 1;
     fake_now = 3005;
     if (player_get_state() != PLAYER_STATE_ERROR) return 18;
+    player_stop();
+    stream_disconnected = 0;
+    stream_progress_recent = 1;
+    fake_now = 4000;
+    if (player_play("https://example.invalid/live.m3u8", "Canal") != 0) return 21;
+    fake_now = 4002;
+    if (player_get_state() != PLAYER_STATE_BUFFERING) return 22;
+    fake_now = 4003;
+    if (player_get_state() != PLAYER_STATE_PLAYING) return 23;
+    renderer_playing = 0;
+    for (fake_now = 4004; fake_now < 4009; fake_now++)
+        if (player_get_state() != PLAYER_STATE_PLAYING) return 24;
+    fake_now = 4010;
+    if (player_get_state() != PLAYER_STATE_ERROR) return 25;
     return 0;
 }
