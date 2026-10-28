@@ -1,5 +1,7 @@
 # Guia mestre de continuidade — IPTV C no Azamerica S1009+
 
+> Investigação atual do flicker (27/10/2026): leia [achados e limites da análise](INVESTIGACAO_FLICKER_2026-10-27.md). O flicker nas falhas de vídeo ainda não está corrigido.
+
 > Atualização de 27/10/2026: para o estado atual da tecla SAT após reboot,
 > correção do relógio HTTPS, catálogo de 300 canais e diagnóstico de flicker,
 > leia [SAT e lista verificada](SAT_E_LISTA_VERIFICADA.md). O conteúdo abaixo
