@@ -24,7 +24,7 @@ static int comm(pid_t pid, pid_t tid, char *name, size_t size) {
 }
 int main(int argc, char **argv) {
     pid_t pid, tid; char name[64], *end; long value;
-    unsigned long regs[512]; int status, i, attached = 0, rc = 1;
+    unsigned long regs[512], frames[96]; int status, i, attached = 0, rc = 1;
     if (argc != 3) { fprintf(stderr, "Usage: thread_snapshot PID TID\n"); return 2; }
     errno = 0; value = strtol(argv[1], &end, 10);
     if (errno || *end || value <= 1 || value > 4194304) return 2;
@@ -52,12 +52,29 @@ int main(int argc, char **argv) {
     if (i == 100) goto out;
     memset(regs, 0, sizeof(regs));
     if (ptrace(PTRACE_GETREGS, tid, 0, regs) < 0) { perror("getregs"); goto out; }
+    /* C-SKY ABIV1: saved r0 is SP. Read a bounded stack window while attached.
+     * PEEKDATA does not alter the tracee; addresses are validated below. */
+    memset(frames, 0, sizeof(frames));
+    if (regs[0] >= 0x1000000UL && regs[0] < 0x80000000UL) {
+        for (i = 0; i < 96; i++) {
+            long word;
+            errno = 0;
+            word = ptrace(PTRACE_PEEKDATA, tid,
+                          (void *)(regs[0] + (unsigned long)i * sizeof(long)), 0);
+            if (errno) break;
+            frames[i] = (unsigned long)word;
+        }
+    }
     /* Release before printing so slow terminal output cannot extend the stop. */
     if (ptrace(PTRACE_DETACH, tid, 0, 0) < 0) { perror("detach"); goto out; }
     attached = 0; alarm(0);
     printf("SNAPSHOT pid=%ld tid=%ld name=%s word=%u\n", (long)pid, (long)tid,
            name, (unsigned)sizeof(unsigned long));
     for (i = 0; i < 64; i++) printf("reg[%02d]=%08lx\n", i, regs[i]);
+    for (i = 0; i < 96; i++) {
+        if (frames[i] >= 0x8000UL && frames[i] < 0xf0c000UL)
+            printf("stack[%02d]=%08lx\n", i, frames[i]);
+    }
     rc = 0;
 out:
     if (attached) ptrace(PTRACE_DETACH, tid, 0, 0);
