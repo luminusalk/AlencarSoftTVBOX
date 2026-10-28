@@ -170,3 +170,27 @@ Uma solucao precisa eliminar a lacuna sem stream ou impedir o repaint do
 firmware sem quebrar DLNA. Ainda nao ha prova de que pausar a thread
 prog_sys_proces (805) ou mainloop (706) faca isso; foram identificadas
 como candidatas pelos nomes/pilhas e devem passar por teste limitado.
+
+## Atualizacao: hold continuo de 30 segundos e catalogo
+
+O teste de hold limitado da thread `mainloop` 706 ocorreu de 22:45:14 a
+22:45:44 BRT em 27/10. O comando SOAP `Stop` foi enviado cerca de 1,5 s
+apos o inicio; a Cultura continuou tocando durante os 30 s, conforme
+observacao do usuario, e caiu depois. Isso indica que suspender essa thread
+tambem atrasa o processamento do transporte. Nao usar suspensao de thread
+como correcao permanente: a troca de canal deixaria de responder.
+
+O caminho de falha ainda passa por `app_recover_failed_channel()`, que inicia
+um video de particulas via novo ciclo DLNA. Cada `Stop`/`SetURI`/`Play` cria
+uma janela sem video em que o firmware pode exibir a propria interface sobre
+o framebuffer compartilhado. Os testes de fb1 e de pausa de threads nao
+demonstraram uma camada grafica independente que resolva isso. Nao afirmar
+que o flicker foi eliminado sem observacao na TV em falha/reconexao.
+
+A lista final foi refeita a partir da verificacao curta de 592 candidatos:
+433 passaram na rede, mas isso nao confirma estabilidade prolongada na box.
+O catalogo selecionado tem 263 canais, com Noticias, Abertos, Esportes,
+Documentarios, Infantil e Filmes e Series; exclui HEVC e 4K/UHD sem
+confirmacao de decodificacao. As variantes HD/FHD do mesmo canal ficam
+adjacentes. O catalogo e o codigo que reduz a permanencia do aviso
+`Conectando/Reconectando` aguardam build e deploy na data desta nota.

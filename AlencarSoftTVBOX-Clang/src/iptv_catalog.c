@@ -7,10 +7,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+
+static int contains_ascii_ci(const char *text, const char *needle) {
+    size_t length = strlen(needle);
+    for (; *text; text++) {
+        size_t i = 0;
+        while (i < length && text[i] &&
+               toupper((unsigned char)text[i]) == toupper((unsigned char)needle[i])) i++;
+        if (i == length) return 1;
+    }
+    return 0;
+}
 
 static void add_to_category(iptv_catalog_t *cat, const char *cat_name, int channel_idx) {
     int cat_idx = -1;
@@ -112,8 +124,12 @@ int catalog_load_m3u(iptv_catalog_t *cat, const char *path) {
                 strncpy(ch->logo, cur_logo, sizeof(ch->logo) - 1);
                 strncpy(ch->category, cur_cat, sizeof(ch->category) - 1);
 
-                ch->is_fullhd = (strstr(ch->name, "1080p") || strstr(ch->name, "FULL HD")) ? 1 : 0;
-                ch->is_hd     = (strstr(ch->name, "720p") || strstr(ch->name, "HD")) ? 1 : 0;
+                ch->is_fullhd = contains_ascii_ci(ch->name, "1080p") ||
+                                contains_ascii_ci(ch->name, "FULL HD") ||
+                                contains_ascii_ci(ch->name, "FHD");
+                ch->is_hd = !ch->is_fullhd &&
+                            (contains_ascii_ci(ch->name, "720p") ||
+                             contains_ascii_ci(ch->name, "HD"));
 
                 add_to_category(cat, cur_cat, idx);
                 add_to_category(cat, "Todos os Canais", idx);

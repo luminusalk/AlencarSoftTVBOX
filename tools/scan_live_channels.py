@@ -9,6 +9,8 @@ import argparse
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from hashlib import sha256
 import json
 from pathlib import Path
 import re
@@ -28,6 +30,10 @@ SPORTS_RE = re.compile(r"sport|esporte|espn|premiere|sportv|combate|\bcaz[eé]\b
 OPEN_RE = re.compile(r"cultura|globo|record|sbt|band|rede\s?tv|rede\s?vida|tv\s?brasil|gazeta|tv\s?aparecida|can[cç][aã]o\s?nova|tv\s?senado|tv\s?c[aâ]mara|futura|naza|tv\s?pai\s?eterno", re.I)
 BRAZIL_RE = re.compile(r"(^|[^a-z])(br|brasil|brazil)([^a-z]|$)|canais|abertos|not[ií]cias|esport", re.I)
 BAD_PREFIX_RE = re.compile(r"^(?:es|usa|us|uk|ar|tr|fr|de|it|pt|mx|arab)[: |]", re.I)
+MOVIE_RE = re.compile(r"\b(hbo|telecine|cinemax|megapix|space|tnt|warner|sony|axn|universal|paramount|studio universal|amc)\b", re.I)
+KIDS_RE = re.compile(r"disney|cartoon|nickelodeon|nick jr|\bnick\b|discovery kids|gloob|baby tv|tooncast|boomerang", re.I)
+DOC_RE = re.compile(r"discovery|history|national geographic|nat geo|animal planet|investiga|\ba&e\b|smithsonian", re.I)
+EPISODE_RE = re.compile(r"s\d{1,2}e\d{1,3}|\bepis[oó]dio\b|\btemporada\b|\bepisode\b", re.I)
 
 
 @dataclass(frozen=True)
@@ -41,6 +47,17 @@ class Entry:
 
 
 def classify(name, group):
+    if EPISODE_RE.search(name) or re.search(r"adult|xxx", group, re.I):
+        return None
+    if BAD_PREFIX_RE.search(name) and not BRAZIL_RE.search(group):
+        return None
+    channel_name = re.sub(r"^(?:BR|BRAZIL|BRASIL)\s*[:|\-]\s*", "", name, flags=re.I)
+    if KIDS_RE.match(channel_name):
+        return "Infantil"
+    if DOC_RE.match(channel_name):
+        return "Documentários"
+    if MOVIE_RE.match(channel_name):
+        return "Filmes e Séries"
     if VOD_RE.search(group) or VOD_RE.search(name):
         return None
     if BAD_PREFIX_RE.search(name) and not BRAZIL_RE.search(group):
@@ -57,7 +74,9 @@ def classify(name, group):
 
 
 def score_entry(name, group, source, category):
-    score = {"Notícias": 450, "Esportes": 350, "Canais Abertos": 300, "Variedades": 100}[category]
+    score = {"Notícias": 450, "Esportes": 350, "Canais Abertos": 300,
+             "Documentários": 340, "Infantil": 340, "Filmes e Séries": 340,
+             "Variedades": 100}[category]
     if source == "existing":
         score += 250
     elif source == "CanaisBR03.m3u8":
@@ -87,7 +106,8 @@ def entries(path, source):
                 match = GROUP_RE.search(line)
                 group = match.group(1).strip() if match else ""
             elif line.startswith(("http://", "https://")):
-                if name and len(line) <= 510:
+                vod_path = re.search(r"/(?:movie|series)/|\.(?:mp4|mkv|avi)(?:\?|$)", urlsplit(line).path, re.I)
+                if name and len(line) <= 510 and not vod_path and source != "Filmes-Series.m3u8":
                     category = classify(name, group)
                     if category:
                         yield Entry(name, line, group, source,
@@ -124,8 +144,8 @@ def fetch(url, timeout, maximum=65536):
 
 
 def is_ts(data):
-    return len(data) >= 376 and any(data[offset] == 0x47 and data[offset + 188] == 0x47
-                                    for offset in range(min(188, len(data) - 376 + 1)))
+    return len(data) >= 377 and any(data[offset] == data[offset + 188] == data[offset + 376] == 0x47
+                                    for offset in range(min(188, len(data) - 376)))
 
 
 def probe(item, timeout):
@@ -143,12 +163,36 @@ def probe(item, timeout):
             content = data.decode("utf-8-sig", "replace")
             if "#EXT-X-KEY" in content or "#EXT-X-MAP" in content:
                 return False, "unsupported HLS"
+            if "#EXT-X-STREAM-INF" in content or "#EXT-X-MEDIA-SEQUENCE" not in content:
+                return False, "unsupported master/sequence"
             links = [line.strip() for line in content.splitlines()
                      if line.strip() and not line.startswith("#")]
             if not links:
                 return False, "empty HLS"
-            url = urljoin(resolved, links[0])
-            continue
+            # Check two recent complete TS segments, not an obsolete first entry.
+            segment_hashes = set()
+            for link in links[-2:]:
+                segment_url = urljoin(resolved, link)
+                if not urlsplit(segment_url).path.lower().endswith(".ts"):
+                    return False, "unsupported segment URL"
+                try:
+                    with urlopen(Request(segment_url, headers={"User-Agent": "Mozilla/5.0"}),
+                                 timeout=timeout, context=ssl.create_default_context()) as response:
+                        segment = response.read(8 * 1024 * 1024 + 1)
+                        length = response.headers.get("Content-Length")
+                        if response.status != 200 or len(segment) > 8 * 1024 * 1024:
+                            return False, "segment status/size"
+                        if length and len(segment) != int(length):
+                            return False, "incomplete segment"
+                        if not is_ts(segment):
+                            return False, "invalid TS segment"
+                        digest = sha256(segment).digest()
+                        if digest in segment_hashes:
+                            return False, "identical consecutive TS segments"
+                        segment_hashes.add(digest)
+                except Exception as exc:
+                    return False, type(exc).__name__
+            return True, "two complete TS segments" if len(links) > 1 else "complete TS segment"
         return False, "not TS/HLS"
     return False, "nested HLS"
 
@@ -164,13 +208,15 @@ def write_outputs(verified, output, report, scanned, attempted, errors):
         for item in verified:
             file.write(f'#EXTINF:-1 group-title="{item.category}",{safe_name(item.name)}\n{item.url}\n')
     result = {
+        "checked_at_utc": datetime.now(timezone.utc).isoformat(),
+        "validation_scope": "Network TS/HLS availability; not receiver audio/video or long-term stability",
         "source_candidates": scanned,
         "network_attempts": attempted,
         "verified_count": len(verified),
         "categories": dict(Counter(item.category for item in verified)),
         "failure_reasons": dict(errors),
         "channels": [{"name": item.name, "category": item.category, "source": item.source,
-                      "host": urlsplit(item.url).netloc} for item in verified],
+                      "host": urlsplit(item.url).hostname} for item in verified],
     }
     report.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
 

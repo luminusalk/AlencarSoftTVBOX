@@ -1,134 +1,42 @@
 #EXTM3U
-#EXTINF:-1 group-title="Notícias",TV Cultura HD
-https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8?vhost=player-tvcultura.stream.uol.com.br
-#EXTINF:-1 group-title="Notícias",BandNews [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/467
-#EXTINF:-1 group-title="Notícias",BR: BAND NEWS
-http://31.43.191.125:8080/restream/restream/4834
-#EXTINF:-1 group-title="Notícias",Jovem Pan News [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/482
-#EXTINF:-1 group-title="Notícias",Jovem Pan News HD
-http://64.31.23.207:80/96795792/50165825/5298081.ts
-#EXTINF:-1 group-title="Notícias",CNN Brasil [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/472
-#EXTINF:-1 group-title="Notícias",CNN Brasil [1080p FULL HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/474
-#EXTINF:-1 group-title="Notícias",SBT News [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/599767
-#EXTINF:-1 group-title="Notícias",SBT News [1080p FULL HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/599766
-#EXTINF:-1 group-title="Notícias",GloboNews [1080p FULL HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/479
-#EXTINF:-1 group-title="Notícias",Globo News HD
-http://64.31.23.207:80/96795792/50165825/5298078.ts
-#EXTINF:-1 group-title="Notícias",Record News [1080p FULL HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/488
-#EXTINF:-1 group-title="Notícias",Record News HD
-http://64.31.23.207:80/96795792/50165825/5298084.ts
+#EXTINF:-1 group-title="Notícias",BAND NEWS HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/11769.ts
+#EXTINF:-1 group-title="Notícias",CNN BRASIL HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8712.ts
 #EXTINF:-1 group-title="Notícias",Cultura HD
 http://64.31.23.207:80/96795792/50165825/5298049.ts
-#EXTINF:-1 group-title="Notícias",Cultura FHD
-http://64.31.23.207:80/96795792/50165825/5298048.ts
-#EXTINF:-1 group-title="Notícias",BAND NEWS HD ²
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/30171.ts
-#EXTINF:-1 group-title="Notícias",CNN BRASIL HD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/30166.ts
-#EXTINF:-1 group-title="Notícias",CNN BRASIL HD ²
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/30167.ts
-#EXTINF:-1 group-title="Notícias",JOVEM PAN HD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/167985.ts
-#EXTINF:-1 group-title="Notícias",JOVEM PAN FHD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/167984.ts
-#EXTINF:-1 group-title="Notícias",GLOBO NEWS HD ²
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/30169.ts
-#EXTINF:-1 group-title="Notícias",GLOBO NEWS HD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/30168.ts
-#EXTINF:-1 group-title="Notícias",RECORD NEWS HD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/30170.ts
-#EXTINF:-1 group-title="Notícias",TV SENADO HD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/69027.ts
-#EXTINF:-1 group-title="Notícias",TV Senado
-http://64.31.23.207:80/96795792/50165825/5298067.ts
-#EXTINF:-1 group-title="Notícias",TV Camara
-http://64.31.23.207:80/96795792/50165825/5298063.ts
-#EXTINF:-1 group-title="Notícias",TV CÂMARA FHD
-http://dns.explouddev.com:80/632270679/F823j7133R/368851
 #EXTINF:-1 group-title="Notícias",CULTURA PA
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/21022.ts
-#EXTINF:-1 group-title="Notícias",BAND NEWS FHD H.265
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/81596.ts
-#EXTINF:-1 group-title="Notícias",CNN BRASIL FHD H.265
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/81597.ts
-#EXTINF:-1 group-title="Notícias",GLOBO NEWS FHD H.265
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/81598.ts
-#EXTINF:-1 group-title="Notícias",SBT NEWS FHD H.265
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/1129618.ts
-#EXTINF:-1 group-title="Canais Abertos",Rede Vida [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/197
-#EXTINF:-1 group-title="Canais Abertos",REDE VIDA HD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/9076.ts
-#EXTINF:-1 group-title="Canais Abertos",RecordTV Campos Dos Goytacazes HD
-http://dns.explouddev.com:80/632270679/F823j7133R/613045
-#EXTINF:-1 group-title="Canais Abertos",RecordTV Campos Dos Goytacazes SD
-http://dns.explouddev.com:80/632270679/F823j7133R/613046
-#EXTINF:-1 group-title="Canais Abertos",SBT RS [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/244182
-#EXTINF:-1 group-title="Canais Abertos",SBT RS HD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/91907.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo Nordeste [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/2427
-#EXTINF:-1 group-title="Canais Abertos",Globo Nordeste FHD
-http://64.31.23.207:80/96795792/50165825/5299057.ts
-#EXTINF:-1 group-title="Canais Abertos",Band SP [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/255467
-#EXTINF:-1 group-title="Canais Abertos",Band SP FHD
-http://64.31.23.207:80/96795792/50165825/324371.ts
-#EXTINF:-1 group-title="Canais Abertos",SBT RJ [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/244174
-#EXTINF:-1 group-title="Canais Abertos",SBT RJ FHD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/131563.ts
-#EXTINF:-1 group-title="Canais Abertos",RecordTV SP [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/244075
-#EXTINF:-1 group-title="Canais Abertos",Record TV SP FHD
-http://64.31.23.207:80/96795792/50165825/5298124.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo SP [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/289883
-#EXTINF:-1 group-title="Canais Abertos",Globo SP FHD
-http://64.31.23.207:80/96795792/50165825/5298295.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo DF [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/2451
-#EXTINF:-1 group-title="Canais Abertos",Globo MG [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/2378
-#EXTINF:-1 group-title="Canais Abertos",RecordTV RJ [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/528662
-#EXTINF:-1 group-title="Canais Abertos",RedeTV! [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/80172
-#EXTINF:-1 group-title="Canais Abertos",RedeTV! FHD
-http://64.31.23.207:80/96795792/50165825/5298055.ts
-#EXTINF:-1 group-title="Canais Abertos",BR: GLOBO EPTV CAMPINAS
-http://31.43.191.125:8080/restream/restream/4862
-#EXTINF:-1 group-title="Canais Abertos",Globo EPTV Campinas HD
-http://64.31.23.207:80/96795792/50165825/5298270.ts
-#EXTINF:-1 group-title="Canais Abertos",BR: SBT
-http://31.43.191.125:8080/restream/restream/4898
-#EXTINF:-1 group-title="Canais Abertos",SBT HD
-http://64.31.23.207:80/96795792/50165825/324292.ts
-#EXTINF:-1 group-title="Canais Abertos",BR: Record SP
-http://31.43.191.125:8080/restream/restream/58731
-#EXTINF:-1 group-title="Canais Abertos",RECORD SP HD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/12888.ts
-#EXTINF:-1 group-title="Canais Abertos",Band Campinas HD
-http://64.31.23.207:80/96795792/50165825/324353.ts
-#EXTINF:-1 group-title="Canais Abertos",Band Campinas FHD
-http://64.31.23.207:80/96795792/50165825/324352.ts
-#EXTINF:-1 group-title="Canais Abertos",Band Curitiba HD
-http://64.31.23.207:80/96795792/50165825/324355.ts
-#EXTINF:-1 group-title="Canais Abertos",Band Curitiba FHD
-http://64.31.23.207:80/96795792/50165825/324354.ts
+#EXTINF:-1 group-title="Notícias",GLOBO NEWS HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8854.ts
+#EXTINF:-1 group-title="Notícias",JOVEM PAN FHD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/167984.ts
+#EXTINF:-1 group-title="Notícias",JOVEM PAN NEWS HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/107918.ts
+#EXTINF:-1 group-title="Notícias",RECORD NEWS HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9057.ts
+#EXTINF:-1 group-title="Notícias",SBT News HD
+http://64.31.23.207:80/96795792/50165825/5298087.ts
+#EXTINF:-1 group-title="Notícias",TV Camara
+http://64.31.23.207:80/96795792/50165825/5298063.ts
+#EXTINF:-1 group-title="Notícias",TV Cultura HD
+https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8?vhost=player-tvcultura.stream.uol.com.br
+#EXTINF:-1 group-title="Notícias",TV SENADO HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/69027.ts
 #EXTINF:-1 group-title="Canais Abertos",BAND HD
 http://64.31.23.207:80/96795792/50165825/324358.ts
 #EXTINF:-1 group-title="Canais Abertos",BAND FHD
 http://64.31.23.207:80/96795792/50165825/324357.ts
+#EXTINF:-1 group-title="Canais Abertos",Band Bahia HD
+http://64.31.23.207:80/96795792/50165825/5299033.ts
+#EXTINF:-1 group-title="Canais Abertos",BAND CAMPINAS HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/20522.ts
+#EXTINF:-1 group-title="Canais Abertos",Band Curitiba HD
+http://64.31.23.207:80/96795792/50165825/324355.ts
+#EXTINF:-1 group-title="Canais Abertos",Band Curitiba FHD
+http://64.31.23.207:80/96795792/50165825/324354.ts
+#EXTINF:-1 group-title="Canais Abertos",Band MG
+http://64.31.23.207:80/96795792/50165825/324359.ts
 #EXTINF:-1 group-title="Canais Abertos",Band Minas HD
 http://64.31.23.207:80/96795792/50165825/324361.ts
 #EXTINF:-1 group-title="Canais Abertos",Band Minas FHD
@@ -141,461 +49,479 @@ http://64.31.23.207:80/96795792/50165825/324365.ts
 http://64.31.23.207:80/96795792/50165825/324364.ts
 #EXTINF:-1 group-title="Canais Abertos",Band RJ HD
 http://64.31.23.207:80/96795792/50165825/324366.ts
-#EXTINF:-1 group-title="Canais Abertos",Band RJ HD
-http://dns.explouddev.com:80/632270679/F823j7133R/255475
-#EXTINF:-1 group-title="Canais Abertos",Band RS HD
-http://64.31.23.207:80/96795792/50165825/324368.ts
+#EXTINF:-1 group-title="Canais Abertos",Band RN
+http://64.31.23.207:80/96795792/50165825/324367.ts
 #EXTINF:-1 group-title="Canais Abertos",BAND RS HD
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/72575.ts
-#EXTINF:-1 group-title="Canais Abertos",Band Sergipe HD
-http://64.31.23.207:80/96795792/50165825/324370.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo RPC Curitiba HD
-http://64.31.23.207:80/96795792/50165825/5298291.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo RPC Curitiba FHD
-http://64.31.23.207:80/96795792/50165825/5298290.ts
-#EXTINF:-1 group-title="Canais Abertos",SBT Alterosa HD*
-http://64.31.23.207:80/96795792/50165825/324287.ts
-#EXTINF:-1 group-title="Canais Abertos",SBT GO HD
-http://64.31.23.207:80/96795792/50165825/324291.ts
-#EXTINF:-1 group-title="Canais Abertos",SBT SP HD
-http://64.31.23.207:80/96795792/50165825/324308.ts
-#EXTINF:-1 group-title="Canais Abertos",SBT SP FHD
-http://64.31.23.207:80/96795792/50165825/324307.ts
-#EXTINF:-1 group-title="Canais Abertos",SBT Piaui HD
-http://64.31.23.207:80/96795792/50165825/324309.ts
-#EXTINF:-1 group-title="Canais Abertos",SBT PIAUI HD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/131432.ts
-#EXTINF:-1 group-title="Canais Abertos",SBT Minas HD
-http://64.31.23.207:80/96795792/50165825/324310.ts
-#EXTINF:-1 group-title="Canais Abertos",SBT Maringa HD
-http://64.31.23.207:80/96795792/50165825/324311.ts
-#EXTINF:-1 group-title="Canais Abertos",SBT Londrina HD
-http://64.31.23.207:80/96795792/50165825/324312.ts
-#EXTINF:-1 group-title="Canais Abertos",SBT TV Jornal PE HD
-http://64.31.23.207:80/96795792/50165825/324313.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV Brasília HD
-http://64.31.23.207:80/96795792/50165825/5298109.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV Brasília FHD
-http://64.31.23.207:80/96795792/50165825/5298108.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV Itapoan HD
-http://64.31.23.207:80/96795792/50165825/5298113.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV Itapoan FHD
-http://64.31.23.207:80/96795792/50165825/5298112.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV Rio HD
-http://64.31.23.207:80/96795792/50165825/5298119.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV Rio FHD
-http://64.31.23.207:80/96795792/50165825/5298118.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo Bahia HD
-http://64.31.23.207:80/96795792/50165825/5299038.ts
+#EXTINF:-1 group-title="Canais Abertos",Band SP HD
+http://64.31.23.207:80/96795792/50165825/324372.ts
+#EXTINF:-1 group-title="Canais Abertos",Futura HD
+http://64.31.23.207:80/96795792/50165825/5298053.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Amazônica Macapá HD
+http://64.31.23.207:80/96795792/50165825/5299181.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Amazônica Rio Branco HD
+http://64.31.23.207:80/96795792/50165825/5299182.ts
 #EXTINF:-1 group-title="Canais Abertos",Globo Bahia SD
 http://64.31.23.207:80/96795792/50165825/5299039.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV RS HD
-http://64.31.23.207:80/96795792/50165825/5298122.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV RS FHD
-http://64.31.23.207:80/96795792/50165825/5298121.ts
 #EXTINF:-1 group-title="Canais Abertos",Globo Bh HD
 http://64.31.23.207:80/96795792/50165825/5299041.ts
 #EXTINF:-1 group-title="Canais Abertos",Globo Bh FHD
 http://64.31.23.207:80/96795792/50165825/5299040.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV Belem HD
-http://64.31.23.207:80/96795792/50165825/5298107.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV Minas HD
-http://64.31.23.207:80/96795792/50165825/5298116.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV Minas FHD
-http://64.31.23.207:80/96795792/50165825/5298115.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV Juara HD
-http://64.31.23.207:80/96795792/50165825/5298129.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo Mirante São Luís HD
-http://64.31.23.207:80/96795792/50165825/5299047.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV Juina HD
-http://64.31.23.207:80/96795792/50165825/5298128.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV Parana HD
-http://64.31.23.207:80/96795792/50165825/5298131.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV Parana FHD
-http://64.31.23.207:80/96795792/50165825/5298130.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV SJ Rio Preto HD
-http://64.31.23.207:80/96795792/50165825/5298134.ts
-#EXTINF:-1 group-title="Canais Abertos",Record TV SJ Rio Preto FHD
-http://64.31.23.207:80/96795792/50165825/5298133.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo RJ Interior HD
-http://64.31.23.207:80/96795792/50165825/5299062.ts
-#EXTINF:-1 group-title="Canais Abertos",Band Bahia HD
-http://64.31.23.207:80/96795792/50165825/5299033.ts
-#EXTINF:-1 group-title="Canais Abertos",BAND BAHIA
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/1166299.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo Morena Ponta Porã HD
-http://64.31.23.207:80/96795792/50165825/5299049.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo Morena Ponta Porã FHD
-http://64.31.23.207:80/96795792/50165825/5299048.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Recife HD
-http://64.31.23.207:80/96795792/50165825/5299073.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Recife FHD
-http://64.31.23.207:80/96795792/50165825/5299072.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Bahia HD
-http://64.31.23.207:80/96795792/50165825/5299065.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Bahia FHD
-http://64.31.23.207:80/96795792/50165825/5299064.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Verdes Mares CE HD
-http://64.31.23.207:80/96795792/50165825/5299078.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Verdes Mares CE FHD
-http://64.31.23.207:80/96795792/50165825/5299077.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo Inter PT HD
-http://64.31.23.207:80/96795792/50165825/5299055.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Diário Mogi HD
-http://64.31.23.207:80/96795792/50165825/5299069.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Mirante São Luis HD
-http://64.31.23.207:80/96795792/50165825/5299071.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Mirante São Luis FHD
-http://64.31.23.207:80/96795792/50165825/5299070.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo Brasília HD
-http://64.31.23.207:80/96795792/50165825/5299082.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo Brasília FHD
-http://64.31.23.207:80/96795792/50165825/5299081.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Cabo Branco HD
-http://64.31.23.207:80/96795792/50165825/5299068.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Cabo Branco FHD
-http://64.31.23.207:80/96795792/50165825/5299067.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Brasília SD
+http://64.31.23.207:80/96795792/50165825/5299083.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Cacoal HD
+http://64.31.23.207:80/96795792/50165825/5299204.ts
 #EXTINF:-1 group-title="Canais Abertos",Globo Centro America HD
 http://64.31.23.207:80/96795792/50165825/5299086.ts
 #EXTINF:-1 group-title="Canais Abertos",Globo Centro America FHD
 http://64.31.23.207:80/96795792/50165825/5299085.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Subaé BA HD
-http://64.31.23.207:80/96795792/50165825/5299076.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Mirante Balsas HD
-http://64.31.23.207:80/96795792/50165825/5299080.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Sergipe HD
-http://64.31.23.207:80/96795792/50165825/5299075.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Sergipe FHD
-http://64.31.23.207:80/96795792/50165825/5299074.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Morena HD
-http://64.31.23.207:80/96795792/50165825/5299097.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Morena FHD
-http://64.31.23.207:80/96795792/50165825/5299096.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Vanguarda SJC HD
-http://64.31.23.207:80/96795792/50165825/5299100.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Vanguarda SJC FHD
-http://64.31.23.207:80/96795792/50165825/5299099.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo Bahia Santa Cruz HD
-http://64.31.23.207:80/96795792/50165825/5299107.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo NSC Florianopolis HD
-http://64.31.23.207:80/96795792/50165825/5299109.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Chapecó SD
+http://64.31.23.207:80/96795792/50165825/5299103.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Chapecó FHD
+http://64.31.23.207:80/96795792/50165825/5299101.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo EPTV Campinas HD
+http://64.31.23.207:80/96795792/50165825/5298270.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO EPTV CENTRAL SÃO CARLOS SP HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1168932.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo EPTV Ribeirão Preto HD
+http://64.31.23.207:80/96795792/50165825/5298250.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo EPTV Sul de Minas HD
+http://64.31.23.207:80/96795792/50165825/5298271.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Gazeta Vitória HD
+http://64.31.23.207:80/96795792/50165825/5298254.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Integração Uberlândia HD
+http://64.31.23.207:80/96795792/50165825/5298273.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Inter Cabugi HD
+http://64.31.23.207:80/96795792/50165825/5299184.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Inter TV Grande Minas HD
+http://64.31.23.207:80/96795792/50165825/5298277.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO MINAS HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1168940.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Mirante São Luís HD
+http://64.31.23.207:80/96795792/50165825/5299047.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Morena Ponta Porã HD
+http://64.31.23.207:80/96795792/50165825/5299049.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Morena Ponta Porã FHD
+http://64.31.23.207:80/96795792/50165825/5299048.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Nordeste HD
+http://64.31.23.207:80/96795792/50165825/5299058.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo NSC Florianopolis SD
+http://64.31.23.207:80/96795792/50165825/5299110.ts
 #EXTINF:-1 group-title="Canais Abertos",Globo NSC Florianopolis FHD
 http://64.31.23.207:80/96795792/50165825/5299108.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Anhanguera Goiania HD
-http://64.31.23.207:80/96795792/50165825/5299091.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Anhanguera Goiania FHD
-http://64.31.23.207:80/96795792/50165825/5299090.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RBS Passo Fundo HD
+http://64.31.23.207:80/96795792/50165825/5299116.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RBS Santa Cruz HD
+http://64.31.23.207:80/96795792/50165825/5299118.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO RBS TV CAXIAS DO SUL HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1168998.ts
+#EXTINF:-1 group-title="Canais Abertos",BR: Globo RBS TV Cruz Alta HD
+http://64.31.23.207:80/96795792/50165825/5299139.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RBS TV Erechim HD
+http://64.31.23.207:80/96795792/50165825/5299138.ts
 #EXTINF:-1 group-title="Canais Abertos",Globo RBS TV Porto Alegre HD
 http://64.31.23.207:80/96795792/50165825/5299121.ts
 #EXTINF:-1 group-title="Canais Abertos",Globo RBS TV Porto Alegre FHD
 http://64.31.23.207:80/96795792/50165825/5299120.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Anhanguera Tocantins HD
-http://64.31.23.207:80/96795792/50165825/5299092.ts
-#EXTINF:-1 group-title="Canais Abertos",GLOBO TV ANHANGUERA TOCANTINS HD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/1169025.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo RPC Cascavel HD
-http://64.31.23.207:80/96795792/50165825/5299123.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO RBS TV SANTA MARIA HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1169004.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RBS TV Santa Rosa HD
+http://64.31.23.207:80/96795792/50165825/5299137.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RBS TV Uruguaiana HD
+http://64.31.23.207:80/96795792/50165825/5299136.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RJ HD
+http://64.31.23.207:80/96795792/50165825/5298284.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RJ Alto Litoral HD
+http://64.31.23.207:80/96795792/50165825/5298280.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO RJ INTERIOR HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1168924.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RJ Planície HD
+http://64.31.23.207:80/96795792/50165825/5298286.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO RPC CASCAVEL HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1169007.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RPC Curitiba SD
+http://64.31.23.207:80/96795792/50165825/5298292.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RPC Curitiba FHD
+http://64.31.23.207:80/96795792/50165825/5298290.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RPC Guarapuava HD
+http://64.31.23.207:80/96795792/50165825/5299134.ts
 #EXTINF:-1 group-title="Canais Abertos",Globo RPC Londrina HD
 http://64.31.23.207:80/96795792/50165825/5299125.ts
-#EXTINF:-1 group-title="Canais Abertos",GLOBO RPC LONDRINA HD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/1169013.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Brasilia HD
-http://64.31.23.207:80/96795792/50165825/5299094.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo TV Brasilia FHD
-http://64.31.23.207:80/96795792/50165825/5299093.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo Chapecó HD
-http://64.31.23.207:80/96795792/50165825/5299102.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo Chapecó FHD
-http://64.31.23.207:80/96795792/50165825/5299101.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo RPC Maringa HD
+http://64.31.23.207:80/96795792/50165825/5299127.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO RPC PONTA GROSSA HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1169019.ts
 #EXTINF:-1 group-title="Canais Abertos",Globo Santa Maria HD
 http://64.31.23.207:80/96795792/50165825/5299106.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo RBS TV Caxias do Sul HD
-http://64.31.23.207:80/96795792/50165825/5299119.ts
-#EXTINF:-1 group-title="Canais Abertos",GLOBO RBS TV CAXIAS DO SUL HD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/1168998.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo RBS TV Pelotas HD
-http://64.31.23.207:80/96795792/50165825/5299132.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo RBS TV Pelotas SD
-http://64.31.23.207:80/96795792/50165825/5299133.ts
-#EXTINF:-1 group-title="Canais Abertos",Globo RBS Santa Cruz HD
-http://64.31.23.207:80/96795792/50165825/5299118.ts
-#EXTINF:-1 group-title="Esportes",SporTV 1 [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/547
-#EXTINF:-1 group-title="Esportes",BR: SPORTV 1
-http://31.43.191.125:8080/restream/restream/4902
-#EXTINF:-1 group-title="Esportes",Eurosport 2  HD
-http://89.44.231.117:7000/eurosport2
-#EXTINF:-1 group-title="Esportes",Eurosport 2 HD
-http://89.44.231.73:7000/eurosport2
-#EXTINF:-1 group-title="Esportes",Eurosport HD
-http://89.44.231.117:7000/eurosport
-#EXTINF:-1 group-title="Esportes",Eurosport HD
-http://89.44.231.73:7000/eurosport
-#EXTINF:-1 group-title="Esportes",BR: BAND SPORT
-http://31.43.191.125:8080/restream/restream/4835
-#EXTINF:-1 group-title="Esportes",BR: ESPN 2
-http://31.43.191.125:8080/restream/restream/4855
-#EXTINF:-1 group-title="Esportes",ESPN 2 HD
-http://64.31.23.207:80/96795792/50165825/3460186.ts
-#EXTINF:-1 group-title="Esportes",BR: ESPN4
-http://31.43.191.125:8080/restream/restream/4859
-#EXTINF:-1 group-title="Esportes",ESPN 4 HD
-http://64.31.23.207:80/96795792/50165825/3460192.ts
-#EXTINF:-1 group-title="Esportes",BR: PREMIERE 2
-http://31.43.191.125:8080/restream/restream/4887
-#EXTINF:-1 group-title="Esportes",Premiere 2 HD
-http://64.31.23.207:80/96795792/50165825/3460213.ts
-#EXTINF:-1 group-title="Esportes",BR: FOX SPORTS 2
-http://31.43.191.125:8080/restream/restream/4860
-#EXTINF:-1 group-title="Esportes",BR: PREMIERE 5
-http://31.43.191.125:8080/restream/restream/4890
-#EXTINF:-1 group-title="Esportes",Premiere 5 FHD
-http://64.31.23.207:80/96795792/50165825/3460221.ts
-#EXTINF:-1 group-title="Esportes",BR: PREMIERE 3
-http://31.43.191.125:8080/restream/restream/4888
-#EXTINF:-1 group-title="Esportes",Premiere 3 FHD
-http://64.31.23.207:80/96795792/50165825/3460215.ts
-#EXTINF:-1 group-title="Esportes",BR: SPORTV 2
-http://31.43.191.125:8080/restream/restream/4903
-#EXTINF:-1 group-title="Esportes",SporTV+ 2 HD
-http://64.31.23.207:80/96795792/50165825/5299160.ts
-#EXTINF:-1 group-title="Esportes",BR: SPORTV 3
-http://31.43.191.125:8080/restream/restream/4904
-#EXTINF:-1 group-title="Esportes",SporTV+ 3 HD
-http://64.31.23.207:80/96795792/50165825/5299161.ts
-#EXTINF:-1 group-title="Esportes",BR: PREMIERE CLUBES
-http://31.43.191.125:8080/restream/restream/4892
-#EXTINF:-1 group-title="Esportes",PREMIERE CLUBES FHD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/9037.ts
-#EXTINF:-1 group-title="Esportes",NBA TV [720p HD]
-http://dns.explouddev.com:80/632270679/F823j7133R/254078
+#EXTINF:-1 group-title="Canais Abertos",Globo São Paulo HD
+http://64.31.23.207:80/96795792/50165825/5298259.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO SP HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1168918.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo SP FHD
+http://64.31.23.207:80/96795792/50165825/5298295.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Tapajós PA HD
+http://64.31.23.207:80/96795792/50165825/5299185.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Tapajós Santarém HD
+http://64.31.23.207:80/96795792/50165825/5299206.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Tem Itapetininga SD
+http://64.31.23.207:80/96795792/50165825/5298263.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Tem Sorocaba HD
+http://64.31.23.207:80/96795792/50165825/5298265.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo Tribuna Santos
+http://64.31.23.207:80/96795792/50165825/5298266.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Anhanguera Goiania HD
+http://64.31.23.207:80/96795792/50165825/5299091.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Anhanguera Goiania FHD
+http://64.31.23.207:80/96795792/50165825/5299090.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO TV ANHANGUERA TOCANTINS HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1169025.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO TV BAHIA HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1169029.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Belem HD
+http://64.31.23.207:80/96795792/50165825/5299186.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Brasilia HD
+http://64.31.23.207:80/96795792/50165825/5299094.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Cabo Branco HD
+http://64.31.23.207:80/96795792/50165825/5299068.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Cabo Branco FHD
+http://64.31.23.207:80/96795792/50165825/5299067.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO TV CLUBE PIAUÍ HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1169031.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO TV DIÁRIO HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1169032.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO TV INTEGRAÇÃO JUIZ DE FORA MG HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1169041.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO TV INTEGRAÇÃO UBERLÂNDIA HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1169044.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Itacotiara HD
+http://64.31.23.207:80/96795792/50165825/5299202.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Liberal Altamira HD
+http://64.31.23.207:80/96795792/50165825/5299200.ts
+#EXTINF:-1 group-title="Canais Abertos",GLOBO TV LIBERAL BELÉM HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1168956.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Liberal Castanhal HD
+http://64.31.23.207:80/96795792/50165825/5299199.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Liberal Marabá HD
+http://64.31.23.207:80/96795792/50165825/5299198.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Liberal Paragominas HD
+http://64.31.23.207:80/96795792/50165825/5299197.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Liberal Redenção HD
+http://64.31.23.207:80/96795792/50165825/5299195.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Mirante Balsas HD
+http://64.31.23.207:80/96795792/50165825/5299080.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Mirante São Luis FHD
+http://64.31.23.207:80/96795792/50165825/5299070.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Morena HD
+http://64.31.23.207:80/96795792/50165825/5299097.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Morena FHD
+http://64.31.23.207:80/96795792/50165825/5299096.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Morena Corumbá HD
+http://64.31.23.207:80/96795792/50165825/5299135.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Parintins HD
+http://64.31.23.207:80/96795792/50165825/5299205.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Recife HD
+http://64.31.23.207:80/96795792/50165825/5299073.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Recife FHD
+http://64.31.23.207:80/96795792/50165825/5299072.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Sergipe HD
+http://64.31.23.207:80/96795792/50165825/5299075.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Subaé BA HD
+http://64.31.23.207:80/96795792/50165825/5299076.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Vanguarda SJC HD
+http://64.31.23.207:80/96795792/50165825/5299100.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Vanguarda SJC FHD
+http://64.31.23.207:80/96795792/50165825/5299099.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Vanguarda TTE HD
+http://64.31.23.207:80/96795792/50165825/5299193.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Verdes Mares CE FHD
+http://64.31.23.207:80/96795792/50165825/5299077.ts
+#EXTINF:-1 group-title="Canais Abertos",Globo TV Vilhena HD
+http://64.31.23.207:80/96795792/50165825/5299194.ts
+#EXTINF:-1 group-title="Canais Abertos",RECORD BRASILIA HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/12988.ts
+#EXTINF:-1 group-title="Canais Abertos",RECORD RS HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9065.ts
+#EXTINF:-1 group-title="Canais Abertos",RECORD SANTA CATARINA HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/241179.ts
+#EXTINF:-1 group-title="Canais Abertos",Record SC
+http://64.31.23.207:80/96795792/50165825/5298103.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Belem HD
+http://64.31.23.207:80/96795792/50165825/5298107.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Brasília HD
+http://64.31.23.207:80/96795792/50165825/5298109.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Brasília FHD
+http://64.31.23.207:80/96795792/50165825/5298108.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Goias
+http://64.31.23.207:80/96795792/50165825/5298111.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Itapoan HD
+http://64.31.23.207:80/96795792/50165825/5298113.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Juina HD
+http://64.31.23.207:80/96795792/50165825/5298128.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Minas SD
+http://64.31.23.207:80/96795792/50165825/5298117.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Minas FHD
+http://64.31.23.207:80/96795792/50165825/5298115.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Parana HD
+http://64.31.23.207:80/96795792/50165825/5298131.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Rio HD
+http://64.31.23.207:80/96795792/50165825/5298119.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Rio FHD
+http://64.31.23.207:80/96795792/50165825/5298118.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV RS HD
+http://64.31.23.207:80/96795792/50165825/5298122.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV RS FHD
+http://64.31.23.207:80/96795792/50165825/5298121.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV SJ Rio Preto HD
+http://64.31.23.207:80/96795792/50165825/5298134.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV SJ Rio Preto FHD
+http://64.31.23.207:80/96795792/50165825/5298133.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV SP HD
+http://64.31.23.207:80/96795792/50165825/5298125.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV SP FHD
+http://64.31.23.207:80/96795792/50165825/5298124.ts
+#EXTINF:-1 group-title="Canais Abertos",Record TV Tropical
+http://64.31.23.207:80/96795792/50165825/5298127.ts
+#EXTINF:-1 group-title="Canais Abertos",RedeTV! SD
+http://64.31.23.207:80/96795792/50165825/5298057.ts
+#EXTINF:-1 group-title="Canais Abertos",RedeTV! FHD
+http://64.31.23.207:80/96795792/50165825/5298055.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT HD
+http://64.31.23.207:80/96795792/50165825/324292.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT Alterosa HD*
+http://64.31.23.207:80/96795792/50165825/324287.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT Maringa HD
+http://64.31.23.207:80/96795792/50165825/324311.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT MG
+http://64.31.23.207:80/96795792/50165825/324296.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT Minas HD
+http://64.31.23.207:80/96795792/50165825/324310.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT PARANA HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/88432.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT PR
+http://64.31.23.207:80/96795792/50165825/324301.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT RJ HD
+http://64.31.23.207:80/96795792/50165825/324303.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT RJ FHD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/131563.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT RS HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/91907.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT SP HD
+http://64.31.23.207:80/96795792/50165825/324308.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT SP FHD
+http://64.31.23.207:80/96795792/50165825/324307.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT TV Jornal PE HD
+http://64.31.23.207:80/96795792/50165825/324313.ts
+#EXTINF:-1 group-title="Canais Abertos",TV BRASIL HD
+http://64.31.23.207:80/96795792/50165825/5298062.ts
+#EXTINF:-1 group-title="Canais Abertos",TV GAZETA
+http://64.31.23.207:80/96795792/50165825/5298065.ts
+#EXTINF:-1 group-title="Canais Abertos",TV PAI ETERNO HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1165872.ts
+#EXTINF:-1 group-title="Esportes",BAND SPORTS HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8662.ts
+#EXTINF:-1 group-title="Esportes",CAZÉ TV HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/227520.ts
 #EXTINF:-1 group-title="Esportes",Combate HD
 http://64.31.23.207:80/96795792/50165825/297543.ts
-#EXTINF:-1 group-title="Esportes",Combate FHD
-http://64.31.23.207:80/96795792/50165825/297542.ts
-#EXTINF:-1 group-title="Esportes",Band Sports HD
-http://64.31.23.207:80/96795792/50165825/3460153.ts
-#EXTINF:-1 group-title="Esportes",Band Sports FHD
-http://64.31.23.207:80/96795792/50165825/3460152.ts
-#EXTINF:-1 group-title="Esportes",NSports HD
-http://64.31.23.207:80/96795792/50165825/3460166.ts
-#EXTINF:-1 group-title="Esportes",NSports FHD
-http://64.31.23.207:80/96795792/50165825/3460165.ts
-#EXTINF:-1 group-title="Esportes",Premiere 1 HD
-http://64.31.23.207:80/96795792/50165825/3460210.ts
-#EXTINF:-1 group-title="Esportes",﻿Premiere 1 FHD
-http://64.31.23.207:80/96795792/50165825/3460209.ts
-#EXTINF:-1 group-title="Esportes",Xsport HD
-http://64.31.23.207:80/96795792/50165825/3460263.ts
-#EXTINF:-1 group-title="Esportes",Xsport FHD
-http://64.31.23.207:80/96795792/50165825/3460262.ts
 #EXTINF:-1 group-title="Esportes",ESPN HD
 http://64.31.23.207:80/96795792/50165825/3460183.ts
 #EXTINF:-1 group-title="Esportes",ESPN FHD
 http://64.31.23.207:80/96795792/50165825/3460182.ts
+#EXTINF:-1 group-title="Esportes",ESPN 2 HD
+http://64.31.23.207:80/96795792/50165825/3460186.ts
 #EXTINF:-1 group-title="Esportes",ESPN 3 HD
 http://64.31.23.207:80/96795792/50165825/3460189.ts
 #EXTINF:-1 group-title="Esportes",ESPN 3 FHD
 http://64.31.23.207:80/96795792/50165825/3460188.ts
-#EXTINF:-1 group-title="Esportes",SporTV HD
-http://64.31.23.207:80/96795792/50165825/3460201.ts
-#EXTINF:-1 group-title="Esportes",SporTV FHD
-http://64.31.23.207:80/96795792/50165825/3460200.ts
+#EXTINF:-1 group-title="Esportes",ESPN 4 HD
+http://64.31.23.207:80/96795792/50165825/3460192.ts
 #EXTINF:-1 group-title="Esportes",ESPN 5 HD
-http://64.31.23.207:80/96795792/50165825/3460195.ts
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8827.ts
 #EXTINF:-1 group-title="Esportes",ESPN 5 FHD
 http://64.31.23.207:80/96795792/50165825/3460194.ts
-#EXTINF:-1 group-title="Esportes",ESPN 6 HD
-http://64.31.23.207:80/96795792/50165825/3460198.ts
+#EXTINF:-1 group-title="Esportes",ESPN 6  HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8794.ts
 #EXTINF:-1 group-title="Esportes",ESPN 6 FHD
 http://64.31.23.207:80/96795792/50165825/3460197.ts
-#EXTINF:-1 group-title="Esportes",Premiere 8 HD
-http://64.31.23.207:80/96795792/50165825/3460231.ts
-#EXTINF:-1 group-title="Esportes",Premiere 8 FHD
-http://64.31.23.207:80/96795792/50165825/3460230.ts
-#EXTINF:-1 group-title="Esportes",BAND SPORTS HD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/30064.ts
-#EXTINF:-1 group-title="Esportes",BAND SPORTS HD ³
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/26724.ts
-#EXTINF:-1 group-title="Esportes",COMBATE HD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/30066.ts
-#EXTINF:-1 group-title="Esportes",COMBATE HD ²
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/30067.ts
-#EXTINF:-1 group-title="Esportes",CAZÉ TV HD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/227520.ts
-#EXTINF:-1 group-title="Esportes",CAZE TV FHD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/245797.ts
-#EXTINF:-1 group-title="Esportes",ESPN HD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/598917.ts
-#EXTINF:-1 group-title="Esportes",ESPN 2 HD ²
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/30071.ts
-#EXTINF:-1 group-title="Esportes",ESPN 5 HD ²
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/30084.ts
-#EXTINF:-1 group-title="Esportes",PREMIERE 3 HD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/30051.ts
-#EXTINF:-1 group-title="Esportes",ESPN 6 HD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/30077.ts
-#EXTINF:-1 group-title="Esportes",PREMIERE 2 HD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/69029.ts
-#EXTINF:-1 group-title="Esportes",PREMIERE 2 FHD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/13576.ts
-#EXTINF:-1 group-title="Esportes",PREMIERE 4 HD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/108298.ts
-#EXTINF:-1 group-title="Esportes",PREMIERE 4 FHD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/108296.ts
-#EXTINF:-1 group-title="Esportes",PREMIERE 4 HD ²
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/108300.ts
-#EXTINF:-1 group-title="Esportes",PREMIERE 5 HD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/108304.ts
-#EXTINF:-1 group-title="Esportes",PREMIERE 5 FHD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/108302.ts
-#EXTINF:-1 group-title="Esportes",PREMIERE 6 HD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/108310.ts
-#EXTINF:-1 group-title="Esportes",PREMIERE 6 FHD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/108308.ts
-#EXTINF:-1 group-title="Esportes",PREMIERE 5 HD ²
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/108306.ts
-#EXTINF:-1 group-title="Esportes",PREMIERE 5 FHD ²
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/108305.ts
-#EXTINF:-1 group-title="Esportes",PREMIERE 7 HD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/108316.ts
-#EXTINF:-1 group-title="Esportes",PREMIERE 7 FHD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/108314.ts
-#EXTINF:-1 group-title="Esportes",SPORTV 2 HD ²
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/30123.ts
-#EXTINF:-1 group-title="Esportes",Sporty Net 1 HD
-http://dns.explouddev.com:80/632270679/F823j7133R/301420
-#EXTINF:-1 group-title="Esportes",SPORTV 3 HD ¹
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/30124.ts
-#EXTINF:-1 group-title="Esportes",Sporty Net 2 HD
-http://dns.explouddev.com:80/632270679/F823j7133R/301421
-#EXTINF:-1 group-title="Esportes",Sporty Net 3 HD
-http://dns.explouddev.com:80/632270679/F823j7133R/301422
-#EXTINF:-1 group-title="Esportes",DSPORTS HD
-http://dns.explouddev.com:80/632270679/F823j7133R/561315
-#EXTINF:-1 group-title="Esportes",ESPN Extra HD
-http://dns.explouddev.com:80/632270679/F823j7133R/613800
-#EXTINF:-1 group-title="Esportes",SporTV 2 HD¹
-http://64.31.23.207:80/96795792/50165825/5299144.ts
-#EXTINF:-1 group-title="Esportes",SporTV HD¹
-http://64.31.23.207:80/96795792/50165825/5299156.ts
-#EXTINF:-1 group-title="Esportes",SporTV SD¹
-http://64.31.23.207:80/96795792/50165825/5299158.ts
-#EXTINF:-1 group-title="Esportes",SporTV 3 HD²
-http://64.31.23.207:80/96795792/50165825/5299149.ts
-#EXTINF:-1 group-title="Esportes",SportyNet 01
-http://64.31.23.207:80/96795792/50165825/3460158.ts
-#EXTINF:-1 group-title="Esportes",SportyNet 01
-http://64.31.23.207:80/96795792/50165825/3460269.ts
-#EXTINF:-1 group-title="Esportes",SporTV 3 HD¹
-http://64.31.23.207:80/96795792/50165825/5299150.ts
-#EXTINF:-1 group-title="Esportes",SporTV 2 SD¹
-http://64.31.23.207:80/96795792/50165825/5299146.ts
-#EXTINF:-1 group-title="Esportes",SporTV 3 SD¹
-http://64.31.23.207:80/96795792/50165825/5299152.ts
-#EXTINF:-1 group-title="Esportes",﻿Premiere Clubs 4K
-http://64.31.23.207:80/96795792/50165825/324401.ts
-#EXTINF:-1 group-title="Esportes",XSports
-http://64.31.23.207:80/96795792/50165825/3460175.ts
-#EXTINF:-1 group-title="Esportes",X SPORTS FHD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/631631.ts
+#EXTINF:-1 group-title="Esportes",Eurosport HD
+http://89.44.231.117:7000/eurosport
+#EXTINF:-1 group-title="Esportes",Eurosport 2  HD
+http://89.44.231.117:7000/eurosport2
 #EXTINF:-1 group-title="Esportes",NSPORT (JOGO 01)
 http://64.31.23.207:80/96795792/50165825/3460254.ts
+#EXTINF:-1 group-title="Esportes",NSports HD
+http://64.31.23.207:80/96795792/50165825/3460166.ts
+#EXTINF:-1 group-title="Esportes",NSports FHD
+http://64.31.23.207:80/96795792/50165825/3460165.ts
 #EXTINF:-1 group-title="Esportes",Nsports 03
 http://64.31.23.207:80/96795792/50165825/5299159.ts
-#EXTINF:-1 group-title="Esportes",SPORTYNET
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/1165167.ts
-#EXTINF:-1 group-title="Esportes",SporTV 1 H265
-http://dns.explouddev.com:80/632270679/F823j7133R/52090
-#EXTINF:-1 group-title="Esportes",URU- DIRECTV SPORTS
-http://dns.explouddev.com:80/632270679/F823j7133R/387227
-#EXTINF:-1 group-title="Esportes",SporTV 2 H265
-http://dns.explouddev.com:80/632270679/F823j7133R/118703
-#EXTINF:-1 group-title="Esportes",SPORTV 2 FHD H.265
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/81592.ts
-#EXTINF:-1 group-title="Esportes",SporTV 4 H265
-http://dns.explouddev.com:80/632270679/F823j7133R/567896
-#EXTINF:-1 group-title="Esportes",SporTV 3 H265
-http://dns.explouddev.com:80/632270679/F823j7133R/118705
-#EXTINF:-1 group-title="Esportes",SPORTV 3 FHD H.265
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/81593.ts
-#EXTINF:-1 group-title="Variedades",BR: BOOMERANG
-http://31.43.191.125:8080/restream/restream/4836
-#EXTINF:-1 group-title="Variedades",BR: ANIMAL PLANET
-http://31.43.191.125:8080/restream/restream/4831
-#EXTINF:-1 group-title="Variedades",Animal Planet HD
+#EXTINF:-1 group-title="Esportes",Premiere 1 HD
+http://64.31.23.207:80/96795792/50165825/3460210.ts
+#EXTINF:-1 group-title="Esportes",﻿Premiere 1 FHD
+http://64.31.23.207:80/96795792/50165825/3460209.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 2 HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/69028.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 2 FHD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/69097.ts
+#EXTINF:-1 group-title="Esportes",Premiere 3 FHD
+http://64.31.23.207:80/96795792/50165825/3460215.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 4 HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108297.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 4 FHD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108296.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 5 HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108304.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 5 FHD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108305.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 6 HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108309.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 6 FHD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108308.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 7 HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108315.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 7 FHD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108314.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 8 HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9036.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 8 FHD MOSAICO
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30063.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE CLUBES HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/94194.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE CLUBES FHD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9037.ts
+#EXTINF:-1 group-title="Esportes",SPORTV HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9111.ts
+#EXTINF:-1 group-title="Esportes",SporTV 2 HD
+http://64.31.23.207:80/96795792/50165825/3460204.ts
+#EXTINF:-1 group-title="Esportes",SporTV 2 FHD¹
+http://64.31.23.207:80/96795792/50165825/5299142.ts
+#EXTINF:-1 group-title="Esportes",SPORTV 3 HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30124.ts
+#EXTINF:-1 group-title="Esportes",SportyNet 01
+http://64.31.23.207:80/96795792/50165825/3460269.ts
+#EXTINF:-1 group-title="Esportes",Xsport HD
+http://64.31.23.207:80/96795792/50165825/3460263.ts
+#EXTINF:-1 group-title="Esportes",X SPORTS HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/631630.ts
+#EXTINF:-1 group-title="Documentários",A&E HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/35225.ts
+#EXTINF:-1 group-title="Documentários",Animal Planet HD
 http://64.31.23.207:80/96795792/50165825/296620.ts
-#EXTINF:-1 group-title="Variedades",BR: A&E
-http://31.43.191.125:8080/restream/restream/4829
-#EXTINF:-1 group-title="Variedades",A&E HD
-http://64.31.23.207:80/96795792/50165825/518548.ts
-#EXTINF:-1 group-title="Variedades",BR: AMC
-http://31.43.191.125:8080/restream/restream/4830
-#EXTINF:-1 group-title="Variedades",BR: AXN
-http://31.43.191.125:8080/restream/restream/4832
-#EXTINF:-1 group-title="Variedades",BR: CARTOON NETWORK
-http://31.43.191.125:8080/restream/restream/4837
-#EXTINF:-1 group-title="Variedades",Cartoon Network HD
-http://64.31.23.207:80/96795792/50165825/1882623.ts
-#EXTINF:-1 group-title="Variedades",BR: BABY
-http://31.43.191.125:8080/restream/restream/4833
-#EXTINF:-1 group-title="Variedades",BR: COMEDY CENTRAL
-http://31.43.191.125:8080/restream/restream/4839
-#EXTINF:-1 group-title="Variedades",BR: DISCOVERY ID
-http://31.43.191.125:8080/restream/restream/4844
-#EXTINF:-1 group-title="Variedades",Discovery ID HD
+#EXTINF:-1 group-title="Documentários",DISCOVERY CHANNEL HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8736.ts
+#EXTINF:-1 group-title="Documentários",Discovery H&H HD
+http://64.31.23.207:80/96795792/50165825/297940.ts
+#EXTINF:-1 group-title="Documentários",DISCOVERY  HOME & HEALTH HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30149.ts
+#EXTINF:-1 group-title="Documentários",Discovery ID HD
 http://64.31.23.207:80/96795792/50165825/297949.ts
-#EXTINF:-1 group-title="Variedades",BR: HGTV
-http://31.43.191.125:8080/restream/restream/4842
-#EXTINF:-1 group-title="Variedades",HGTV HD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/304508.ts
-#EXTINF:-1 group-title="Variedades",BR: DISCOVERY SCIENCE
-http://31.43.191.125:8080/restream/restream/4846
-#EXTINF:-1 group-title="Variedades",Discovery Science HD
-http://64.31.23.207:80/96795792/50165825/297952.ts
-#EXTINF:-1 group-title="Variedades",BR: DISCOVERY HOME & HEALTH
-http://31.43.191.125:8080/restream/restream/4843
-#EXTINF:-1 group-title="Variedades",DISCOVERY HOME & HEALTH HD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/8740.ts
-#EXTINF:-1 group-title="Variedades",BR: DISCOVERY KIDS
-http://31.43.191.125:8080/restream/restream/4845
-#EXTINF:-1 group-title="Variedades",Discovery Kids HD
-http://64.31.23.207:80/96795792/50165825/297946.ts
-#EXTINF:-1 group-title="Variedades",BR: DISCOVERY CHANNEL
-http://31.43.191.125:8080/restream/restream/4841
-#EXTINF:-1 group-title="Variedades",Discovery Channel HD
-http://64.31.23.207:80/96795792/50165825/297937.ts
-#EXTINF:-1 group-title="Variedades",BR: DISCOVERY THEATER
-http://31.43.191.125:8080/restream/restream/4847
-#EXTINF:-1 group-title="Variedades",Discovery Theater HD
+#EXTINF:-1 group-title="Documentários",Discovery ID FHD
+http://64.31.23.207:80/96795792/50165825/297948.ts
+#EXTINF:-1 group-title="Documentários",DISCOVERY SCIENCE HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8746.ts
+#EXTINF:-1 group-title="Documentários",Discovery Theater HD
 http://64.31.23.207:80/96795792/50165825/297955.ts
-#EXTINF:-1 group-title="Variedades",BR: DISCOVERY TLC
-http://31.43.191.125:8080/restream/restream/4848
-#EXTINF:-1 group-title="Variedades",DISCOVERY TLC HD
+#EXTINF:-1 group-title="Documentários",DISCOVERY TLC HD
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/8754.ts
-#EXTINF:-1 group-title="Variedades",BR: DISCOVERY TURBO
-http://31.43.191.125:8080/restream/restream/4849
-#EXTINF:-1 group-title="Variedades",Discovery Turbo HD
+#EXTINF:-1 group-title="Documentários",DISCOVERY TLC FHD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8753.ts
+#EXTINF:-1 group-title="Documentários",Discovery Turbo HD
 http://64.31.23.207:80/96795792/50165825/518557.ts
-#EXTINF:-1 group-title="Variedades",BR: E!
-http://31.43.191.125:8080/restream/restream/4853
-#EXTINF:-1 group-title="Variedades",E! HD
-http://64.31.23.207:80/96795792/50165825/518560.ts
-#EXTINF:-1 group-title="Variedades",BR: FOOD NETWORK
-http://31.43.191.125:8080/restream/restream/4856
-#EXTINF:-1 group-title="Variedades",Food Network HD
-http://64.31.23.207:80/96795792/50165825/518566.ts
-#EXTINF:-1 group-title="Variedades",BR: STAR CHANNEL
-http://31.43.191.125:8080/restream/restream/4857
-#EXTINF:-1 group-title="Variedades",BR: FOX LIFE
-http://31.43.191.125:8080/restream/restream/4858
-#EXTINF:-1 group-title="Variedades",BR: FX
-http://31.43.191.125:8080/restream/restream/4861
-#EXTINF:-1 group-title="Variedades",BR: GLOOB
-http://31.43.191.125:8080/restream/restream/4866
-#EXTINF:-1 group-title="Variedades",Gloob HD
-http://64.31.23.207:80/96795792/50165825/1882626.ts
-#EXTINF:-1 group-title="Variedades",BR: GNT
-http://31.43.191.125:8080/restream/restream/4867
-#EXTINF:-1 group-title="Variedades",GNT HD
-http://64.31.23.207:80/96795792/50165825/518569.ts
+#EXTINF:-1 group-title="Documentários",Discovery World SD
+http://64.31.23.207:80/96795792/50165825/297959.ts
+#EXTINF:-1 group-title="Documentários",HISTORY HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/304496.ts
+#EXTINF:-1 group-title="Infantil",Cartoonito HD
+http://64.31.23.207:80/96795792/50165825/1882632.ts
+#EXTINF:-1 group-title="Infantil",CARTOON NETWOORK HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/38015.ts
+#EXTINF:-1 group-title="Infantil",CARTOON NETWORK HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8699.ts
+#EXTINF:-1 group-title="Infantil",Discovery Kids HD
+http://64.31.23.207:80/96795792/50165825/297946.ts
+#EXTINF:-1 group-title="Infantil",Disney+ 01
+http://64.31.23.207:80/96795792/50165825/296915.ts
+#EXTINF:-1 group-title="Infantil",Disney+ 02
+http://64.31.23.207:80/96795792/50165825/296916.ts
+#EXTINF:-1 group-title="Infantil",Disney+ 03
+http://64.31.23.207:80/96795792/50165825/296917.ts
+#EXTINF:-1 group-title="Infantil",Disney+ 06
+http://64.31.23.207:80/96795792/50165825/296920.ts
+#EXTINF:-1 group-title="Infantil",Disney+ 08
+http://64.31.23.207:80/96795792/50165825/296922.ts
+#EXTINF:-1 group-title="Infantil",Gloob SD
+http://64.31.23.207:80/96795792/50165825/1882627.ts
+#EXTINF:-1 group-title="Infantil",GLOOBINHO HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/69037.ts
+#EXTINF:-1 group-title="Infantil",NICKELODEON HD
+http://64.31.23.207:80/96795792/50165825/5334249.ts
+#EXTINF:-1 group-title="Infantil",NICK JR HD
+http://64.31.23.207:80/96795792/50165825/5334246.ts
+#EXTINF:-1 group-title="Infantil",Tooncast SD
+http://64.31.23.207:80/96795792/50165825/1882640.ts
+#EXTINF:-1 group-title="Infantil",Tooncast FHD
+http://64.31.23.207:80/96795792/50165825/1882638.ts
+#EXTINF:-1 group-title="Filmes e Séries",AMC HD
+http://64.31.23.207:80/96795792/50165825/5298142.ts
+#EXTINF:-1 group-title="Filmes e Séries",AMC Séries HD
+http://64.31.23.207:80/96795792/50165825/5298243.ts
+#EXTINF:-1 group-title="Filmes e Séries",AMC Séries FHD
+http://64.31.23.207:80/96795792/50165825/5298244.ts
+#EXTINF:-1 group-title="Filmes e Séries",AXN HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/23692.ts
+#EXTINF:-1 group-title="Filmes e Séries",Cinemax HD
+http://64.31.23.207:80/96795792/50165825/5298160.ts
+#EXTINF:-1 group-title="Filmes e Séries",HBO HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8903.ts
+#EXTINF:-1 group-title="Filmes e Séries",HBO 2 HD
+http://64.31.23.207:80/96795792/50165825/514111.ts
+#EXTINF:-1 group-title="Filmes e Séries",HBO Family HD
+http://64.31.23.207:80/96795792/50165825/514114.ts
+#EXTINF:-1 group-title="Filmes e Séries",HBO MUNDI HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8905.ts
+#EXTINF:-1 group-title="Filmes e Séries",HBO PLUS HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/31866.ts
+#EXTINF:-1 group-title="Filmes e Séries",HBO PLUS FHD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/24592.ts
+#EXTINF:-1 group-title="Filmes e Séries",HBO POP HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/93901.ts
+#EXTINF:-1 group-title="Filmes e Séries",HBO SIGNATURE HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8914.ts
+#EXTINF:-1 group-title="Filmes e Séries",HBO XTREME HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/31870.ts
+#EXTINF:-1 group-title="Filmes e Séries",Megapix HD
+http://64.31.23.207:80/96795792/50165825/5298166.ts
+#EXTINF:-1 group-title="Filmes e Séries",PARAMOUNT + 4
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/295699.ts
+#EXTINF:-1 group-title="Filmes e Séries",Paramount+ (JOGO 1)
+http://64.31.23.207:80/96795792/50165825/3460273.ts
+#EXTINF:-1 group-title="Filmes e Séries",Sony Movies HD
+http://64.31.23.207:80/96795792/50165825/5298231.ts
+#EXTINF:-1 group-title="Filmes e Séries",SPACE HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/35245.ts
+#EXTINF:-1 group-title="Filmes e Séries",STUDIO UNIVERSAL HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9117.ts
+#EXTINF:-1 group-title="Filmes e Séries",Telecine Cult SD
+http://64.31.23.207:80/96795792/50165825/5298335.ts
+#EXTINF:-1 group-title="Filmes e Séries",Telecine Fun SD
+http://64.31.23.207:80/96795792/50165825/5298341.ts
+#EXTINF:-1 group-title="Filmes e Séries",Telecine Pipoca SD
+http://64.31.23.207:80/96795792/50165825/5298347.ts
+#EXTINF:-1 group-title="Filmes e Séries",TELECINE PREMIUM HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9134.ts
+#EXTINF:-1 group-title="Filmes e Séries",Telecine Touch SD
+http://64.31.23.207:80/96795792/50165825/5298359.ts
+#EXTINF:-1 group-title="Filmes e Séries",TNT SD
+http://64.31.23.207:80/96795792/50165825/5298204.ts
+#EXTINF:-1 group-title="Filmes e Séries",TNT Novelas SD
+http://64.31.23.207:80/96795792/50165825/5298202.ts
+#EXTINF:-1 group-title="Filmes e Séries",TNT Séries HD
+http://64.31.23.207:80/96795792/50165825/5298208.ts
+#EXTINF:-1 group-title="Filmes e Séries",UNIVERSAL CHANNEL HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/35256.ts
+#EXTINF:-1 group-title="Filmes e Séries",Universal Reality SD
+http://64.31.23.207:80/96795792/50165825/518603.ts
+#EXTINF:-1 group-title="Filmes e Séries",WARNER FHD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9219.ts
+#EXTINF:-1 group-title="Filmes e Séries",Warner Channel SD
+http://64.31.23.207:80/96795792/50165825/5298228.ts

@@ -32,7 +32,7 @@ int firmware_dlna_stream_progress_recent(int seconds) {
 
 int main(void) {
     player_init();
-    stream_started = 1;
+    stream_started = 0;
     if (player_play("https://example.invalid/live.m3u8", "Canal") != 0) return 1;
     if (player_get_state() != PLAYER_STATE_BUFFERING) return 2;
     renderer_playing = 0;
@@ -41,6 +41,7 @@ int main(void) {
     fake_now = 1003;
     if (player_get_state() != PLAYER_STATE_BUFFERING) return 4;
     renderer_playing = 1;
+    stream_started = 1;
     fake_now = 1004;
     /* The first confirmed local HTTP playback must clear the loading OSD.
      * Keeping it for a second SOAP poll hides real video and causes flicker. */
@@ -101,5 +102,23 @@ int main(void) {
     if (player_get_state() != PLAYER_STATE_PLAYING) return 26;
     fake_now = 4010;
     if (player_get_state() != PLAYER_STATE_ERROR) return 25;
+    player_stop();
+
+    /* The firmware may already be rendering while the loading OSD remains.
+     * A fresh local HTTP stream plus PLAYING should uncover it immediately. */
+    renderer_playing = 1;
+    stream_started = 1;
+    stream_disconnected = 0;
+    fake_now = 5000;
+    if (player_play("https://example.invalid/live.m3u8", "Canal") != 0) return 27;
+    if (player_get_state() != PLAYER_STATE_PLAYING) return 28;
+    player_stop();
+
+    /* Direct HTTP has no local byte counter; one confirmed PLAYING report
+     * after launch is sufficient to remove the stale warning. */
+    fake_now = 6000;
+    if (player_play("http://example.invalid/video.ts", "Canal") != 0) return 29;
+    fake_now = 6001;
+    if (player_get_state() != PLAYER_STATE_PLAYING) return 30;
     return 0;
 }

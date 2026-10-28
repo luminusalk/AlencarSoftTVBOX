@@ -13,6 +13,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Compilar e executar testes C
         run: |
+          python3 -m unittest tools.test_channel_scanner -v
           cd AlencarSoftTVBOX-Clang
           gcc -std=gnu99 -O1 -g -Wall -Wextra -Werror -D_GNU_SOURCE -Iinclude \
             tests/ir_guard_test.c src/ir_guard.c -lpthread -o ir_guard_test
@@ -21,6 +22,9 @@ jobs:
             -DRECEIVER_DLNA_BACKEND -Iinclude \
             tests/player_dlna_state_test.c src/player.c -o player_dlna_state_test
           ./player_dlna_state_test
+          gcc -std=gnu99 -O1 -g -Wall -Wextra -Werror -D_GNU_SOURCE -Iinclude \
+            tests/iptv_catalog_quality_test.c src/iptv_catalog.c -o iptv_catalog_quality_test
+          ./iptv_catalog_quality_test
           gcc -std=gnu99 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined \
             -D_GNU_SOURCE -Iinclude tests/framebuffer_stride_test.c src/framebuffer.c src/font.c \
             -o framebuffer_stride_test

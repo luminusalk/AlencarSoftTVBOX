@@ -9,15 +9,13 @@ from scan_live_channels import classify
 
 
 ROOT = Path(__file__).resolve().parents[1]
-INPUTS = (ROOT / "build-artifacts/verified_channels.m3u8",
-          ROOT / "build-artifacts/verified_open.m3u8",
-          ROOT / "build-artifacts/verified_fhd.m3u8",
-          ROOT / "build-artifacts/verified_varieties.m3u8")
+INPUTS = (ROOT / "build-artifacts/verified_refresh.m3u8",)
 OUTPUT = ROOT / "AlencarSoftTVBOX-Clang/iptv.m3u8"
 FAILED = (ROOT / "tools/receiver_failed_url_sha256.txt",
           ROOT / "build-artifacts/receiver_failed_url_sha256.txt")
-CATEGORIES = ("Notícias", "Canais Abertos", "Esportes", "Variedades")
-TARGETS = {"Notícias": 60, "Canais Abertos": 100, "Esportes": 100, "Variedades": 40}
+CATEGORIES = ("Notícias", "Canais Abertos", "Esportes", "Documentários", "Infantil", "Filmes e Séries", "Variedades")
+TARGETS = {"Notícias": 35, "Canais Abertos": 70, "Esportes": 65,
+           "Documentários": 35, "Infantil": 30, "Filmes e Séries": 50, "Variedades": 15}
 GROUP = re.compile(r'group-title="([^"]*)"')
 
 
@@ -34,9 +32,12 @@ def read(path):
 
 
 def identity(name):
+    # Source lists append superscript server numbers to otherwise identical
+    # names. Remove those before NFKD turns them into ordinary digits.
+    name = re.sub(r"[¹²³⁴⁵⁶⁷⁸⁹⁰�\ufeff]", "", name)
     base = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode().lower()
     base = re.sub(r"^(br|brazil)\s*:\s*", "", base)
-    base = re.sub(r"\b(1080p|720p|full hd|fhd|uhd|4k|hd|sd)\b", "", base)
+    base = re.sub(r"\b(1080p|720p|full hd|fhd|uhd|4k|hd|sd|h\.?265|h\.?264)\b", "", base)
     return re.sub(r"[^a-z0-9]", "", base)
 
 
@@ -62,6 +63,10 @@ def main():
             category = classify(name, category) or category
             if category not in CATEGORIES or url in urls:
                 continue
+            if re.search(r"\b(?:h\.?265|hevc|uhd|4k)\b", name, re.I):
+                # This receiver's confirmed path is H.264/AAC MPEG-TS.
+                # Do not fill the grade with unverified HEVC/UHD variants.
+                continue
             if sha256(url.encode("utf-8")).hexdigest() in failed_hashes:
                 continue
             if re.match(r"^[A-Z]{2,4}:\s", name) and not name.upper().startswith("BR:"):
@@ -81,7 +86,7 @@ def main():
                 order.append(key)
             groups[key].append(item)
         interleaved = []
-        for key in order:
+        for key in sorted(order):
             bucket = groups[key]
             interleaved.append(bucket[0])
             first_quality = quality(bucket[0][0])
@@ -90,8 +95,6 @@ def main():
                             and quality(item[0]) != first_quality), None)
             if partner:
                 interleaved.append(partner)
-            elif len(bucket) > 1:
-                interleaved.append(bucket[1])
         by_category[category] = interleaved
 
     selected = defaultdict(list)
