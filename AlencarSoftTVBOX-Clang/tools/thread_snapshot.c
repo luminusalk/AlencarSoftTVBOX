@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,7 +27,7 @@ int main(int argc, char **argv) {
     pid_t pid, tid; char name[64], *end; long value, hold_ms = 0;
     unsigned long regs[512], frames[96]; int status, i, attached = 0, rc = 1;
     if (argc != 3 && argc != 4) {
-        fprintf(stderr, "Usage: thread_snapshot PID TID [hold_ms: 0..8000]\n");
+        fprintf(stderr, "Usage: thread_snapshot PID TID [hold_ms: 0..30000]\n");
         return 2;
     }
     errno = 0; value = strtol(argv[1], &end, 10);
@@ -37,14 +38,14 @@ int main(int argc, char **argv) {
     tid = (pid_t)value;
     if (argc == 4) {
         errno = 0; hold_ms = strtol(argv[3], &end, 10);
-        if (errno || *end || hold_ms < 0 || hold_ms > 8000) return 2;
+        if (errno || *end || hold_ms < 0 || hold_ms > 30000) return 2;
     }
     if (comm(pid, pid, name, sizeof(name)) || strcmp(name, "dvbapp")) return 3;
     if (comm(pid, tid, name, sizeof(name))) return 3;
     /* Existing IR guardian owns key_task. Never interfere with it. */
     if (!strcmp(name, "key_task")) return 3;
     signal(SIGALRM, expired); signal(SIGTERM, expired); signal(SIGINT, expired);
-    alarm(4 + (unsigned int)(hold_ms / 1000));
+    alarm(5 + (unsigned int)(hold_ms / 1000));
     if (ptrace(PTRACE_ATTACH, tid, 0, 0) < 0) { perror("attach"); return 4; }
     attached = 1;
     for (i = 0; i < 100; i++) {
@@ -75,7 +76,10 @@ int main(int argc, char **argv) {
     if (hold_ms) {
         printf("HOLD tid=%ld ms=%ld\n", (long)tid, hold_ms);
         fflush(stdout);
-        usleep((useconds_t)hold_ms * 1000U);
+        struct timespec delay;
+        delay.tv_sec = hold_ms / 1000;
+        delay.tv_nsec = (hold_ms % 1000) * 1000000L;
+        while (nanosleep(&delay, &delay) < 0 && errno == EINTR) {}
     }
     /* Release before printing so slow terminal output cannot extend the stop. */
     if (ptrace(PTRACE_DETACH, tid, 0, 0) < 0) { perror("detach"); goto out; }
