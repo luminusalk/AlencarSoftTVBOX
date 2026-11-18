@@ -85,7 +85,7 @@ def reachable(ip):
 
 
 def find_receiver():
-    addresses = [f"192.168.{net}.{i}" for net in (137, 18) for i in range(2, 255)]
+    addresses = ["169.254.172.2"] + [f"192.168.{net}.{i}" for net in (137, 18) for i in range(2, 255)]
     with ThreadPoolExecutor(max_workers=64) as pool:
         hosts = [ip for ip in pool.map(reachable, addresses) if ip]
     return hosts[0] if hosts else None
