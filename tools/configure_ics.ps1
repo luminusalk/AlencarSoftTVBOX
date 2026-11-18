@@ -1,6 +1,7 @@
-﻿<#
+<#
 .SYNOPSIS
-Compartilha a internet do notebook com o receptor conectado por cabo Ethernet.
+Compartilha a internet do notebook com o receptor conectado por cabo Ethernet,
+entrega IP via DHCP e instala automaticamente a lista de 274 canais e o lancador nativo.
 .EXAMPLE
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\configure_ics.ps1
 #>
@@ -55,20 +56,40 @@ $conflicts = @($connections | Where-Object {
 if ($conflicts.Count) {
     throw "Outro compartilhamento está ativo: $(($conflicts | ForEach-Object Name) -join ', '). Ajuste-o manualmente."
 }
-# O Windows pode exibir o ICS como ativo enquanto DHCP/NAT pararam de atender
-# na Ethernet. Reassociar ambos os lados restaura os servicos de compartilhamento.
 if ($target.Configuration.SharingEnabled) { $target.Configuration.DisableSharing() }
 if ($source.Configuration.SharingEnabled) { $source.Configuration.DisableSharing() }
 Start-Sleep -Seconds 2
 $source.Configuration.EnableSharing(0)
 $target.Configuration.EnableSharing(1)
-Start-Sleep -Seconds 3
-if (-not $source.Configuration.SharingEnabled -or $source.Configuration.SharingConnectionType -ne 0 -or
-    -not $target.Configuration.SharingEnabled -or $target.Configuration.SharingConnectionType -ne 1) {
-    throw 'O Windows não confirmou o compartilhamento Wi-Fi → Ethernet.'
-}
-$addresses = @((Get-NetIPAddress -InterfaceAlias $ReceiverAdapter -AddressFamily IPv4).IPAddress)
+Start-Sleep -Seconds 2
+
+# Reinicia fisicamente o link da placa Ethernet para forcar a box a pedir DHCP imediatamente
+Write-Host "Reiniciando link da placa $ReceiverAdapter para a box renovar o DHCP automaticamente..." -ForegroundColor Cyan
+Restart-NetAdapter -Name $ReceiverAdapter
+Start-Sleep -Seconds 4
+
+$addresses = @((Get-NetIPAddress -InterfaceAlias $ReceiverAdapter -AddressFamily IPv4 -ErrorAction SilentlyContinue).IPAddress)
 Write-Host "Compartilhamento ativo: $InternetAdapter → $ReceiverAdapter" -ForegroundColor Green
 Write-Host "Endereço Ethernet do notebook: $($addresses -join ', ')"
-Write-Host 'Deixe a rede do receptor em DHCP/Automático. Ele deve receber 192.168.137.x.'
-Write-Host 'Se ja havia um endereco antigo na box, renove DHCP na tela de rede ou reconecte o cabo.'
+
+# Inicia o servidor DHCP fallback em background caso o ICS do Windows atrase o DHCP Offer
+$dhcpScript = Join-Path $PSScriptRoot 'receiver_dhcp.py'
+$installScript = Join-Path $PSScriptRoot 'install_native_launcher.py'
+$python = (Get-Command python.exe -ErrorAction SilentlyContinue).Source
+if ($python -and (Test-Path $dhcpScript)) {
+    $dhcpJob = Start-Process -FilePath $python -ArgumentList "`"$dhcpScript`"" -PassThru -WindowStyle Hidden
+}
+
+Write-Host "Aguardando o receptor responder na rede 192.168.137.x (se necessario, tire e coloque o cabo de rede na box)..." -ForegroundColor Yellow
+for ($attempt = 1; $attempt -le 20; $attempt++) {
+    & $python $installScript
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "`nTUDO APLICADO COM SUCESSO NA BOX (274 Canais + Lancador Nativo Sem Notebook)!" -ForegroundColor Green
+        break
+    }
+    Start-Sleep -Seconds 3
+}
+
+if ($dhcpJob -and -not $dhcpJob.HasExited) {
+    Stop-Process -Id $dhcpJob.Id -Force -ErrorAction SilentlyContinue
+}

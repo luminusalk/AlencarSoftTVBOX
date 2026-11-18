@@ -1,24 +1,30 @@
 #EXTM3U
 #EXTINF:-1 group-title="Notícias",BAND NEWS HD
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/11769.ts
-#EXTINF:-1 group-title="Notícias",CNN BRASIL HD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/8712.ts
+#EXTINF:-1 group-title="Notícias",CNN BRASIL HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30167.ts
 #EXTINF:-1 group-title="Notícias",Cultura HD
 http://64.31.23.207:80/96795792/50165825/5298049.ts
 #EXTINF:-1 group-title="Notícias",CULTURA PA
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/21022.ts
-#EXTINF:-1 group-title="Notícias",GLOBO NEWS HD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/8854.ts
+#EXTINF:-1 group-title="Notícias",GLOBO NEWS HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30168.ts
 #EXTINF:-1 group-title="Notícias",JOVEM PAN FHD ¹
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/167984.ts
+#EXTINF:-1 group-title="Notícias",JOVEM PAN HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/167985.ts
 #EXTINF:-1 group-title="Notícias",JOVEM PAN NEWS HD
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/107918.ts
+#EXTINF:-1 group-title="Notícias",JOVEM PAN NEWS FHD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/108191.ts
 #EXTINF:-1 group-title="Notícias",RECORD NEWS HD
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/9057.ts
+#EXTINF:-1 group-title="Notícias",SBT NEWS FHD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/1129619.ts
 #EXTINF:-1 group-title="Notícias",SBT News HD
 http://64.31.23.207:80/96795792/50165825/5298087.ts
-#EXTINF:-1 group-title="Notícias",TV Camara
-http://64.31.23.207:80/96795792/50165825/5298063.ts
+#EXTINF:-1 group-title="Notícias",TV CÂMARA
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/69905.ts
 #EXTINF:-1 group-title="Notícias",TV Cultura HD
 https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8?vhost=player-tvcultura.stream.uol.com.br
 #EXTINF:-1 group-title="Notícias",TV SENADO HD
@@ -299,10 +305,10 @@ http://64.31.23.207:80/96795792/50165825/324310.ts
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/88432.ts
 #EXTINF:-1 group-title="Canais Abertos",SBT PR
 http://64.31.23.207:80/96795792/50165825/324301.ts
-#EXTINF:-1 group-title="Canais Abertos",SBT RJ HD
-http://64.31.23.207:80/96795792/50165825/324303.ts
 #EXTINF:-1 group-title="Canais Abertos",SBT RJ FHD
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/131563.ts
+#EXTINF:-1 group-title="Canais Abertos",SBT RJ HD
+http://64.31.23.207:80/96795792/50165825/324303.ts
 #EXTINF:-1 group-title="Canais Abertos",SBT RS HD
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/91907.ts
 #EXTINF:-1 group-title="Canais Abertos",SBT SP HD
@@ -323,12 +329,12 @@ http://governosptx.org:80/3llohwk4g9/kwf099q30o/8662.ts
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/227520.ts
 #EXTINF:-1 group-title="Esportes",Combate HD
 http://64.31.23.207:80/96795792/50165825/297543.ts
-#EXTINF:-1 group-title="Esportes",ESPN HD
-http://64.31.23.207:80/96795792/50165825/3460183.ts
 #EXTINF:-1 group-title="Esportes",ESPN FHD
 http://64.31.23.207:80/96795792/50165825/3460182.ts
-#EXTINF:-1 group-title="Esportes",ESPN 2 HD
-http://64.31.23.207:80/96795792/50165825/3460186.ts
+#EXTINF:-1 group-title="Esportes",ESPN HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/598916.ts
+#EXTINF:-1 group-title="Esportes",ESPN 2 HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30072.ts
 #EXTINF:-1 group-title="Esportes",ESPN 3 HD
 http://64.31.23.207:80/96795792/50165825/3460189.ts
 #EXTINF:-1 group-title="Esportes",ESPN 3 FHD
@@ -339,8 +345,8 @@ http://64.31.23.207:80/96795792/50165825/3460192.ts
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/8827.ts
 #EXTINF:-1 group-title="Esportes",ESPN 5 FHD
 http://64.31.23.207:80/96795792/50165825/3460194.ts
-#EXTINF:-1 group-title="Esportes",ESPN 6  HD
-http://governosptx.org:80/3llohwk4g9/kwf099q30o/8794.ts
+#EXTINF:-1 group-title="Esportes",ESPN 6 HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30077.ts
 #EXTINF:-1 group-title="Esportes",ESPN 6 FHD
 http://64.31.23.207:80/96795792/50165825/3460197.ts
 #EXTINF:-1 group-title="Esportes",Eurosport HD
@@ -363,6 +369,8 @@ http://64.31.23.207:80/96795792/50165825/3460209.ts
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/69028.ts
 #EXTINF:-1 group-title="Esportes",PREMIERE 2 FHD ²
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/69097.ts
+#EXTINF:-1 group-title="Esportes",PREMIERE 3 HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/69031.ts
 #EXTINF:-1 group-title="Esportes",Premiere 3 FHD
 http://64.31.23.207:80/96795792/50165825/3460215.ts
 #EXTINF:-1 group-title="Esportes",PREMIERE 4 HD
@@ -411,6 +419,8 @@ http://64.31.23.207:80/96795792/50165825/296620.ts
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/8736.ts
 #EXTINF:-1 group-title="Documentários",Discovery H&H HD
 http://64.31.23.207:80/96795792/50165825/297940.ts
+#EXTINF:-1 group-title="Documentários",DISCOVERY HOME & HEALT HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/93902.ts
 #EXTINF:-1 group-title="Documentários",DISCOVERY  HOME & HEALTH HD ²
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/30149.ts
 #EXTINF:-1 group-title="Documentários",Discovery ID HD
@@ -425,14 +435,16 @@ http://64.31.23.207:80/96795792/50165825/297955.ts
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/8754.ts
 #EXTINF:-1 group-title="Documentários",DISCOVERY TLC FHD
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/8753.ts
-#EXTINF:-1 group-title="Documentários",Discovery Turbo HD
-http://64.31.23.207:80/96795792/50165825/518557.ts
+#EXTINF:-1 group-title="Documentários",DISCOVERY TURBO HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/30156.ts
 #EXTINF:-1 group-title="Documentários",Discovery World SD
 http://64.31.23.207:80/96795792/50165825/297959.ts
+#EXTINF:-1 group-title="Documentários",DISCOVERY WORLD HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/93905.ts
 #EXTINF:-1 group-title="Documentários",HISTORY HD
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/304496.ts
-#EXTINF:-1 group-title="Infantil",Cartoonito HD
-http://64.31.23.207:80/96795792/50165825/1882632.ts
+#EXTINF:-1 group-title="Infantil",CARTOONITO HD ¹
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/38013.ts
 #EXTINF:-1 group-title="Infantil",CARTOON NETWOORK HD ¹
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/38015.ts
 #EXTINF:-1 group-title="Infantil",CARTOON NETWORK HD
@@ -443,34 +455,38 @@ http://64.31.23.207:80/96795792/50165825/297946.ts
 http://64.31.23.207:80/96795792/50165825/296915.ts
 #EXTINF:-1 group-title="Infantil",Disney+ 02
 http://64.31.23.207:80/96795792/50165825/296916.ts
-#EXTINF:-1 group-title="Infantil",Disney+ 03
-http://64.31.23.207:80/96795792/50165825/296917.ts
-#EXTINF:-1 group-title="Infantil",Disney+ 06
-http://64.31.23.207:80/96795792/50165825/296920.ts
+#EXTINF:-1 group-title="Infantil",DISNEY + 03 HD
+http://acaidopt.org:80/3llohwk4g9/kwf099q30o/1169097.ts
+#EXTINF:-1 group-title="Infantil",DISNEY + 06 HD
+http://acaidopt.org:80/3llohwk4g9/kwf099q30o/1169100.ts
 #EXTINF:-1 group-title="Infantil",Disney+ 08
 http://64.31.23.207:80/96795792/50165825/296922.ts
-#EXTINF:-1 group-title="Infantil",Gloob SD
-http://64.31.23.207:80/96795792/50165825/1882627.ts
+#EXTINF:-1 group-title="Infantil",DISNEY + 09 HD
+http://acaidopt.org:80/3llohwk4g9/kwf099q30o/1169103.ts
+#EXTINF:-1 group-title="Infantil",DISNEY + 10 HD
+http://acaidopt.org:80/3llohwk4g9/kwf099q30o/1169104.ts
+#EXTINF:-1 group-title="Infantil",GLOOB HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8888.ts
 #EXTINF:-1 group-title="Infantil",GLOOBINHO HD
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/69037.ts
 #EXTINF:-1 group-title="Infantil",NICKELODEON HD
 http://64.31.23.207:80/96795792/50165825/5334249.ts
 #EXTINF:-1 group-title="Infantil",NICK JR HD
 http://64.31.23.207:80/96795792/50165825/5334246.ts
-#EXTINF:-1 group-title="Infantil",Tooncast SD
-http://64.31.23.207:80/96795792/50165825/1882640.ts
+#EXTINF:-1 group-title="Infantil",TOONCAST HD
+http://acaidopt.org:80/3llohwk4g9/kwf099q30o/9150.ts
 #EXTINF:-1 group-title="Infantil",Tooncast FHD
 http://64.31.23.207:80/96795792/50165825/1882638.ts
-#EXTINF:-1 group-title="Filmes e Séries",AMC HD
-http://64.31.23.207:80/96795792/50165825/5298142.ts
+#EXTINF:-1 group-title="Filmes e Séries",AMC HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/35227.ts
 #EXTINF:-1 group-title="Filmes e Séries",AMC Séries HD
 http://64.31.23.207:80/96795792/50165825/5298243.ts
 #EXTINF:-1 group-title="Filmes e Séries",AMC Séries FHD
 http://64.31.23.207:80/96795792/50165825/5298244.ts
 #EXTINF:-1 group-title="Filmes e Séries",AXN HD
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/23692.ts
-#EXTINF:-1 group-title="Filmes e Séries",Cinemax HD
-http://64.31.23.207:80/96795792/50165825/5298160.ts
+#EXTINF:-1 group-title="Filmes e Séries",CINEMAX HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8709.ts
 #EXTINF:-1 group-title="Filmes e Séries",HBO HD
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/8903.ts
 #EXTINF:-1 group-title="Filmes e Séries",HBO 2 HD
@@ -489,39 +505,45 @@ http://governosptx.org:80/3llohwk4g9/kwf099q30o/93901.ts
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/8914.ts
 #EXTINF:-1 group-title="Filmes e Séries",HBO XTREME HD ¹
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/31870.ts
-#EXTINF:-1 group-title="Filmes e Séries",Megapix HD
-http://64.31.23.207:80/96795792/50165825/5298166.ts
+#EXTINF:-1 group-title="Filmes e Séries",MEGAPIX HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/8962.ts
 #EXTINF:-1 group-title="Filmes e Séries",PARAMOUNT + 4
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/295699.ts
 #EXTINF:-1 group-title="Filmes e Séries",Paramount+ (JOGO 1)
 http://64.31.23.207:80/96795792/50165825/3460273.ts
+#EXTINF:-1 group-title="Filmes e Séries",SONY HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9099.ts
 #EXTINF:-1 group-title="Filmes e Séries",Sony Movies HD
 http://64.31.23.207:80/96795792/50165825/5298231.ts
 #EXTINF:-1 group-title="Filmes e Séries",SPACE HD ²
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/35245.ts
 #EXTINF:-1 group-title="Filmes e Séries",STUDIO UNIVERSAL HD
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/9117.ts
-#EXTINF:-1 group-title="Filmes e Séries",Telecine Cult SD
-http://64.31.23.207:80/96795792/50165825/5298335.ts
-#EXTINF:-1 group-title="Filmes e Séries",Telecine Fun SD
-http://64.31.23.207:80/96795792/50165825/5298341.ts
-#EXTINF:-1 group-title="Filmes e Séries",Telecine Pipoca SD
-http://64.31.23.207:80/96795792/50165825/5298347.ts
+#EXTINF:-1 group-title="Filmes e Séries",TELECINE ACTION HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9127.ts
+#EXTINF:-1 group-title="Filmes e Séries",TELECINE CULT HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9128.ts
+#EXTINF:-1 group-title="Filmes e Séries",TELECINE FUN HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9130.ts
+#EXTINF:-1 group-title="Filmes e Séries",TELECINE PIPOCA HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9132.ts
 #EXTINF:-1 group-title="Filmes e Séries",TELECINE PREMIUM HD
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/9134.ts
-#EXTINF:-1 group-title="Filmes e Séries",Telecine Touch SD
-http://64.31.23.207:80/96795792/50165825/5298359.ts
-#EXTINF:-1 group-title="Filmes e Séries",TNT SD
-http://64.31.23.207:80/96795792/50165825/5298204.ts
-#EXTINF:-1 group-title="Filmes e Séries",TNT Novelas SD
-http://64.31.23.207:80/96795792/50165825/5298202.ts
-#EXTINF:-1 group-title="Filmes e Séries",TNT Séries HD
-http://64.31.23.207:80/96795792/50165825/5298208.ts
+#EXTINF:-1 group-title="Filmes e Séries",TELECINE TOUCH HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9136.ts
+#EXTINF:-1 group-title="Filmes e Séries",TNT HD ²
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/594025.ts
+#EXTINF:-1 group-title="Filmes e Séries",TNT NOVELAS HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/275104.ts
+#EXTINF:-1 group-title="Filmes e Séries",TNT SÉRIES HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9145.ts
 #EXTINF:-1 group-title="Filmes e Séries",UNIVERSAL CHANNEL HD ¹
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/35256.ts
 #EXTINF:-1 group-title="Filmes e Séries",Universal Reality SD
 http://64.31.23.207:80/96795792/50165825/518603.ts
 #EXTINF:-1 group-title="Filmes e Séries",WARNER FHD
 http://governosptx.org:80/3llohwk4g9/kwf099q30o/9219.ts
+#EXTINF:-1 group-title="Filmes e Séries",WARNER HD
+http://governosptx.org:80/3llohwk4g9/kwf099q30o/9220.ts
 #EXTINF:-1 group-title="Filmes e Séries",Warner Channel SD
 http://64.31.23.207:80/96795792/50165825/5298228.ts
